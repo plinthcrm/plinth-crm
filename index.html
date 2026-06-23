@@ -313,6 +313,10 @@
       <div class="card-h">🔥 أولوية المتابعة — مين تتابعه دلوقتي <span class="muted num" id="prioCount" style="font-weight:400;font-size:12px"></span></div>
       <div class="card-b"><div class="prio" id="prioList" style="max-height:360px;overflow-y:auto"></div></div>
     </div>
+    <div class="card" id="staleCard" style="display:none;border-color:var(--gold)">
+      <div class="card-h" style="color:var(--gold)">⚠ عملاء بدون تواصل من أكتر من 7 أيام <span class="muted num" id="staleCount" style="font-weight:400;font-size:12px"></span></div>
+      <div class="card-b"><div class="prio" id="staleList" style="max-height:260px;overflow-y:auto"></div></div>
+    </div>
     <div class="card">
       <div class="card-h">مراحل العملاء (Pipeline)</div>
       <div class="card-b"><div class="funnel" id="funnel"></div></div>
@@ -806,12 +810,22 @@
     const closed=leads.filter(l=>l.status==="won"||l.status==="lost");
     const conv=closed.length?Math.round(won.length/closed.length*100):0;
     const due=leads.filter(l=>{const d=dueInfo(l.nextFollowUp);return d&&(d.cls==="due-over"||d.cls==="due-today");}).length;
+    const dueToday=leads.filter(l=>{const d=dueInfo(l.nextFollowUp);return d&&d.cls==="due-today";}).length;
+    // this month cancelled/lost
+    const now=new Date(), monthStart=new Date(now.getFullYear(),now.getMonth(),1).getTime();
+    const thisMonthLost=leads.filter(l=>["cancelled","lost"].includes(l.status)&&(l.updatedAt||0)>=monthStart).length;
+    // stale leads (no contact > 7 days, active)
+    const stale=leads.filter(l=>{if(!isActive(l))return false;const lt=lastTs(l)||l.createdAt;return Math.floor((Date.now()-lt)/864e5)>7;}).length;
     $("#kpiGrid").innerHTML=`
       <div class="kpi accent" style="cursor:pointer" onclick="applyQuick(null)"><div class="lbl">إجمالي العملاء</div><div class="val num">${leads.length}</div><div class="sub muted">${active.length} نشط</div></div>
       <div class="kpi" style="cursor:pointer" onclick="applyQuick('active')"><div class="lbl">Pipeline النشطة ›</div><div class="val num" style="font-size:17px">${totalsByCurrency(l=>isActive(l))}</div></div>
       <div class="kpi" style="cursor:pointer" onclick="applyQuick('won')"><div class="lbl">مكسوب ›</div><div class="val num" style="color:var(--sage)">${won.length}</div><div class="sub muted">${totalsByCurrency(l=>l.status==='won')}</div></div>
       <div class="kpi"><div class="lbl">نسبة التحويل</div><div class="val num">${conv}<small>%</small></div><div class="sub muted">${won.length}/${closed.length}</div></div>
-      <div class="kpi" style="cursor:pointer" onclick="applyQuick('due')"><div class="lbl">متابعات مستحقة ›</div><div class="val num" style="color:${due?'var(--rose)':'var(--ink)'}">${due}</div><div class="sub muted">النهاردة أو متأخرة</div></div>`;
+      <div class="kpi" style="cursor:pointer" onclick="applyQuick('due')"><div class="lbl">متابعات مستحقة ›</div><div class="val num" style="color:${due?'var(--rose)':'var(--ink)'}">${due}</div><div class="sub muted">النهاردة أو متأخرة</div></div>
+      <div class="kpi" style="cursor:pointer" onclick="applyQuick('today')"><div class="lbl">النهاردة بس ›</div><div class="val num" style="color:${dueToday?'var(--clay)':'var(--ink)'}">${dueToday}</div><div class="sub muted">مواعيد متابعة اليوم</div></div>
+      ${thisMonthLost?`<div class="kpi" style="cursor:pointer" onclick="applyQuick('lost_month')"><div class="lbl">إلغاء/خسارة الشهر ده ›</div><div class="val num" style="color:var(--rose)">${thisMonthLost}</div><div class="sub muted">${now.toLocaleString('ar-EG',{month:'long'})}</div></div>`:""}
+      ${stale?`<div class="kpi" style="cursor:pointer" onclick="applyQuick('stale')"><div class="lbl">بدون تواصل +7 أيام ›</div><div class="val num" style="color:var(--gold)">${stale}</div><div class="sub muted">تحتاج متابعة عاجلة</div></div>`:""}`;
+
 
     // priority (all, scrollable)
     const scored=leads.map(l=>({l,p:priority(l)})).filter(x=>x.p&&x.p.sc>0).sort((a,b)=>b.p.sc-a.p.sc);
@@ -828,6 +842,17 @@
     const maxC=Math.max(1,...PIPELINE.map(k=>leads.filter(l=>l.status===k).length));
     $("#funnel").innerHTML=PIPELINE.map(k=>{const s=stById(k),c=leads.filter(l=>l.status===k).length,w=Math.max(6,Math.round(c/maxC*100));
       return `<div class="fbar" style="cursor:pointer" onclick="applyQuick('st:${k}')"><div class="fname">${s.t}</div><div class="ftrack"><div class="ffill" style="width:${w}%;background:${s.c}">${c}</div></div></div>`;}).join("");
+
+    // stale leads card
+    const staleLeads=leads.filter(l=>{if(!isActive(l))return false;const lt=lastTs(l)||l.createdAt;return Math.floor((Date.now()-lt)/864e5)>7;}).sort((a,b)=>{const la=lastTs(a)||a.createdAt,lb=lastTs(b)||b.createdAt;return la-lb;});
+    const staleCard=document.getElementById("staleCard");
+    if(staleCard){staleCard.style.display=staleLeads.length?"":"none";
+      document.getElementById("staleCount").textContent=staleLeads.length?"("+staleLeads.length+")":"";
+      document.getElementById("staleList").innerHTML=staleLeads.map(l=>{const days=Math.floor((Date.now()-(lastTs(l)||l.createdAt))/864e5);
+        return`<div class="prio-item" onclick="openDetail('${l.id}')"><div class="prio-rank" style="background:var(--gold)">${days}ي</div>
+        <div class="prio-main"><div class="prio-name">${esc(l.name)}</div><div class="prio-reason">${esc(stById(l.status).t)} · ${esc(l.owner||"—")}</div></div>
+        <div class="prio-val num" style="font-size:12px">${l.value?fmt(l.value)+" "+l.currency:""}</div></div>`;}).join("")||"";}
+
 
     const owners=[...new Set(leads.map(l=>l.owner).filter(Boolean))];
     $("#ownerPerf").innerHTML=owners.length?`<table class="perf"><thead><tr><th>المسؤول</th><th>العملاء</th><th>مكسوب</th><th>تحويل</th><th>قيمة نشطة</th></tr></thead><tbody>`+
@@ -846,12 +871,18 @@
   };
   function quickLabel(f){
     if(f==="active")return"الـ Pipeline النشطة";if(f==="won")return"مكسوب";if(f==="due")return"متابعات مستحقة/متأخرة";
+    if(f==="today")return"متابعات النهاردة بس";
+    if(f==="lost_month")return"إلغاء/خسارة الشهر ده";
+    if(f==="stale")return"بدون تواصل أكتر من 7 أيام";
     if(f&&f.indexOf("st:")===0)return"الحالة: "+stById(f.slice(3)).t;return"";}
   function passQuick(l){
     if(!quickFilter)return true;
     if(quickFilter==="active")return isActive(l);
     if(quickFilter==="won")return l.status==="won";
     if(quickFilter==="due"){const d=dueInfo(l.nextFollowUp);return d&&(d.cls==="due-over"||d.cls==="due-today");}
+    if(quickFilter==="today"){const d=dueInfo(l.nextFollowUp);return d&&d.cls==="due-today";}
+    if(quickFilter==="lost_month"){const now=new Date(),ms=new Date(now.getFullYear(),now.getMonth(),1).getTime();return["cancelled","lost"].includes(l.status)&&(l.updatedAt||0)>=ms;}
+    if(quickFilter==="stale"){if(!isActive(l))return false;const lt=lastTs(l)||l.createdAt;return Math.floor((Date.now()-lt)/864e5)>7;}
     if(quickFilter.indexOf("st:")===0)return l.status===quickFilter.slice(3);
     return true;}
   function renderLeads(){
@@ -968,7 +999,8 @@
       owner:$("#f-owner").value,source:src,campaignId:campId,
       services:formServices.slice(),projectCategory:$("#f-cat").value,projectSubtype:$("#f-sub").value,
       area:$("#f-area").value,areaUnit:$("#f-area-unit").value||"م²",location:$("#f-location").value.trim(),district:$("#f-district").value.trim(),compound:$("#f-compound").value.trim(),
-      value:$("#f-value").value,currency:$("#f-currency").value,status:$("#f-status").value,nextFollowUp:$("#f-followup").value||null,
+      value:$("#f-value").value,currency:$("#f-currency").value,status:$("#f-status").value,
+      nextFollowUp:TERMINAL.includes($("#f-status").value)?null:($("#f-followup").value||null),
       driveLink:$("#f-drive").value.trim(),painPoints:$("#f-pain").value.trim(),ourPlus:$("#f-plus").value.trim(),
       cancelReason:$("#f-status").value==="cancelled"?($("#f-cancelReason").value||null):null,
       lostReason:$("#f-status").value==="lost"?($("#f-lostReason").value||null):null,
@@ -1047,23 +1079,64 @@
       <div id="quickReasonWrap" style="display:none;margin-top:8px;background:var(--ivory);border:1px solid var(--line);border-radius:11px;padding:10px">
         <div id="quickReasonLabel" style="font-size:12.5px;font-weight:600;margin-bottom:6px;color:var(--rose)">اختر السبب</div>
         <select class="filter" id="quickReasonSel" style="width:100%;margin-bottom:8px"></select>
+        <textarea id="quickReasonNote" placeholder="ملاحظة إلزامية — اكتب تفاصيل السبب…" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-family:inherit;font-size:14px;min-height:64px;resize:vertical;margin-bottom:8px;background:#fff"></textarea>
         <button class="btn btn-primary btn-sm" id="quickReasonSave" style="width:100%">حفظ والمتابعة</button>
+      </div>
+      <div id="quickWonWrap" style="display:none;margin-top:8px;background:#EFF7EF;border:1px solid #B8D9B8;border-radius:11px;padding:10px">
+        <div style="font-size:12.5px;font-weight:600;margin-bottom:6px;color:var(--sage)">🎉 تهانينا! أكّد قيمة العقد الفعلية</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px">
+          <input id="quickWonValue" type="number" placeholder="القيمة الفعلية" style="flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-family:inherit;font-size:14px;background:#fff">
+          <select id="quickWonCurrency" style="border:1px solid var(--line);border-radius:10px;padding:0 10px;font-family:inherit;font-size:13px;background:#fff"><option>EGP</option><option>SAR</option><option>USD</option></select>
+        </div>
+        <button class="btn btn-primary btn-sm" id="quickWonSave" style="width:100%;background:var(--sage)">تأكيد العقد ✓</button>
       </div>
       <div style="margin-top:8px"><button class="btn btn-ghost btn-sm" onclick="openMerge('${l.id}')" style="width:100%;color:var(--ink-soft)">🔀 دمج عميل مكرّر مع ده</button></div>`:""}`;
     if(canWrite()){
       const CANCEL_OPTS=["مذكور في الملاحظات","متابعة طويلة دون رد","الموقع الجغرافي غير مناسب","المشروع غير مناسب للشركة","الميزانية غير مناسبة","العميل اختار جهة أخرى","أخرى"];
       const LOST_OPTS=["السعر أعلى من التوقعات","اختار منافس آخر","العميل أجّل القرار","تغيّر متطلبات العميل","بطء في الرد من جانبنا","العميل لم يرد نهائيًا","أخرى"];
       const qr=$("#quickReasonWrap"), qrs=$("#quickReasonSel"), qrl=$("#quickReasonLabel");
-      const saveReason=async()=>{const v=qrs&&qrs.value;const st=l.status;if(st==="cancelled")l.cancelReason=v||null;else if(st==="lost")l.lostReason=v||null;await putLead(l);renderDetail();renderLeadsAndDash();toast("تم الحفظ");};
+      const saveReason=async()=>{
+        const v=qrs&&qrs.value;
+        const noteEl=$("#quickReasonNote");
+        const noteVal=noteEl?noteEl.value.trim():"";
+        if(!noteVal){toast("اكتب ملاحظة إلزامية قبل الحفظ");noteEl&&noteEl.focus();return;}
+        const st=l.status;
+        if(st==="cancelled")l.cancelReason=v||null;
+        else if(st==="lost")l.lostReason=v||null;
+        // add mandatory note to timeline
+        l.notes=l.notes||[];
+        l.notes.push({id:uid(),ts:Date.now(),kind:"note",text:(st==="cancelled"?"[إلغاء] ":"[خسارة] ")+noteVal});
+        await putLead(l);renderDetail();renderLeadsAndDash();toast("تم الحفظ");
+      };
       if($("#quickReasonSave"))$("#quickReasonSave").onclick=saveReason;
       $("#quickStatus")&&($("#quickStatus").onchange=async e=>{
       const newStatus=e.target.value;
+      const qw=$("#quickWonWrap");
       if(newStatus==="cancelled"){
         if(qr){qr.style.display="block";qrl.textContent="سبب الإلغاء";qrs.innerHTML=`<option value="">— اختر سبب —</option>`+CANCEL_OPTS.map(r=>`<option>${r}</option>`).join("");}
+        if(qw)qw.style.display="none";
       } else if(newStatus==="lost"){
         if(qr){qr.style.display="block";qrl.textContent="سبب الخسارة";qrs.innerHTML=`<option value="">— اختر سبب —</option>`+LOST_OPTS.map(r=>`<option>${r}</option>`).join("");}
-      } else { if(qr)qr.style.display="none"; }
-      l.status=newStatus;await putLead(l);renderDetail();renderLeadsAndDash();toast("تم تحديث الحالة");});}
+        if(qw)qw.style.display="none";
+      } else if(newStatus==="won"){
+        if(qr)qr.style.display="none";
+        if(qw){qw.style.display="block";const wv=document.getElementById("quickWonValue");if(wv&&l.value)wv.value=l.value;const wc=document.getElementById("quickWonCurrency");if(wc&&l.currency)wc.value=l.currency;}
+      } else {
+        if(qr)qr.style.display="none";
+        if(qw)qw.style.display="none";
+      }
+      l.status=newStatus;
+      // auto-clear follow-up date for terminal statuses
+      if(TERMINAL.includes(newStatus)) l.nextFollowUp=null;
+      await putLead(l);renderDetail();renderLeadsAndDash();toast("تم تحديث الحالة");});
+      // won save handler
+      const wonSaveBtn=document.getElementById("quickWonSave");
+      if(wonSaveBtn) wonSaveBtn.onclick=async()=>{
+        const v=document.getElementById("quickWonValue")?.value;
+        const c=document.getElementById("quickWonCurrency")?.value||"EGP";
+        if(v) {l.value=v;l.currency=c;}
+        await putLead(l);renderDetail();renderLeadsAndDash();toast("🎉 تم تسجيل الإغلاق!");
+      };
     if(!canWrite())detailTab="timeline";
     $$("#detailBody .seg button").forEach(b=>b.onclick=()=>{detailTab=b.dataset.dt;renderDetail();});
     renderPane(l,notes);
