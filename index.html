@@ -629,7 +629,10 @@
       const errEl=$("#loginErr"); errEl.style.display="none";
       loginBtn.textContent="جاري الدخول…"; loginBtn.disabled=true;
       try{ await auth.signInWithEmailAndPassword(email,pass); }
-      catch(e){ errEl.textContent=e.code==="auth/invalid-credential"||e.code==="auth/wrong-password"||e.code==="auth/user-not-found"?"البريد أو كلمة المرور غلط":"خطأ: "+e.message; errEl.style.display="block"; loginBtn.textContent="دخول"; loginBtn.disabled=false; }
+      catch(e){ 
+        console.error("Login error:",e);
+        const msg=e.code==="auth/invalid-credential"||e.code==="auth/wrong-password"||e.code==="auth/user-not-found"?"البريد أو كلمة المرور غلط":("خطأ: "+e.code+" — "+e.message);
+        errEl.textContent=msg; errEl.style.display="block"; loginBtn.textContent="دخول"; loginBtn.disabled=false; }
     };
     // allow login on Enter
     ["loginEmail","loginPass"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("keydown",e=>{if(e.key==="Enter")loginBtn&&loginBtn.click();});});
@@ -648,7 +651,12 @@
           currentUserName=user.email.split("@")[0];
           await db.collection("users").doc(user.uid).set({name:currentUserName,email:user.email,role:currentRole,createdAt:Date.now()});
         }
-      }catch(e){ currentRole="viewer"; currentUserName=user.email; }
+      }catch(e){
+        // show error visibly for debugging
+        const dbgEl=document.getElementById("loginError");
+        if(dbgEl){dbgEl.textContent="Firebase error: "+e.code+" — "+e.message;dbgEl.style.display="block";}
+        currentRole="viewer"; currentUserName=user.email;
+      }
       showApp();
       startListeners();
     });
