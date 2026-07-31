@@ -134,7 +134,21 @@
   .modal-b{padding:18px 20px 32px}
   .x-btn{border:none;background:var(--ivory);width:38px;height:38px;border-radius:50%;font-size:20px;cursor:pointer;color:var(--ink-soft);line-height:1;touch-action:manipulation}
   /* body scroll lock when modal open */
-  body.modal-open{overflow:hidden;position:fixed;width:100%}
+  /* ── أقسام قابلة للطي في صفحة العميل ── */
+  .acc{border:1px solid var(--line);border-radius:12px;margin-bottom:8px;overflow:hidden;background:var(--paper)}
+  .acc-h{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 13px;cursor:pointer;background:var(--ivory);user-select:none}
+  .acc-h:hover{background:#F2ECE4}
+  .acc-t{font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:7px}
+  .acc-c{font-size:11px;color:var(--ink-soft);font-weight:400}
+  .acc-x{font-size:13px;color:var(--ink-soft);transition:transform .2s}
+  .acc.open .acc-x{transform:rotate(180deg)}
+  .acc-b{display:none;padding:12px 13px}
+  .acc.open .acc-b{display:block}
+  .sla-warn{background:#FCF3E8;border:1px solid var(--gold);border-radius:11px;padding:10px 12px;margin-bottom:12px}
+  .sla-warn .sw-t{font-size:13px;font-weight:700;color:#8A6D3B;margin-bottom:3px}
+  .sla-warn .sw-s{font-size:12px;color:var(--ink-soft);line-height:1.6}
+  .stage-ok{background:var(--sage-soft);border:1px solid #B8D9B8;border-radius:11px;padding:9px 12px;margin-bottom:12px;font-size:12.5px;color:var(--sage)}
+  body.modal-open{overflow:hidden;position:fixed;width:100%;inset-inline:0}
 
   .form-sec{border-top:1px solid var(--line-soft);margin-top:18px;padding-top:16px}
   .form-sec:first-of-type{border-top:none;margin-top:0;padding-top:0}
@@ -362,7 +376,10 @@
   <section class="view" id="tab-report">
     <div class="row no-print">
       <div class="section-title">تقرير الأداء</div>
-      <button class="btn btn-ghost btn-sm" id="printBtn">🖨 طباعة / PDF</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" id="mktExportBtn" style="color:var(--sage);border-color:#B8D9B8">📊 تقرير التسويق (Excel)</button>
+        <button class="btn btn-ghost btn-sm" id="printBtn">🖨 طباعة / PDF</button>
+      </div>
     </div>
     <div class="card no-print" style="margin-bottom:18px">
       <div class="card-b" style="padding-top:14px">
@@ -464,32 +481,19 @@
         </div>
         <div class="field"><label>الحالة</label><div class="pills" id="f-status-pills"></div><input type="hidden" id="f-status"></div>
         <div class="field"><label>جودة الـ Lead (تقييم تسويقي)</label><div class="pills" id="f-quality-pills"></div><input type="hidden" id="f-quality"></div>
+        <div class="field"><label>مستوى الميزانية (مهم لتقرير التسويق)</label><select id="f-budgetFit"></select></div>
+        <div class="grid2">
+          <div class="field"><label>وظيفة العميل (اختياري)</label><input id="f-job" placeholder="مثلاً: طبيب، رجل أعمال…"></div>
+          <div class="field"><label>منطقة سكن العميل (اختياري)</label><input id="f-residence" placeholder="مثلاً: التجمع الخامس"></div>
+        </div>
         <div class="field"><label>تاريخ المتابعة القادمة</label><input id="f-followup" type="date"></div>
         <div class="field" id="cancelReasonWrap" style="display:none">
           <label>سبب الإلغاء</label>
-          <select id="f-cancelReason">
-            <option value="">— اختر سبب —</option>
-            <option>مذكور في الملاحظات</option>
-            <option>متابعة طويلة دون رد</option>
-            <option>الموقع الجغرافي غير مناسب</option>
-            <option>المشروع غير مناسب للشركة</option>
-            <option>الميزانية غير مناسبة</option>
-            <option>العميل اختار جهة أخرى</option>
-            <option>أخرى</option>
-          </select>
+          <select id="f-cancelReason"></select>
         </div>
         <div class="field" id="lostReasonWrap" style="display:none">
           <label>سبب الخسارة</label>
-          <select id="f-lostReason">
-            <option value="">— اختر سبب —</option>
-            <option>السعر أعلى من التوقعات</option>
-            <option>اختار منافس آخر</option>
-            <option>العميل أجّل القرار</option>
-            <option>تغيّر متطلبات العميل</option>
-            <option>بطء في الرد من جانبنا</option>
-            <option>العميل لم يرد نهائيًا</option>
-            <option>أخرى</option>
-          </select>
+          <select id="f-lostReason"></select>
         </div>
         <div class="grid2">
           <div class="field"><label>تاريخ بدء عرض السعر</label><input id="f-quotestart" type="date"></div>
@@ -573,16 +577,68 @@
   "use strict";
   const STORE_KEY="crm:leads", CAMP_KEY="crm:campaigns";
 
+  // ── PIPELINE: كل مرحلة ليها SLA (عدد أيام قبل ما تعتبر متأخرة) ──
   const STATUSES=[
-    {k:"new",t:"جديد",c:"#4A6076"},
-    {k:"contacted_ans",t:"اتواصلت – رد",c:"#3E6F73"},
-    {k:"contacted_no",t:"اتواصلت – مردّش",c:"#B08838"},
-    {k:"quoted",t:"عرض سعر",c:"#B0532F"},{k:"negotiation",t:"تفاوض",c:"#7A5CA8"},
-    {k:"won",t:"تم الإغلاق ✓",c:"#5C7355"},{k:"lost",t:"خسارة",c:"#9A4B4B"},
-    {k:"cancelled",t:"إلغاء الطلب",c:"#8A8079"}];
+    {k:"new",t:"جديد",c:"#4A6076",sla:1,hint:"محتاج أول تواصل خلال 24 ساعة"},
+    {k:"no_answer",t:"مردّش (محاولات)",c:"#B08838",sla:2,hint:"حاول تاني بعد يومين — جرّب وقت مختلف"},
+    {k:"contacted",t:"تم التعارف",c:"#3E6F73",sla:5,hint:"اتعرفت عليه — لازم تحدد احتياجه وميزانيته خلال 5 أيام"},
+    {k:"qualified",t:"مؤهل (عرفت احتياجه)",c:"#2F7D8C",sla:5,hint:"عارف الاحتياج والميزانية — رتّب معاينة أو ابدأ تسعير"},
+    {k:"site_visit",t:"معاينة موقع",c:"#6B8E5A",sla:3,hint:"بعد المعاينة ابدأ التسعير خلال 3 أيام"},
+    {k:"pricing",t:"تحت التسعير (داخلي)",c:"#8A6D3B",sla:5,hint:"شغل داخلي — لازم يخلص خلال 5 أيام"},
+    {k:"quoted",t:"عرض سعر مُرسل",c:"#B0532F",sla:7,hint:"تابع بعد أسبوع لو مفيش رد"},
+    {k:"negotiation",t:"تفاوض",c:"#7A5CA8",sla:7,hint:"مرحلة حساسة — تابع كل أسبوع"},
+    {k:"on_hold",t:"مؤجّل مؤقتاً",c:"#7C7C8A",sla:30,hint:"راجعه بعد شهر"},
+    {k:"won",t:"تم الإغلاق ✓",c:"#5C7355",sla:0},
+    {k:"lost",t:"خسارة",c:"#9A4B4B",sla:0},
+    {k:"cancelled",t:"إلغاء الطلب",c:"#8A8079",sla:0}];
   const TERMINAL=["won","lost","cancelled"];
   const isActive=l=>!TERMINAL.includes(l.status);
-  const CANCEL_REASONS=["مذكور في الملاحظات","متابعة طويلة دون رد","المشروع غير مناسب للشركة","الميزانية غير مناسبة","العميل اختار جهة أخرى","أخرى"];
+  // خريطة تحويل الحالات القديمة للجديدة (backward compatibility)
+  const LEGACY_STATUS={contacted_ans:"contacted",contacted_no:"no_answer"};
+  const normStatus=k=>LEGACY_STATUS[k]||k||"new";
+  // SLA: هل العميل متأخر في مرحلته الحالية؟
+  function stageOverdue(l){
+    if(!isActive(l))return null;
+    const st=stById(normStatus(l.status));
+    if(!st||!st.sla)return null;
+    const since=l.stageChangedAt||lastTs(l)||l.updatedAt||l.createdAt||0;
+    if(!since)return null;
+    const days=Math.floor((Date.now()-since)/864e5);
+    if(days>st.sla)return{days,sla:st.sla,over:days-st.sla,hint:st.hint,stage:st.t};
+    return null;
+  }
+  // ── أسباب الإلغاء (معايير CRM احترافية) ──
+  const CANCEL_REASONS=[
+    "الميزانية أقل من نطاق أسعارنا",
+    "العميل أجّل المشروع لوقت لاحق",
+    "المشروع اتلغى من أساسه",
+    "نطاق العمل مش من تخصصنا",
+    "الموقع الجغرافي بعيد / غير مجدي",
+    "مفيش رد بعد محاولات متكررة",
+    "بيانات التواصل غلط أو غير صحيحة",
+    "العميل مكرر (Duplicate)",
+    "استفسار عام مش طلب فعلي",
+    "العميل اختار جهة تانية",
+    "خلاف على شروط التعاقد",
+    "أخرى — مذكورة في الملاحظات"];
+  const LOST_REASONS=[
+    "السعر أعلى من ميزانية العميل",
+    "منافس قدّم سعر أفضل",
+    "منافس قدّم تصميم/عرض أقوى",
+    "مدة التنفيذ أطول من المطلوب",
+    "بطء في الرد من جانبنا",
+    "العميل مرتاحش للتعامل",
+    "شروط الدفع مش مناسبة",
+    "العميل أجّل القرار لأجل غير مسمى",
+    "مفيش رد بعد إرسال العرض",
+    "أخرى — مذكورة في الملاحظات"];
+  // ── مستوى الميزانية (لتقرير التسويق) ──
+  const BUDGET_FIT=[
+    {k:"above",t:"فوق البدجت",c:"#5C7355"},
+    {k:"in",t:"في البدجت",c:"#3E6F73"},
+    {k:"below",t:"تحت البدجت",c:"#B08838"},
+    {k:"unknown",t:"غير محدد",c:"#8A8079"}];
+  const bfById=k=>BUDGET_FIT.find(b=>b.k===k);
   const QUALITY=[
     {k:"interested",t:"مهتم",c:"#5C7355"},
     {k:"potential",t:"محتمل",c:"#B08838"},
@@ -606,10 +662,10 @@
     office:{t:"إداري",subs:["مكتب","مقر شركة","Co-working","أخرى"]},
     b2b:{t:"تعامل B2B",subs:["مطوّر عقاري","مقاول","مكتب استشاري / تصميم","مورّد","أخرى"]}};
   const OWNERS=["عمرو","عبدالله","كريم","أحمد"];
-  const PIPELINE=["new","contacted_ans","quoted","negotiation","won"];
+  const PIPELINE=["new","no_answer","contacted","qualified","site_visit","pricing","quoted","negotiation","won"];
 
   const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
-  const stById=k=>STATUSES.find(s=>s.k===k)||STATUSES[0];
+  const stById=k=>STATUSES.find(s=>s.k===(LEGACY_STATUS[k]||k))||STATUSES[0];
   const srcById=k=>SOURCES.find(s=>s.k===k);
   const fmt=n=>(Number(n)||0).toLocaleString("en-US");
   const todayStr=()=>new Date().toISOString().slice(0,10);
@@ -617,7 +673,7 @@
   const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
   const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
-  let leads=[], campaigns=[], formServices=[], detailTab="timeline", currentDetailId=null;
+  let leads=[], campaigns=[], formServices=[], detailTab="timeline", currentDetailId=null, detailOpenSections={};
   const VIEW=/[?&]view=1/.test(location.search);
   let db=null, auth=null, ready=false;
   let currentUser=null, currentRole=null, currentUserName=null;
@@ -706,6 +762,7 @@
     if(impEl)impEl.style.display=canImport()?"":"none";
     // backup/export: admin+ only
     const adminTools=["backupBtn","restoreBtn","exportBtn"];
+    // mktExportBtn متاح للتسويق والأدمن (مفيهوش أرقام مالية)
     adminTools.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=canBackup()?"":"none";});
     // marketing: can see all tabs but with restricted data
     // (no longer redirect to report-only)
@@ -843,6 +900,7 @@
     const now=new Date(), monthStart=new Date(now.getFullYear(),now.getMonth(),1).getTime();
     const thisMonthLost=leads.filter(l=>["cancelled","lost"].includes(l.status)&&(l.updatedAt||0)>=monthStart).length;
     const staleCount=leads.filter(l=>{if(!isActive(l))return false;const lt=lastTs(l)||l.createdAt;return Math.floor((Date.now()-lt)/864e5)>7;}).length;
+    const overdueStage=leads.filter(l=>stageOverdue(l)).length;
     $("#kpiGrid").innerHTML=`
       <div class="kpi accent" style="cursor:pointer" onclick="applyQuick(null)"><div class="lbl">إجمالي العملاء</div><div class="val num">${leads.length}</div><div class="sub muted">${active.length} نشط</div></div>
       <div class="kpi" style="cursor:pointer" onclick="applyQuick('active')"><div class="lbl">Pipeline النشطة ›</div><div class="val num" style="font-size:17px">${canSeeValue()?totalsByCurrency(l=>isActive(l)):active.length+" عميل"}</div></div>
@@ -851,7 +909,8 @@
       <div class="kpi" style="cursor:pointer" onclick="applyQuick('due')"><div class="lbl">متابعات مستحقة ›</div><div class="val num" style="color:${due?'var(--rose)':'var(--ink)'}">${due}</div><div class="sub muted">النهاردة أو متأخرة</div></div>
       <div class="kpi" style="cursor:pointer" onclick="applyQuick('today')"><div class="lbl">النهاردة بس ›</div><div class="val num" style="color:${dueToday?'var(--clay)':'var(--ink)'}">${dueToday}</div><div class="sub muted">مواعيد اليوم</div></div>
       ${thisMonthLost?`<div class="kpi" style="cursor:pointer" onclick="applyQuick('lost_month')"><div class="lbl">إلغاء/خسارة الشهر ›</div><div class="val num" style="color:var(--rose)">${thisMonthLost}</div><div class="sub muted">${now.toLocaleString('ar-EG',{month:'long'})}</div></div>`:""}
-      ${staleCount?`<div class="kpi" style="cursor:pointer" onclick="applyQuick('stale')"><div class="lbl">بدون تواصل +7 أيام ›</div><div class="val num" style="color:var(--gold)">${staleCount}</div><div class="sub muted">محتاجة متابعة</div></div>`:""}`;
+      ${staleCount?`<div class="kpi" style="cursor:pointer" onclick="applyQuick('stale')"><div class="lbl">بدون تواصل +7 أيام ›</div><div class="val num" style="color:var(--gold)">${staleCount}</div><div class="sub muted">محتاجة متابعة</div></div>`:""}
+      ${overdueStage?`<div class="kpi" style="cursor:pointer;border-color:var(--gold)" onclick="applyQuick('overdue_stage')"><div class="lbl">متأخرين عن مهلة المرحلة ›</div><div class="val num" style="color:#8A6D3B">${overdueStage}</div><div class="sub muted">تجاوزوا SLA مرحلتهم</div></div>`:""}`;
 
     // priority (all, scrollable)
     const scored=leads.map(l=>({l,p:priority(l)})).filter(x=>x.p&&x.p.sc>0).sort((a,b)=>b.p.sc-a.p.sc);
@@ -929,6 +988,7 @@
     if(f==="today")return"متابعات النهاردة بس";
     if(f==="lost_month")return"إلغاء/خسارة الشهر ده";
     if(f==="stale")return"بدون تواصل أكتر من 7 أيام";
+    if(f==="overdue_stage")return"متأخرين عن مهلة مرحلتهم";
     if(f&&f.indexOf("st:")===0)return"الحالة: "+stById(f.slice(3)).t;return"";}
   function passQuick(l){
     if(!quickFilter)return true;
@@ -938,6 +998,7 @@
     if(quickFilter==="today"){const d=dueInfo(l.nextFollowUp);return d&&d.cls==="due-today";}
     if(quickFilter==="lost_month"){const now=new Date(),ms=new Date(now.getFullYear(),now.getMonth(),1).getTime();return["cancelled","lost"].includes(l.status)&&(l.updatedAt||0)>=ms;}
     if(quickFilter==="stale"){if(!isActive(l))return false;const lt=lastTs(l)||l.createdAt;return Math.floor((Date.now()-lt)/864e5)>7;}
+    if(quickFilter==="overdue_stage")return !!stageOverdue(l);
     if(quickFilter.indexOf("st:")===0)return l.status===quickFilter.slice(3);
     return true;}
   function renderLeads(){
@@ -945,7 +1006,7 @@
     const sf=$("#statusFilter").value, of=$("#ownerFilter").value, srcf=$("#sourceFilter").value, qf=$("#qualityFilter").value;
     const hideTerminal=document.getElementById("hideTerminalCheck")?.checked;
     const lookalike=document.getElementById("lookalikeCheck")?.checked;
-    const LOOKALIKE_POOL=["interested","site_visit","won"]; // حالات مفيدة للـ look-alike
+    const LOOKALIKE_POOL=["contacted","qualified","site_visit","pricing","quoted","negotiation","won"]; // مراحل تدل على اهتمام حقيقي
     // chip
     const chip=$("#quickChip");
     if(quickFilter){chip.style.display="block";chip.innerHTML=`<span class="chip" style="background:var(--clay);color:#fff;font-size:13px;padding:7px 12px;cursor:pointer" onclick="applyQuick(null)">✕ ${quickLabel(quickFilter)}</span>`;}
@@ -955,7 +1016,7 @@
       // hide terminal (cancelled/lost) unless specifically filtered
       if(hideTerminal&&!sf&&TERMINAL.includes(l.status)&&l.status!=="won")return false;
       // lookalike pool
-      if(lookalike&&!LOOKALIKE_POOL.includes(l.status))return false;
+      if(lookalike&&!(LOOKALIKE_POOL.includes(normStatus(l.status))||["interested","potential"].includes(l.quality)))return false;
       if(sf&&l.status!==sf)return false; if(of&&l.owner!==of)return false; if(srcf&&l.source!==srcf)return false;
       if(qf&&(l.quality||"")!==qf)return false;
       if(q&&!((l.name||"").toLowerCase().includes(q)||(l.phone||"").includes(q)||(l.compound||"").toLowerCase().includes(q)))return false;
@@ -966,11 +1027,13 @@
     if(!list.length){el.innerHTML='<div class="empty"><div class="big">🔍</div><p>مفيش نتائج.</p></div>';return;}
     el.innerHTML=list.map(l=>{const s=stById(l.status),di=dueInfo(l.nextFollowUp),src=srcById(l.source),ql=qById(l.quality);
       const proj=[CATS[l.projectCategory]?.t,l.projectSubtype].filter(Boolean).join(" · ");
+      const ov=stageOverdue(l);
       return `<div class="lead" style="border-inline-start-color:${s.c}" onclick="openDetail('${l.id}')">
         <div class="l-top"><div><div class="l-name">${esc(l.name)}</div>
           <div class="l-meta">${l.phone?`<span>📞 ${esc(l.phone)}${l.phoneVerified?' ✓':''}</span>`:""}${l.email?`<span>✉</span>`:""}${src?`<span>${src.i} ${esc(src.t)}</span>`:""}${l.compound?`<span>🏛 ${esc(l.compound)}</span>`:""}</div></div>
           <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end">
             <span class="chip" style="background:${s.c}1A;color:${s.c}">${s.t}</span>
+            ${ov?`<span class="chip" style="background:#FCF3E8;color:#8A6D3B;font-size:10.5px" title="${esc(ov.hint||"")}">⏳ متأخر ${ov.over}ي</span>`:""}
             ${ql?`<span class="chip" style="background:${ql.c}1A;color:${ql.c};font-size:10.5px">${ql.t}</span>`:""}</div></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:9px">
           ${proj?`<span class="tag">${esc(proj)}</span>`:""}${l.area?`<span class="tag">${esc(l.area)} ${esc(l.areaUnit||"م²")}</span>`:""}
@@ -1034,6 +1097,9 @@
     $("#f-adname").value=l.adName||"";$("#f-adset").value=l.adsetName||"";
     $("#f-note").value="";$("#firstNoteWrap").style.display=ed?"none":"block";
     setStatus(l.status||"new");setQuality(l.quality||"");
+    const bfEl=$("#f-budgetFit");if(bfEl)bfEl.value=l.budgetFit||"unknown";
+    const jbEl=$("#f-job");if(jbEl)jbEl.value=l.job||"";
+    const rsEl=$("#f-residence");if(rsEl)rsEl.value=l.residence||"";
     const crEl=$("#f-cancelReason");if(crEl)crEl.value=l.cancelReason||"";
     const lrEl=$("#f-lostReason");if(lrEl)lrEl.value=l.lostReason||"";
     onSourceChange(); if(ed&&l.campaignId)renderCampaignSel(l.campaignId);
@@ -1067,7 +1133,13 @@
       cancelReason:$("#f-status").value==="cancelled"?($("#f-cancelReason").value||null):null,
       lostReason:$("#f-status").value==="lost"?($("#f-lostReason").value||null):null,
       adName:$("#f-adname").value.trim(),adsetName:$("#f-adset").value.trim(),
-      quality:$("#f-quality").value||null,quoteStartDate:$("#f-quotestart").value||null,quoteSubmitDate:$("#f-quotesubmit").value||null,updatedAt:Date.now()};
+      quality:$("#f-quality").value||null,quoteStartDate:$("#f-quotestart").value||null,quoteSubmitDate:$("#f-quotesubmit").value||null,
+      budgetFit:$("#f-budgetFit")?.value||"unknown",job:$("#f-job")?.value.trim()||null,residence:$("#f-residence")?.value.trim()||null,
+      updatedAt:Date.now()};
+    // تتبع وقت دخول المرحلة (للـ SLA)
+    {const prev=id?leads.find(x=>x.id===id):null;
+     if(!prev||normStatus(prev.status)!==normStatus(data.status))data.stageChangedAt=Date.now();
+     else data.stageChangedAt=prev.stageChangedAt||prev.updatedAt||Date.now();}
     let target;
     if(id){target=Object.assign(leads.find(x=>x.id===id),data);}
     else{const note=$("#f-note").value.trim();target={id:uid(),createdAt:Date.now(),notes:note?[{id:uid(),ts:Date.now(),kind:"note",text:note}]:[],...data};}
@@ -1083,7 +1155,14 @@
     await removeLead(id);closeAll();renderAll();toast("تم الحذف");};
 
   // ---- detail ----
-  window.openDetail=function(id){currentDetailId=id;detailTab="timeline";renderDetail();$("#detailOverlay").classList.add("show");$("#detailOverlay .modal-b").scrollTop=0;};
+  window.openDetail=function(id){currentDetailId=id;detailTab="timeline";detailOpenSections={};renderDetail();$("#detailOverlay").classList.add("show");$("#detailOverlay .modal-b").scrollTop=0;};
+  window.toggleAcc=function(key){
+    const el=document.querySelector('[data-acc="'+key+'"]');
+    if(!el)return;
+    const nowOpen=!el.classList.contains("open");
+    el.classList.toggle("open",nowOpen);
+    detailOpenSections[key]=nowOpen;
+  };
   window.openEdit=function(id){$("#detailOverlay").classList.remove("show");setTimeout(()=>openForm(id),80);};
   function renderDetail(){
     const l=leads.find(x=>x.id===currentDetailId);if(!l)return;
@@ -1100,6 +1179,13 @@
     if(l.quoteStartDate&&l.quoteSubmitDate){const d=Math.round((new Date(l.quoteSubmitDate)-new Date(l.quoteStartDate))/864e5);if(d>=0)priceDur=d+" يوم";}
     else if(l.quoteStartDate&&!l.quoteSubmitDate){const d=Math.round((Date.now()-new Date(l.quoteStartDate))/864e5);if(d>=0)priceDur="جارٍ — "+d+" يوم";}
     const info=(lab,val)=>val?`<div class="info-box"><div class="ib-l">${lab}</div><div class="ib-v">${esc(val)}</div></div>`:"";
+    const ov=stageOverdue(l);
+    const acc=(key,title,count,body,defOpen)=>{
+      const isOpen=(detailOpenSections[key]!==undefined)?detailOpenSections[key]:defOpen;
+      return `<div class="acc ${isOpen?"open":""}" data-acc="${key}">
+        <div class="acc-h" onclick="toggleAcc('${key}')"><div class="acc-t">${title}${count?`<span class="acc-c">${count}</span>`:""}</div><div class="acc-x">▾</div></div>
+        <div class="acc-b">${body}</div></div>`;
+    };
     $("#detailBody").innerHTML=`
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
         <div><div style="font-size:19px;font-weight:700">${esc(l.name)} ${l.phoneVerified?'<span class="chip" style="background:var(--sage-soft);color:var(--sage);font-size:10.5px">✓ Verified</span>':''}</div>
@@ -1113,24 +1199,38 @@
         ${l.phone2?`<a href="tel:${esc((l.phone2||"").replace(/[^\d+]/g,""))}" class="btn btn-ghost btn-sm" style="justify-content:center">📞 ${esc(l.phone2)}</a>`:""}</div>`:""}
       ${(l.services||[]).length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">${l.services.map(x=>`<span class="tag" style="background:#fff;border-color:var(--clay);color:var(--clay)">${esc(x)}</span>`).join("")}</div>`:""}
       ${sug?`<div class="info-box" style="margin-bottom:12px;border-color:${sug.good?'var(--sage)':'var(--gold)'};background:${sug.good?'var(--sage-soft)':'#FCF6EA'}"><div class="ib-l">⏰ أنسب وقت للتواصل</div><div style="font-size:13.5px;font-weight:600">${esc(sug.txt)}</div></div>`:""}
-      <div class="info-grid">
+      ${ov?`<div class="sla-warn"><div class="sw-t">⏳ متأخر ${ov.over} يوم في مرحلة "${ov.stage}"</div><div class="sw-s">قعد ${ov.days} يوم والمفروض يتحرك خلال ${ov.sla}. ${esc(ov.hint||"")}</div></div>`
+        :(isActive(l)?`<div class="stage-ok">✓ في الوقت — مرحلة "${stById(l.status).t}"${stById(l.status).sla?` (المهلة ${stById(l.status).sla} يوم)`:""}</div>`:"")}
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
+        ${di?`<span class="due-flag ${di.cls}">المتابعة القادمة: ${di.txt}</span>`:'<span class="muted" style="font-size:13px">مفيش متابعة مجدولة</span>'}
+        ${l.driveLink?`<a href="${esc(l.driveLink)}" target="_blank" class="btn btn-ghost btn-sm">🔗 ملفات Drive</a>`:""}
+      </div>
+      ${l.status==="cancelled"&&l.cancelReason?`<div class="info-box" style="margin-bottom:10px;border-color:var(--rose)"><div class="ib-l" style="color:var(--rose)">سبب الإلغاء</div><div class="ib-v">${esc(l.cancelReason)}</div></div>`:""}
+      ${l.status==="lost"&&l.lostReason?`<div class="info-box" style="margin-bottom:10px;border-color:var(--rose)"><div class="ib-l" style="color:var(--rose)">سبب الخسارة</div><div class="ib-v">${esc(l.lostReason)}</div></div>`:""}
+
+      ${acc("proj","🏗 بيانات المشروع",[proj,l.area,l.location,l.compound].filter(Boolean).length+" حقل",`<div class="info-grid">
         ${info("المشروع",proj)}${info("المساحة",l.area?(l.area+" "+(l.areaUnit||"م²")):"")}
         ${info("المكان",[l.location,l.district].filter(Boolean).join(" / "))}${info("الكمباوند",l.compound)}
         ${canSeeValue()?info("القيمة",l.value?fmt(l.value)+" "+l.currency:""):""}${info("المسؤول",l.owner)}
-        ${l.status==="cancelled"&&l.cancelReason?`<div class="info-box" style="grid-column:1/-1;border-color:var(--rose)"><div class="ib-l" style="color:var(--rose)">سبب الإلغاء</div><div class="ib-v">${esc(l.cancelReason)}</div></div>`:""}
-        ${l.status==="lost"&&l.lostReason?`<div class="info-box" style="grid-column:1/-1;border-color:var(--rose)"><div class="ib-l" style="color:var(--rose)">سبب الخسارة</div><div class="ib-v">${esc(l.lostReason)}</div></div>`:""}
+      </div>`,true)}
+
+      ${acc("client","👤 بيانات العميل","",`<div class="info-grid">
+        ${info("الوظيفة",l.job)}${info("منطقة السكن",l.residence)}
+        ${info("البريد",l.email)}${info("المصدر",srcById(l.source)?srcLabel(l):"")}
+        ${info("مستوى الميزانية",bfById(l.budgetFit)?bfById(l.budgetFit).t:"")}
+        ${info("اسم الإعلان",l.adName)}${info("المجموعة الإعلانية",l.adsetName)}
+      </div>`,false)}
+
+      ${acc("dates","📅 التواريخ والمدد","",`<div class="info-grid">
         ${info("تاريخ الإرسال / التسجيل",recv)}
         <div class="info-box"><div class="ib-l">أول تواصل</div><div class="ib-v">${fT?new Date(fT).toLocaleString("ar-EG",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"— (سجّل أول مكالمة)"}</div></div>
         ${info("آخر تواصل",lT?new Date(lT).toLocaleDateString("ar-EG"):"")}
         ${info("مدة التسعير",priceDur)}
-        ${info("اسم الإعلان",l.adName)}${info("المجموعة الإعلانية",l.adsetName)}
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
-        ${di?`<span class="due-flag ${di.cls}">المتابعة القادمة: ${di.txt}</span>`:'<span class="muted" style="font-size:13px">مفيش متابعة مجدولة</span>'}
-        ${l.driveLink?`<a href="${esc(l.driveLink)}" target="_blank" class="btn btn-ghost btn-sm">🔗 ملفات Drive</a>`:""}
-      </div>
-      ${l.painPoints?`<div class="info-box" style="margin-bottom:10px"><div class="ib-l" style="color:var(--rose)">⚠ Pain Points</div><div style="font-size:13.5px;white-space:pre-wrap">${esc(l.painPoints)}</div></div>`:""}
-      ${l.ourPlus?`<div class="info-box" style="margin-bottom:14px"><div class="ib-l" style="color:var(--sage)">✦ ميزتنا</div><div style="font-size:13.5px;white-space:pre-wrap">${esc(l.ourPlus)}</div></div>`:""}
+      </div>`,false)}
+
+      ${(l.painPoints||l.ourPlus)?acc("notes2","📝 ملاحظات البيع","",`
+        ${l.painPoints?`<div class="info-box" style="margin-bottom:8px"><div class="ib-l" style="color:var(--rose)">⚠ Pain Points</div><div style="font-size:13.5px;white-space:pre-wrap">${esc(l.painPoints)}</div></div>`:""}
+        ${l.ourPlus?`<div class="info-box"><div class="ib-l" style="color:var(--sage)">✦ ميزتنا</div><div style="font-size:13.5px;white-space:pre-wrap">${esc(l.ourPlus)}</div></div>`:""}`,false):""}
       ${canAddNotes()?`<div class="seg"><button class="${detailTab==='timeline'?'on':''}" data-dt="timeline">سجل التواصل (${(l.notes||[]).length})</button><button class="${detailTab==='log'?'on':''}" data-dt="log">＋ تسجيل مكالمة / ملاحظة</button></div>`
         :`<div style="font-weight:700;font-size:13px;margin-bottom:8px">سجل التواصل (${(l.notes||[]).length})</div>`}
       <div id="detailPane"></div>
@@ -1154,8 +1254,8 @@
       </div>
       <div style="margin-top:8px"><button class="btn btn-ghost btn-sm" onclick="openMerge('${l.id}')" style="width:100%;color:var(--ink-soft)">🔀 دمج عميل مكرّر مع ده</button></div>`:""}`;
     if(canAddNotes()){
-      const CANCEL_OPTS=["مذكور في الملاحظات","متابعة طويلة دون رد","الموقع الجغرافي غير مناسب","المشروع غير مناسب للشركة","الميزانية غير مناسبة","العميل اختار جهة أخرى","أخرى"];
-      const LOST_OPTS=["السعر أعلى من التوقعات","اختار منافس آخر","العميل أجّل القرار","تغيّر متطلبات العميل","بطء في الرد من جانبنا","العميل لم يرد نهائيًا","أخرى"];
+      const CANCEL_OPTS=CANCEL_REASONS;
+      const LOST_OPTS=LOST_REASONS;
       const qr=$("#quickReasonWrap"), qrs=$("#quickReasonSel"), qrl=$("#quickReasonLabel");
       const saveReason=async()=>{
         const v=qrs&&qrs.value;
@@ -1188,6 +1288,7 @@
         if(qr)qr.style.display="none";
         if(qw){qw.style.display="block";const wv=document.getElementById("quickWonValue");if(wv&&l.value)wv.value=l.value;const wc=document.getElementById("quickWonCurrency");if(wc&&l.currency)wc.value=l.currency;}
       } else { if(qr)qr.style.display="none"; if(qw)qw.style.display="none"; }
+      if(normStatus(l.status)!==normStatus(newStatus)) l.stageChangedAt=Date.now();
       l.status=newStatus;
       if(TERMINAL.includes(newStatus)) l.nextFollowUp=null;
       await putLead(l);renderDetail();renderLeadsAndDash();toast("تم تحديث الحالة");});}
@@ -1520,6 +1621,52 @@
   }
 
   // ---- export ----
+  // ── تقرير التسويق: Excel ببيانات مفيدة لفريق التسويق ──
+  const mktBtn=document.getElementById("mktExportBtn");
+  if(mktBtn) mktBtn.onclick=function(){
+    const visible=canSeeReferral()?leads:leads.filter(l=>l.source!=="referral");
+    const scope=visible.filter(filterByDate);
+    if(!scope.length){toast("مفيش بيانات في الفترة المختارة");return;}
+    const campName=id=>{const c=campaigns.find(x=>x.id===id);return c?c.name:"";};
+    const rows=scope.map(l=>({
+      "الاسم":l.name||"",
+      "التليفون":l.phone||"",
+      "تليفون ثانوي":l.phone2||"",
+      "المصدر":srcById(l.source)?srcById(l.source).t:"",
+      "الكامبين":campName(l.campaignId),
+      "رقم الكامبين":l.campaignId||"",
+      "اسم الإعلان":l.adName||"",
+      "المجموعة الإعلانية":l.adsetName||"",
+      "التقييم":qById(l.quality)?qById(l.quality).t:"",
+      "مستوى الميزانية":bfById(l.budgetFit)?bfById(l.budgetFit).t:"غير محدد",
+      "الحالة":stById(l.status).t,
+      "نوع المشروع":[CATS[l.projectCategory]?.t,l.projectSubtype].filter(Boolean).join(" · "),
+      "المساحة":l.area?(l.area+" "+(l.areaUnit||"م²")):"",
+      "موقع المشروع":[l.location,l.district].filter(Boolean).join(" / "),
+      "الكمباوند":l.compound||"",
+      "وظيفة العميل":l.job||"",
+      "منطقة سكن العميل":l.residence||"",
+      "الخدمات":(l.services||[]).join("، "),
+      "تاريخ التسجيل":l.receivedDate||(l.createdAt?new Date(l.createdAt).toISOString().slice(0,10):""),
+      "Look-alike":["interested","site_visit","won"].includes(normStatus(l.status))?"نعم":"لا"
+    }));
+    const ws=XLSX.utils.json_to_sheet(rows);
+    ws["!cols"]=Object.keys(rows[0]).map(k=>({wch:Math.max(12,Math.min(28,k.length+8))}));
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,"تقرير التسويق");
+    // شيت تاني: Look-alike pool بس (اسم + تليفون للرفع على Meta)
+    const pool=scope.filter(l=>["interested","site_visit","won"].includes(normStatus(l.status)))
+      .map(l=>({"الاسم":l.name||"","التليفون":l.phone||"","المدينة":l.location||"","المصدر":srcById(l.source)?srcById(l.source).t:""}));
+    if(pool.length){
+      const ws2=XLSX.utils.json_to_sheet(pool);
+      ws2["!cols"]=[{wch:24},{wch:16},{wch:16},{wch:18}];
+      XLSX.utils.book_append_sheet(wb,ws2,"Look-alike Pool");
+    }
+    const stamp=new Date().toISOString().slice(0,10);
+    XLSX.writeFile(wb,`تقرير-التسويق-${stamp}.xlsx`);
+    toast("تم تنزيل تقرير التسويق ✓");
+  };
+
   $("#exportBtn").onclick=function(){if(!leads.length){toast("مفيش بيانات");return;}
     const hdr=["الاسم","التليفون","Verified","الإيميل","تاريخ الإرسال","وقت الإرسال","المصدر","المنصة","Campaign","اسم الإعلان","المجموعة الإعلانية","الخدمات","تصنيف المشروع","نوع المشروع","المساحة","المكان","المنطقة","الكمباوند","القيمة","العملة","المسؤول","الحالة","لينك Drive","Pain Points","ميزتنا","متابعة","ملاحظات","تاريخ الإضافة"];
     const rows=leads.map(l=>[l.name,l.phone,l.phoneVerified?"نعم":"لا",l.email||"",l.receivedDate||"",l.receivedTime||"",srcById(l.source)?srcById(l.source).t:"",l.platform||"",l.campaignId?campLabel(l.campaignId):"",l.adName||"",l.adsetName||"",(l.services||[]).join(" / "),CATS[l.projectCategory]?.t||"",l.projectSubtype||"",l.area||"",l.location||"",l.district||"",l.compound||"",l.value||"",l.currency||"",l.owner||"",stById(l.status).t,l.driveLink||"",l.painPoints||"",l.ourPlus||"",l.nextFollowUp||"",(l.notes||[]).length,new Date(l.createdAt).toLocaleDateString("en-GB")]);
@@ -1565,9 +1712,21 @@
   });
   // Body scroll lock: prevent background scroll when modal is open
   const overlayIds=["formOverlay","detailOverlay","importOverlay","addUserOverlay","mergeOverlay"];
+  let savedScrollY=0;
   function updateBodyLock(){
     const anyOpen=overlayIds.some(id=>document.getElementById(id)?.classList.contains("show"));
-    document.body.classList.toggle("modal-open",anyOpen);
+    const wasOpen=document.body.classList.contains("modal-open");
+    if(anyOpen&&!wasOpen){
+      // قفل: احفظ مكان الـ scroll وثبّت الصفحة عنده
+      savedScrollY=window.scrollY||window.pageYOffset||0;
+      document.body.style.top=(-savedScrollY)+"px";
+      document.body.classList.add("modal-open");
+    } else if(!anyOpen&&wasOpen){
+      // فتح: ارجع لنفس مكان الـ scroll
+      document.body.classList.remove("modal-open");
+      document.body.style.top="";
+      window.scrollTo(0,savedScrollY);
+    }
   }
   // Patch classList.add/remove on overlays to trigger lock
   overlayIds.forEach(id=>{
@@ -1578,6 +1737,9 @@
   });
 
   $("#statusFilter").innerHTML='<option value="">كل الحالات</option>'+STATUSES.map(s=>`<option value="${s.k}">${s.t}</option>`).join("");
+  $("#f-cancelReason").innerHTML='<option value="">— اختر سبب —</option>'+CANCEL_REASONS.map(r=>`<option>${r}</option>`).join("");
+  $("#f-lostReason").innerHTML='<option value="">— اختر سبب —</option>'+LOST_REASONS.map(r=>`<option>${r}</option>`).join("");
+  $("#f-budgetFit").innerHTML=BUDGET_FIT.map(b=>`<option value="${b.k}">${b.t}</option>`).join("");
   $("#qualityFilter").innerHTML='<option value="">كل الجودة</option>'+QUALITY.map(q=>`<option value="${q.k}">${q.t}</option>`).join("");
   $("#ownerFilter").innerHTML='<option value="">كل المسؤولين</option>'+OWNERS.map(o=>`<option>${o}</option>`).join("");
   $("#sourceFilter").innerHTML='<option value="">كل المصادر</option>'+SOURCES.map(s=>`<option value="${s.k}">${s.t}</option>`).join("");
