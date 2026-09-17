@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Plinth + Partners · متابعة العملاء</title>
+<script>
+  // تطبيق الثيم فوراً قبل أي رسم — يمنع "ومضة" الوضع الفاتح عند التحميل
+  try{ document.documentElement.setAttribute("data-theme", localStorage.getItem("crm:theme")||"light"); }catch(e){}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -23,13 +27,32 @@
 </script>
 <style>
   :root{
-    --ivory:#F4EFE6;--paper:#FBF8F2;--ink:#211C16;--ink-soft:#5C544A;
+    --ivory:#F4EFE6;--paper:#FBF8F2;--surface2:#FFFFFF;--surface3:#FFFCF7;--ink:#211C16;--ink-soft:#5C544A;
     --line:#E2D9C9;--line-soft:#EDE6D9;
     --clay:#B0532F;--clay-deep:#8F4023;--sage:#5C7355;--sage-soft:#E5ECE0;
     --gold:#B08838;--teal:#3E6F73;--slate:#4A6076;--rose:#9A4B4B;
     --shadow:0 1px 2px rgba(33,28,22,.06),0 10px 30px -12px rgba(33,28,22,.18);
     --shadow-lg:0 24px 60px -20px rgba(33,28,22,.4);
+    color-scheme:light;
   }
+  /* ── Dark theme — matches the Pricing Engine's dark palette ── */
+  [data-theme="dark"]{
+    --ivory:#171512;--paper:#1E1B17;--surface2:#26221D;--surface3:#2C2822;--ink:#EDE7DC;--ink-soft:#A79E8F;
+    --line:#3A342C;--line-soft:#332E27;
+    --clay:#D97A4E;--clay-deep:#B0532F;--sage:#8FAE80;--sage-soft:#26301F;
+    --gold:#D9A94B;--teal:#5FA0A5;--slate:#7FA0BD;--rose:#D98080;
+    --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 30px -12px rgba(0,0,0,.6);
+    --shadow-lg:0 24px 60px -20px rgba(0,0,0,.8);
+    color-scheme:dark;
+  }
+  [data-theme="dark"] body{
+    background:radial-gradient(1200px 600px at 100% -10%,#211d18 0%,transparent 55%),radial-gradient(900px 500px at -10% 110%,#1c1915 0%,transparent 50%),var(--ivory);
+  }
+  [data-theme="dark"] header{background:rgba(30,27,23,.85)}
+  [data-theme="dark"] .logo{box-shadow:0 6px 16px -6px rgba(0,0,0,.7)}
+  [data-theme="dark"] input[type="color"]{filter:none}
+  [data-theme="dark"] ::selection{background:var(--clay);color:#1E1B17}
+  [data-theme="dark"] .kb-head{filter:brightness(1.15)}
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%}
   body{font-family:"IBM Plex Sans Arabic",sans-serif;
@@ -93,7 +116,7 @@
 
   /* priority card */
   .prio{display:flex;flex-direction:column;gap:10px}
-  .prio-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line-soft);border-radius:13px;background:#fff;cursor:pointer;transition:.15s}
+  .prio-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line-soft);border-radius:13px;background:var(--surface2);cursor:pointer;transition:.15s}
   .prio-item:hover{border-color:var(--clay);transform:translateX(-3px)}
   .prio-rank{width:30px;height:30px;flex:none;border-radius:9px;display:grid;place-items:center;font-weight:700;font-size:14px;color:#fff}
   .prio-main{flex:1;min-width:0}
@@ -137,7 +160,8 @@
   /* ── Kanban (Odoo-style) ── */
   .kb-wrap{overflow-x:auto;padding-bottom:14px;-webkit-overflow-scrolling:touch}
   .kb{display:flex;gap:11px;min-height:60vh;align-items:flex-start}
-  .kb-col{flex:0 0 268px;background:var(--ivory);border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;max-height:74vh}
+  .kb-col{flex:0 0 268px;background:var(--ivory);border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;max-height:74vh;overflow:hidden}
+  .kb-strip{height:5px;width:100%;flex:0 0 5px}
   .kb-col.drag-over{background:#EDE4D8;border-color:var(--clay);border-style:dashed}
   .kb-col.folded{flex:0 0 58px}
   .kb-col.folded .kb-body,.kb-col.folded .kb-sum{display:none}
@@ -184,28 +208,28 @@
   .form-sec h4{font-size:12px;font-weight:700;color:var(--clay);text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px}
   .field{margin-bottom:13px}
   .field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
-  .field input,.field select,.field textarea{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:11px;font-family:inherit;font-size:14px;background:#fff;color:var(--ink)}
+  .field input,.field select,.field textarea{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:11px;font-family:inherit;font-size:14px;background:var(--surface2);color:var(--ink)}
   .field textarea{resize:vertical;min-height:64px}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
   .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px}
   @media(max-width:520px){.grid2,.grid3{grid-template-columns:1fr}}
 
   .pills{display:flex;gap:7px;flex-wrap:wrap}
-  .pill{border:1px solid var(--line);background:#fff;border-radius:20px;padding:7px 12px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--ink-soft);transition:.12s;user-select:none}
+  .pill{border:1px solid var(--line);background:var(--surface2);border-radius:20px;padding:7px 12px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--ink-soft);transition:.12s;user-select:none}
   .pill.on{color:#fff;border-color:transparent;background:var(--clay)}
   .pill.on.status{}
 
   .detail-sub{font-size:13px;color:var(--ink-soft);display:flex;flex-wrap:wrap;gap:4px 14px;margin-bottom:14px}
   .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
   @media(max-width:520px){.info-grid{grid-template-columns:1fr}}
-  .info-box{background:#fff;border:1px solid var(--line-soft);border-radius:12px;padding:11px 13px}
+  .info-box{background:var(--surface2);border:1px solid var(--line-soft);border-radius:12px;padding:11px 13px}
   .info-box .ib-l{font-size:11px;color:var(--ink-soft);font-weight:600;margin-bottom:3px}
   .info-box .ib-v{font-size:13.5px;font-weight:600}
   .seg{display:flex;background:var(--ivory);border:1px solid var(--line);border-radius:11px;padding:4px;gap:4px;margin-bottom:14px}
   .seg button{flex:1;border:none;background:none;font-family:inherit;font-weight:600;font-size:13px;padding:8px;border-radius:8px;cursor:pointer;color:var(--ink-soft)}
-  .seg button.on{background:#fff;color:var(--clay);box-shadow:var(--shadow)}
+  .seg button.on{background:var(--surface2);color:var(--clay);box-shadow:var(--shadow)}
   .timeline{display:flex;flex-direction:column;gap:10px}
-  .tl-item{border:1px solid var(--line-soft);border-radius:13px;padding:12px 14px;background:#fff}
+  .tl-item{border:1px solid var(--line-soft);border-radius:13px;padding:12px 14px;background:var(--surface2)}
   .tl-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px}
   .tl-kind{font-size:11.5px;font-weight:700;display:inline-flex;align-items:center;gap:5px}
   .tl-time{font-size:11.5px;color:var(--ink-soft)}
@@ -218,11 +242,11 @@
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
   /* import */
-  .drop{border:2px dashed var(--line);border-radius:14px;padding:30px 18px;text-align:center;cursor:pointer;transition:.15s;background:#fff}
-  .drop:hover{border-color:var(--clay);background:#FFFCF7}
+  .drop{border:2px dashed var(--line);border-radius:14px;padding:30px 18px;text-align:center;cursor:pointer;transition:.15s;background:var(--surface2)}
+  .drop:hover{border-color:var(--clay);background:var(--surface3)}
   .map-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
   .map-table td{padding:8px 6px;border-bottom:1px solid var(--line-soft)}
-  .map-table select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:9px;font-family:inherit;font-size:13px;background:#fff}
+  .map-table select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:9px;font-family:inherit;font-size:13px;background:var(--surface2)}
   .map-fld{font-weight:600;white-space:nowrap}
 
   .toast{position:fixed;bottom:24px;inset-inline-start:50%;transform:translateX(50%);background:var(--ink);color:#fff;padding:12px 20px;border-radius:12px;font-size:13.5px;font-weight:500;z-index:100;opacity:0;pointer-events:none;transition:.25s;box-shadow:var(--shadow-lg);max-width:90vw;text-align:center}
@@ -238,7 +262,11 @@
   .loading{text-align:center;padding:80px 20px;color:var(--ink-soft)}
   .spinner{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--clay);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
   @keyframes spin{to{transform:rotate(360deg)}}
-  @media print{header,nav.tabs,.toolbar,.fab,#tab-leads,#tab-dash,.no-print{display:none!important}body{background:#fff}main{padding:0;max-width:none}.view{display:block!important}}
+  @media print{
+    header,nav.tabs,.toolbar,.fab,#tab-leads,#tab-dash,.no-print,#viewAsBanner{display:none!important}
+    :root,[data-theme="dark"]{--ivory:#fff;--paper:#fff;--surface2:#fff;--surface3:#fff;--ink:#211C16;--ink-soft:#5C544A;--line:#E2D9C9;--line-soft:#EDE6D9}
+    body{background:#fff}main{padding:0;max-width:none}.view{display:block!important}
+  }
 
   /* ===== MOBILE ===== */
   @media(max-width:640px){
@@ -328,11 +356,13 @@
     </div>
     <div class="head-spacer"></div>
     <button class="icon-btn no-print" id="langBtn" title="Language / اللغة" onclick="toggleLang()" style="font-weight:700">EN</button>
+    <button class="icon-btn no-print" id="themeBtn" title="Dark mode / الوضع الداكن" onclick="toggleTheme()">🌙</button>
     <button class="icon-btn" id="importBtn">⬆ إكسيل</button>
     <button class="icon-btn" id="backupBtn">💾 نسخة</button>
     <button class="icon-btn" id="restoreBtn">📂 استرجاع</button>
     <button class="icon-btn" id="exportBtn">⬇ CSV</button>
     <button class="icon-btn no-print" id="resetBtn">↺</button>
+    <select id="viewAsSelect" style="display:none;border:1px solid var(--gold);border-radius:9px;padding:6px 8px;font-family:inherit;font-size:12px;background:#FCF3E8;color:#8A6D3B;font-weight:600"></select>
     <div id="userChip" style="display:none;align-items:center;gap:8px;padding:6px 12px;background:var(--ivory);border:1px solid var(--line);border-radius:10px;font-size:12.5px">
       <span id="userChipName" style="font-weight:600"></span>
       <span id="userChipRole" style="color:var(--ink-soft)"></span>
@@ -482,7 +512,7 @@
         <div class="field" id="campaignWrap" style="display:none">
           <label>الكامبين</label>
           <select id="f-campaign"></select>
-          <div id="campAdd" style="display:none;margin-top:8px;background:#fff;border:1px solid var(--line);border-radius:11px;padding:10px">
+          <div id="campAdd" style="display:none;margin-top:8px;background:var(--surface2);border:1px solid var(--line);border-radius:11px;padding:10px">
             <div class="grid3">
               <div class="field" style="margin:0"><label>المنصة</label><select id="nc-platform"><option value="IG">Instagram</option><option value="FB">Facebook</option></select></div>
               <div class="field" style="margin:0"><label>Campaign ID</label><input id="nc-id" placeholder="C-01"></div>
@@ -691,6 +721,18 @@
     applyLang();
     location.reload();
   };
+  // ── Dark mode ──
+  let THEME=(function(){try{return localStorage.getItem("crm:theme")||"light";}catch(e){return "light";}})();
+  function applyTheme(){
+    document.documentElement.setAttribute("data-theme",THEME);
+    const btn=document.getElementById("themeBtn");
+    if(btn)btn.textContent=THEME==="dark"?"☀":"🌙";
+    try{localStorage.setItem("crm:theme",THEME);}catch(e){}
+  }
+  window.toggleTheme=function(){
+    THEME = THEME==="dark" ? "light" : "dark";
+    applyTheme();
+  };
   const STORE_KEY="crm:leads", CAMP_KEY="crm:campaigns";
 
   // ── PIPELINE: كل مرحلة ليها SLA (عدد أيام قبل ما تعتبر متأخرة) ──
@@ -713,14 +755,24 @@
   const LEGACY_STATUS={contacted_ans:"contacted",contacted_no:"no_answer"};
   const normStatus=k=>LEGACY_STATUS[k]||k||"new";
   // SLA: هل العميل متأخر في مرحلته الحالية؟
+  // القاعدة: لو فيه ميعاد مجدول (نتيجة معاينة/ميتنج محدد، أو تأجيل On Hold) في المستقبل، الـ SLA يتجمّد لحد الميعاد ده
   function stageOverdue(l){
     if(!isActive(l))return null;
     const st=stById(normStatus(l.status));
     if(!st||!st.sla)return null;
+    // لو فيه تاريخ متابعة/ميعاد مستقبلي محدد، هو ده المرجع بدل الـ SLA الثابت
+    if(l.nextFollowUp){
+      const sched=new Date(l.nextFollowUp+"T23:59:59").getTime();
+      if(sched>Date.now()) return null; // لسه ماوصلش الميعاد المحدد — مش متأخر
+      // الميعاد فات ومحصلش تحديث حالة → دلوقتي يبقى متأخر بعدد الأيام اللي فاتت
+      const overDays=Math.floor((Date.now()-sched)/864e5);
+      if(overDays>0) return{days:overDays,sla:0,over:overDays,hint:isEn()?"Scheduled date passed with no update":"الميعاد المحدد فات من غير تحديث",stage:L(st),scheduled:true};
+      return null;
+    }
     const since=l.stageChangedAt||lastTs(l)||l.updatedAt||l.createdAt||0;
     if(!since)return null;
     const days=Math.floor((Date.now()-since)/864e5);
-    if(days>st.sla)return{days,sla:st.sla,over:days-st.sla,hint:st.hint,stage:st.t};
+    if(days>st.sla)return{days,sla:st.sla,over:days-st.sla,hint:LH(st),stage:L(st)};
     return null;
   }
   // ── أسباب الإلغاء (معايير CRM احترافية) ──
@@ -797,6 +849,7 @@
   const VIEW=/[?&]view=1/.test(location.search);
   let db=null, auth=null, ready=false;
   let currentUser=null, currentRole=null, currentUserName=null;
+  let actualRole=null; // الدور الحقيقي دايماً — يُستخدم لتحديد هل ينفع View As أصلاً
   const ROLES={super_admin:"Super Admin",admin:"Admin",sales:"Sales",marketing:"Marketing",viewer:"Viewer"};
   const isLimited=()=>currentRole==="sales"||currentRole==="marketing";
   const canWrite=()=>currentRole==="super_admin"||currentRole==="admin"||currentRole==="sales"||currentRole==="marketing";
@@ -842,6 +895,14 @@
           await db.collection("users").doc(user.uid).set({name:currentUserName,email:user.email,role:currentRole,createdAt:Date.now()});
         }
       }catch(e){ currentRole="viewer"; currentUserName=user.email; }
+      actualRole=currentRole; // احفظ الدور الحقيقي قبل أي "View As"
+      // استرجع وضع "عرض كـ..." المحفوظ محلياً (Super Admin بس)
+      if(actualRole==="super_admin"){
+        try{
+          const saved=sessionStorage.getItem("crm:viewAs");
+          if(saved && saved!=="super_admin") currentRole=saved;
+        }catch(e){}
+      }
       showApp();
       startListeners();
     });
@@ -863,15 +924,55 @@
     $("#userChipRole").textContent=ROLES[currentRole]||currentRole;
     // role-based UI
     applyRoleUI();
+    updateViewAsBanner();
+  }
+  window.setViewAs=function(role){
+    if(actualRole!=="super_admin")return; // حماية إضافية
+    currentRole=role;
+    try{ sessionStorage.setItem("crm:viewAs",role); }catch(e){}
+    applyRoleUI();
+    updateViewAsBanner();
+    renderAll();
+    if(document.getElementById("tab-pipeline")?.classList.contains("active"))renderKanban();
+    toast(role==="super_admin"?(isEn()?"Back to your own view":"رجعت لعرضك الأصلي"):(isEn()?"Now viewing as "+ROLES[role]:"دلوقتي بتشوف كـ "+ROLES[role]));
+  };
+  function updateViewAsBanner(){
+    let bar=document.getElementById("viewAsBanner");
+    const active=actualRole==="super_admin" && currentRole!=="super_admin";
+    if(active){
+      if(!bar){
+        bar=document.createElement("div"); bar.id="viewAsBanner";
+        bar.style.cssText="position:sticky;top:0;z-index:40;background:var(--gold);color:#3A2E14;text-align:center;font-size:12.5px;font-weight:700;padding:6px 10px";
+        document.body.insertBefore(bar, document.body.firstChild);
+      }
+      bar.innerHTML=(isEn()?`👁 Viewing as ${ROLES[currentRole]} — `:`👁 عرض كـ ${ROLES[currentRole]} — `)+
+        `<a href="#" onclick="setViewAs('super_admin');return false" style="color:#3A2E14;text-decoration:underline">${isEn()?"exit":"رجوع"}</a>`;
+    } else if(bar) bar.remove();
   }
   function applyRoleUI(){
-    // admin-only elements
+    // admin-only elements — تعتمد على الدور الحقيقي (actualRole) عشان View As متفتحش ثغرة صلاحيات
+    const trueIsAdmin=()=>actualRole==="super_admin"||actualRole==="admin";
+    const trueIsSuper=()=>actualRole==="super_admin";
     const adminOnly=["usersTabBtn"];
-    adminOnly.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=isAdmin()?"":"none";});
+    adminOnly.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=trueIsAdmin()?"":"none";});
     const superOnly=["resetBtn"];
-    superOnly.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=isSuperAdmin()?"":"none";});
+    superOnly.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=trueIsSuper()?"":"none";});
     // super-admin badge
-    const chip=$("#userChip"); if(isSuperAdmin()&&chip)chip.style.outline="2px solid var(--clay)";
+    const chip=$("#userChip"); if(trueIsSuper()&&chip)chip.style.outline="2px solid var(--clay)";
+    // View As selector — يظهر بس للـ Super Admin الحقيقي
+    const vas=document.getElementById("viewAsSelect");
+    if(vas){
+      if(trueIsSuper()){
+        vas.style.display="inline-block";
+        if(!vas.dataset.filled){
+          vas.innerHTML=`<option value="super_admin">👁 ${isEn()?"View as: Myself":"عرض كـ: نفسي"}</option>`+
+            ["admin","sales","marketing","viewer"].map(r=>`<option value="${r}">👁 ${isEn()?"View as":"عرض كـ"}: ${ROLES[r]}</option>`).join("");
+          vas.dataset.filled="1";
+          vas.value=currentRole; // يعكس أي View As محفوظ من قبل
+          vas.onchange=()=>window.setViewAs(vas.value);
+        } else { vas.value=currentRole; }
+      } else vas.style.display="none";
+    }
     // write-only elements (import: sales/marketing can upload only)
     const canImport=()=>currentRole==="super_admin"||currentRole==="admin"||currentRole==="sales"||currentRole==="marketing";
     // addFab (manual add): sales+ only, not marketing
@@ -880,10 +981,10 @@
     // importBtn: sales + marketing can upload Excel
     const impEl=document.getElementById("importBtn");
     if(impEl)impEl.style.display=canImport()?"":"none";
-    // backup/export: admin+ only
+    // backup/export: admin+ only — الدور الحقيقي فقط (View As متسمحش بعمل Backup باسم دور تاني)
     const adminTools=["backupBtn","restoreBtn","exportBtn"];
     // mktExportBtn متاح للتسويق والأدمن (مفيهوش أرقام مالية)
-    adminTools.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=canBackup()?"":"none";});
+    adminTools.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=trueIsAdmin()?"":"none";});
     // marketing: can see all tabs but with restricted data
     // (no longer redirect to report-only)
   }
@@ -906,6 +1007,40 @@
     if(!db||!currentUser)return;
     try{ await db.collection("audit").add({uid:currentUser.uid,userName:currentUserName,action,leadId:leadId||"",leadName:leadName||"",detail,ts:Date.now()}); }
     catch(e){}
+  }
+
+  // ---- Stage transition: log + sequence rules (Lead Life Cycle) ----
+  // ترتيب المراحل الطبيعي (بدون النهائيات) — يُستخدم للتحقق من التسلسل المنطقي
+  const STAGE_ORDER=["new","no_answer","contacted","qualified","site_visit","pricing","quoted","negotiation"];
+  function stageRank(k){const i=STAGE_ORDER.indexOf(normStatus(k));return i<0?999:i;}
+  // هل الانتقال ده منطقي بدون تجاوز؟ (تقدر تتقدم لأي مرحلة قدامك، أو ترجع خطوة واحدة للخلف، أو تدخل/تخرج من on_hold والنهائيات في أي وقت)
+  function isSequential(from,to){
+    const tn=normStatus(to);
+    if(TERMINAL.includes(tn)||tn==="on_hold")return true; // النهائي والتأجيل مسموحين من أي مرحلة
+    const rf=stageRank(from), rt=stageRank(to);
+    if(rf===999||rt===999)return true; // حالة قديمة غير معروفة — منسمحش
+    return rt<=rf+1; // تقدّم بحد أقصى مرحلة واحدة قدام، أو أي رجوع للخلف
+  }
+  function transitionStage(l, newStatus, opts={}){
+    const from=l.status, to=newStatus;
+    if(normStatus(from)===normStatus(to))return l;
+    const seq=isSequential(from,to);
+    const forced=!seq && isAdmin(); // الأدمن يقدر يتجاوز، لكن يتسجل كـ "تجاوز يدوي"
+    if(!seq && !isAdmin()){
+      toast(isEn()?"Cannot skip stages — move sequentially or ask an Admin":"مينفعش تقفز مراحل — انتقل بالترتيب أو اطلب من الأدمن");
+      return null;
+    }
+    l.stageHistory=l.stageHistory||[];
+    l.stageHistory.push({
+      from: from||null, to, ts: Date.now(),
+      by: currentUserName||"—", uid: currentUser?currentUser.uid:null,
+      forced: !!forced
+    });
+    l.stageChangedAt=Date.now();
+    l.status=to;
+    logAudit(forced?"تغيير مرحلة (تجاوز)":"تغيير مرحلة", l.id, l.name,
+      L(stById(from||"new"))+" ← "+L(stById(to))+(forced?" [تجاوز ترتيب]":""));
+    return l;
   }
 
   async function putLead(l){
@@ -1134,6 +1269,7 @@
     return true;}
   // ══════════ KANBAN (Odoo-style pipeline board) ══════════
   let kbDragId=null;
+  function stageColor(k){return stById(k).c;} // اللون ثابت من تعريف المرحلة
   function kbFolded(){try{return JSON.parse(localStorage.getItem("crm:kbFold")||"{}");}catch(e){return {};}}
   function kbSetFold(k,v){const f=kbFolded();f[k]=v;try{localStorage.setItem("crm:kbFold",JSON.stringify(f));}catch(e){}}
   window.kbToggleFold=function(k){const f=kbFolded();kbSetFold(k,!f[k]);renderKanban();};
@@ -1170,7 +1306,7 @@
         const pr=l.priority||0;
         const stars=[1,2,3].map(n=>`<span onclick="kbSetPriority(event,'${l.id}',${n})" style="color:${n<=pr?'#D9A441':'#D8D0C6'}">★</span>`).join("");
         const di=dueInfo(l.nextFollowUp);
-        return `<div class="kb-card ${ov?"rotting":""}" style="border-inline-start-color:${st.c}"
+        return `<div class="kb-card ${ov?"rotting":""}" style="border-inline-start-color:${stageColor(st.k)}"
             draggable="${canWrite()?"true":"false"}" data-id="${l.id}" onclick="openDetail('${l.id}')">
           <div class="kb-n">${esc(l.name)}</div>
           <div class="kb-m">
@@ -1193,9 +1329,10 @@
       }).join(""):`<div class="kb-empty">—</div>`;
 
       return `<div class="kb-col ${isFold?"folded":""}" data-stage="${st.k}">
-        <div class="kb-head" onclick="kbToggleFold('${st.k}')">
-          <div class="kb-ttl"><span class="kb-dot" style="background:${st.c}"></span>${esc(L(st))}</div>
-          <div style="display:flex;gap:4px;align-items:center;flex:0 0 auto">
+        <div class="kb-strip" style="background:${stageColor(st.k)}"></div>
+        <div class="kb-head" style="background:${stageColor(st.k)}22" onclick="kbToggleFold('${st.k}')">
+          <div class="kb-ttl"><span class="kb-dot" style="background:${stageColor(st.k)}"></span>${esc(L(st))}</div>
+          <div style="display:flex;gap:5px;align-items:center;flex:0 0 auto">
             ${rot?`<span class="kb-rot">${rot} ${t("rotting")}</span>`:""}
             <span class="kb-cnt">${items.length}</span>
           </div>
@@ -1223,7 +1360,9 @@
         const l=leads.find(x=>x.id===id); if(!l||normStatus(l.status)===ns)return;
         // الحالات النهائية بتتغير من صفحة العميل عشان السبب الإلزامي
         if(TERMINAL.includes(ns)){ openDetail(id); toast(isEn()?"Set the reason from the lead page":"حدد السبب من صفحة العميل"); return; }
-        l.stageChangedAt=Date.now(); l.status=ns; l.updatedAt=Date.now();
+        const ok=transitionStage(l, ns);
+        if(!ok){ renderKanban(); return; } // فشل التحقق (قفزة مراحل) — أعد رسم البورد بدون تغيير
+        l.updatedAt=Date.now();
         await putLead(l);
         renderKanban(); renderLeadsAndDash();
         toast(isEn()?("Moved to "+L(stById(ns))):("اتنقل لـ "+L(stById(ns))));
@@ -1403,7 +1542,7 @@
     const s=stById(l.status),di=dueInfo(l.nextFollowUp),notes=(l.notes||[]).slice().sort((a,b)=>b.ts-a.ts);
     const proj=[CATS[l.projectCategory]?.t,l.projectSubtype].filter(Boolean).join(" · ");
     const fT=firstTs(l),lT=lastTs(l);
-    const fmtD=s=>{if(!s)return"";const d=new Date(s);return isNaN(d.getTime())?String(s):d.toLocaleDateString("ar-EG");};
+    const fmtD=s=>{if(!s)return"";const d=new Date(s);return isNaN(d.getTime())?String(s):d.toLocaleDateString(isEn()?"en-GB":"ar-EG");};
     const recv=(l.receivedDate?(fmtD(l.receivedDate)+(l.receivedTime?" — "+l.receivedTime:"")):(l.createdAt?fmtD(new Date(l.createdAt).toISOString().slice(0,10)):""));
     const sug=suggestContact(l);
     const ql=qById(l.quality);
@@ -1431,7 +1570,7 @@
         <a href="tel:${esc(telNum)}" class="btn btn-primary btn-sm" style="flex:1;justify-content:center">📞 اتصال ${esc(l.phone)}</a>
         <a href="https://wa.me/${esc(waNum)}" target="_blank" class="btn btn-ghost btn-sm" style="justify-content:center;color:#1FA855;border-color:#9FD9B4">واتساب</a>
         ${l.phone2?`<a href="tel:${esc((l.phone2||"").replace(/[^\d+]/g,""))}" class="btn btn-ghost btn-sm" style="justify-content:center">📞 ${esc(l.phone2)}</a>`:""}</div>`:""}
-      ${(l.services||[]).length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">${l.services.map(x=>`<span class="tag" style="background:#fff;border-color:var(--clay);color:var(--clay)">${esc(x)}</span>`).join("")}</div>`:""}
+      ${(l.services||[]).length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">${l.services.map(x=>`<span class="tag" style="background:var(--surface2);border-color:var(--clay);color:var(--clay)">${esc(x)}</span>`).join("")}</div>`:""}
       ${sug?`<div class="info-box" style="margin-bottom:12px;border-color:${sug.good?'var(--sage)':'var(--gold)'};background:${sug.good?'var(--sage-soft)':'#FCF6EA'}"><div class="ib-l">⏰ أنسب وقت للتواصل</div><div style="font-size:13.5px;font-weight:600">${esc(sug.txt)}</div></div>`:""}
       ${ov?`<div class="sla-warn"><div class="sw-t">⏳ متأخر ${ov.over} يوم في مرحلة "${ov.stage}"</div><div class="sw-s">قعد ${ov.days} يوم والمفروض يتحرك خلال ${ov.sla}. ${esc(ov.hint||"")}</div></div>`
         :(isActive(l)?`<div class="stage-ok">✓ في الوقت — مرحلة "${L(stById(l.status))}"${stById(l.status).sla?` (المهلة ${stById(l.status).sla} يوم)`:""}</div>`:"")}
@@ -1458,9 +1597,26 @@
       ${acc("dates","📅 التواريخ والمدد","",`<div class="info-grid">
         ${info("تاريخ الإرسال / التسجيل",recv)}
         <div class="info-box"><div class="ib-l">أول تواصل</div><div class="ib-v">${fT?new Date(fT).toLocaleString("ar-EG",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}):"— (سجّل أول مكالمة)"}</div></div>
-        ${info("آخر تواصل",lT?new Date(lT).toLocaleDateString("ar-EG"):"")}
+        ${info("آخر تواصل",lT?new Date(lT).toLocaleDateString(isEn()?"en-GB":"ar-EG"):"")}
         ${info("مدة التسعير",priceDur)}
       </div>`,false)}
+
+      ${acc("lifecycle",isEn()?"🔄 Lead Life Cycle":"🔄 رحلة العميل (Life Cycle)",(l.stageHistory||[]).length||"",(function(){
+        const hist=(l.stageHistory||[]).slice().reverse();
+        if(!hist.length)return `<div class="muted" style="font-size:12.5px;padding:6px 0">${isEn()?"No stage changes recorded yet.":"مفيش تغييرات مراحل متسجلة لحد دلوقتي."}</div>`;
+        return `<div style="position:relative;padding-inline-start:18px">
+          <div style="position:absolute;inset-inline-start:5px;top:4px;bottom:4px;width:2px;background:var(--line)"></div>
+          ${hist.map(h=>{
+            const fromSt=h.from?stById(h.from):null, toSt=stById(h.to);
+            const dt=new Date(h.ts).toLocaleString(isEn()?"en-GB":"ar-EG",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+            return `<div style="position:relative;padding-inline-start:14px;margin-bottom:12px">
+              <div style="position:absolute;inset-inline-start:-15px;top:3px;width:9px;height:9px;border-radius:50%;background:${toSt.c};border:2px solid var(--paper)"></div>
+              <div style="font-size:12.5px;font-weight:700">${fromSt?(L(fromSt)+" → "):""}${L(toSt)}${h.forced?` <span style="color:var(--rose);font-weight:600">(${isEn()?"override":"تجاوز"})</span>`:""}</div>
+              <div style="font-size:11px;color:var(--ink-soft);margin-top:2px">${dt} · ${esc(h.by||"—")}</div>
+            </div>`;
+          }).join("")}
+        </div>`;
+      })(),false)}
 
       ${(l.painPoints||l.ourPlus)?acc("notes2","📝 ملاحظات البيع","",`
         ${l.painPoints?`<div class="info-box" style="margin-bottom:8px"><div class="ib-l" style="color:var(--rose)">⚠ Pain Points</div><div style="font-size:13.5px;white-space:pre-wrap">${esc(l.painPoints)}</div></div>`:""}
@@ -1475,14 +1631,14 @@
       <div id="quickReasonWrap" style="display:none;margin-top:8px;background:var(--ivory);border:1px solid var(--line);border-radius:11px;padding:10px">
         <div id="quickReasonLabel" style="font-size:12.5px;font-weight:600;margin-bottom:6px;color:var(--rose)">اختر السبب</div>
         <select class="filter" id="quickReasonSel" style="width:100%;margin-bottom:8px"></select>
-        <textarea id="quickReasonNote" placeholder="ملاحظة إلزامية — تفاصيل السبب…" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-family:inherit;font-size:14px;min-height:60px;resize:vertical;margin-bottom:8px;background:#fff"></textarea>
+        <textarea id="quickReasonNote" placeholder="ملاحظة إلزامية — تفاصيل السبب…" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-family:inherit;font-size:14px;min-height:60px;resize:vertical;margin-bottom:8px;background:var(--surface2)"></textarea>
         <button class="btn btn-primary btn-sm" id="quickReasonSave" style="width:100%">حفظ والمتابعة</button>
       </div>
       <div id="quickWonWrap" style="display:none;margin-top:8px;background:#EFF7EF;border:1px solid #B8D9B8;border-radius:11px;padding:10px">
         <div style="font-size:12.5px;font-weight:600;margin-bottom:6px;color:var(--sage)">🎉 أكّد قيمة العقد الفعلية</div>
         <div style="display:flex;gap:8px;margin-bottom:8px">
-          <input id="quickWonValue" type="number" placeholder="القيمة الفعلية" style="flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-family:inherit;font-size:14px;background:#fff">
-          <select id="quickWonCurrency" style="border:1px solid var(--line);border-radius:10px;padding:0 10px;font-family:inherit;font-size:13px;background:#fff"><option>EGP</option><option>SAR</option><option>USD</option></select>
+          <input id="quickWonValue" type="number" placeholder="القيمة الفعلية" style="flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-family:inherit;font-size:14px;background:var(--surface2)">
+          <select id="quickWonCurrency" style="border:1px solid var(--line);border-radius:10px;padding:0 10px;font-family:inherit;font-size:13px;background:var(--surface2)"><option>EGP</option><option>SAR</option><option>USD</option></select>
         </div>
         <button class="btn btn-primary btn-sm" id="quickWonSave" style="width:100%;background:var(--sage)">تأكيد العقد ✓</button>
       </div>
@@ -1522,8 +1678,10 @@
         if(qr)qr.style.display="none";
         if(qw){qw.style.display="block";const wv=document.getElementById("quickWonValue");if(wv&&l.value)wv.value=l.value;const wc=document.getElementById("quickWonCurrency");if(wc&&l.currency)wc.value=l.currency;}
       } else { if(qr)qr.style.display="none"; if(qw)qw.style.display="none"; }
-      if(normStatus(l.status)!==normStatus(newStatus)) l.stageChangedAt=Date.now();
-      l.status=newStatus;
+      if(normStatus(l.status)!==normStatus(newStatus)){
+        const ok=transitionStage(l, newStatus);
+        if(!ok){ e.target.value=l.status; return; } // فشل التحقق — رجّع القيمة القديمة في الـ select
+      }
       if(TERMINAL.includes(newStatus)) l.nextFollowUp=null;
       await putLead(l);renderDetail();renderLeadsAndDash();toast("تم تحديث الحالة");});}
     if(!canAddNotes())detailTab="timeline";
@@ -2054,6 +2212,7 @@
 
   (function init(){
     applyLang();
+    applyTheme();
     // ترجمة عناصر الواجهة الثابتة
     (function localizeChrome(){
       const set=(sel,val)=>{const el=document.querySelector(sel);if(el)el.textContent=val;};
