@@ -134,6 +134,35 @@
   .modal-b{padding:18px 20px 32px}
   .x-btn{border:none;background:var(--ivory);width:38px;height:38px;border-radius:50%;font-size:20px;cursor:pointer;color:var(--ink-soft);line-height:1;touch-action:manipulation}
   /* body scroll lock when modal open */
+  /* ── Kanban (Odoo-style) ── */
+  .kb-wrap{overflow-x:auto;padding-bottom:14px;-webkit-overflow-scrolling:touch}
+  .kb{display:flex;gap:11px;min-height:60vh;align-items:flex-start}
+  .kb-col{flex:0 0 268px;background:var(--ivory);border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;max-height:74vh}
+  .kb-col.drag-over{background:#EDE4D8;border-color:var(--clay);border-style:dashed}
+  .kb-col.folded{flex:0 0 58px}
+  .kb-col.folded .kb-body,.kb-col.folded .kb-sum{display:none}
+  .kb-col.folded .kb-head{writing-mode:vertical-rl;height:190px;justify-content:flex-start;padding:12px 6px}
+  .kb-head{padding:10px 12px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:6px;cursor:pointer;user-select:none}
+  .kb-ttl{font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:6px;min-width:0}
+  .kb-dot{width:8px;height:8px;border-radius:50%;flex:0 0 8px}
+  .kb-cnt{font-size:11px;color:var(--ink-soft);background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:1px 7px;font-weight:600}
+  .kb-rot{font-size:10.5px;background:#FCE9E4;color:#9A4B4B;border-radius:20px;padding:1px 6px;font-weight:700}
+  .kb-sum{padding:5px 12px;font-size:11px;color:var(--ink-soft);border-bottom:1px solid var(--line-soft);display:flex;justify-content:space-between;gap:6px}
+  .kb-body{padding:9px;overflow-y:auto;flex:1;min-height:70px}
+  .kb-card{background:var(--paper);border:1px solid var(--line);border-inline-start:3px solid var(--line);border-radius:11px;padding:10px 11px;margin-bottom:8px;cursor:grab;box-shadow:var(--shadow-sm);transition:box-shadow .15s,transform .15s}
+  .kb-card:active{cursor:grabbing}
+  .kb-card:hover{box-shadow:var(--shadow-md);transform:translateY(-1px)}
+  .kb-card.rotting{border-color:#D99;background:#FEF8F6}
+  .kb-card.dragging{opacity:.4}
+  .kb-n{font-size:13.5px;font-weight:700;margin-bottom:4px;line-height:1.35}
+  .kb-m{font-size:11px;color:var(--ink-soft);display:flex;flex-wrap:wrap;gap:3px 9px;margin-bottom:6px}
+  .kb-f{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
+  .kb-v{font-size:12px;font-weight:700;color:var(--clay)}
+  .kb-star{cursor:pointer;font-size:13px;letter-spacing:-1px;user-select:none}
+  .kb-badge{font-size:10px;padding:1px 6px;border-radius:20px;font-weight:600}
+  .kb-empty{text-align:center;color:var(--ink-soft);font-size:11.5px;padding:18px 6px}
+  .kb-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+  @media(max-width:640px){.kb-col{flex:0 0 240px}.kb-wrap{margin-inline:-12px;padding-inline:12px}}
   /* ── أقسام قابلة للطي في صفحة العميل ── */
   .acc{border:1px solid var(--line);border-radius:12px;margin-bottom:8px;overflow:hidden;background:var(--paper)}
   .acc-h{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 13px;cursor:pointer;background:var(--ivory);user-select:none}
@@ -298,6 +327,7 @@
       <span>Leads &amp; Inquiries · متابعة العملاء المحتملين</span>
     </div>
     <div class="head-spacer"></div>
+    <button class="icon-btn no-print" id="langBtn" title="Language / اللغة" onclick="toggleLang()" style="font-weight:700">EN</button>
     <button class="icon-btn" id="importBtn">⬆ إكسيل</button>
     <button class="icon-btn" id="backupBtn">💾 نسخة</button>
     <button class="icon-btn" id="restoreBtn">📂 استرجاع</button>
@@ -312,6 +342,7 @@
   </div>
   <nav class="tabs">
     <button data-tab="dash" class="active">لوحة المتابعة</button>
+    <button data-tab="pipeline" id="pipeTabBtn">الـ Pipeline</button>
     <button data-tab="leads">العملاء</button>
     <button data-tab="report">التقرير</button>
     <button data-tab="users" id="usersTabBtn" style="display:none">👤 المستخدمون</button>
@@ -339,6 +370,18 @@
       <div class="card-h">أداء الفريق <span class="muted" style="font-weight:400;font-size:12px">مين بيتابع مين</span></div>
       <div class="card-b" id="ownerPerf"></div>
     </div>
+  </section>
+
+  <section class="view" id="tab-pipeline">
+    <div class="kb-bar no-print">
+      <div class="section-title" style="margin:0" id="kbTitle">الـ Pipeline</div>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;color:var(--ink-soft)">
+        <input type="checkbox" id="kbShowClosed" style="width:auto;margin:0"> <span id="kbShowClosedLbl">إظهار المغلقة</span>
+      </label>
+      <select class="filter" id="kbOwner" style="min-width:130px"></select>
+      <span class="muted" style="font-size:11.5px" id="kbHint">اسحب الكارت لمرحلة تانية</span>
+    </div>
+    <div class="kb-wrap"><div class="kb" id="kbBoard"></div></div>
   </section>
 
   <section class="view" id="tab-leads">
@@ -480,6 +523,10 @@
           <div class="field"><label>العملة</label><select id="f-currency"><option>EGP</option><option>SAR</option><option>USD</option></select></div>
         </div>
         <div class="field"><label>الحالة</label><div class="pills" id="f-status-pills"></div><input type="hidden" id="f-status"></div>
+        <div class="field" id="meetingTypeWrap" style="display:none">
+          <label>نوع اللقاء</label>
+          <div class="pills" id="f-meetingtype-pills"></div><input type="hidden" id="f-meetingtype">
+        </div>
         <div class="field"><label>جودة الـ Lead (تقييم تسويقي)</label><div class="pills" id="f-quality-pills"></div><input type="hidden" id="f-quality"></div>
         <div class="field"><label>مستوى الميزانية (مهم لتقرير التسويق)</label><select id="f-budgetFit"></select></div>
         <div class="grid2">
@@ -575,22 +622,91 @@
 <script>
 (function(){
   "use strict";
+  // ── ثنائية اللغة / Bilingual ──
+  let LANG = (function(){try{return localStorage.getItem("crm:lang")||"ar";}catch(e){return "ar";}})();
+  const isEn = () => LANG === "en";
+  const L = o => !o ? "" : (isEn() ? (o.e || o.t) : o.t);            // label من كائن ثنائي
+  const LH = o => !o ? "" : (isEn() ? (o.hintE || o.hint || "") : (o.hint || "")); // hint
+  const T = {
+    ar:{
+      dash:"لوحة المتابعة", pipeline:"الـ Pipeline", leads:"العملاء", report:"التقرير", users:"👤 المستخدمون",
+      search:"ابحث بالاسم، التليفون، أو الكمباوند…",
+      allStatuses:"كل الحالات", allQuality:"كل الجودة", allOwners:"كل المسؤولين", allSources:"كل المصادر",
+      hideTerminal:"إخفاء الإلغاء والخسارة", lookalike:"🎯 المهتمين والمحتملين (Look-alike)",
+      newLead:"＋ عميل جديد", edit:"✎ تعديل", del:"حذف", save:"حفظ", cancel:"إلغاء", close:"×",
+      totalLeads:"إجمالي العملاء", activePipeline:"Pipeline النشطة ›", won:"مكسوب ›", convRate:"نسبة التحويل",
+      dueFollowups:"متابعات مستحقة ›", todayOnly:"النهاردة بس ›", lostMonth:"إلغاء/خسارة الشهر ›",
+      noContact7:"بدون تواصل +7 أيام ›", overdueStage:"متأخرين عن مهلة المرحلة ›",
+      weighted:"التوقع المرجّح ›", weightedSub:"القيمة × احتمالية المرحلة",
+      active:"نشط", needsFollowup:"محتاجة متابعة", exceededSla:"تجاوزوا SLA مرحلتهم",
+      todayOrLate:"النهاردة أو متأخرة", todayAppts:"مواعيد اليوم",
+      prioTitle:"🔥 أولوية المتابعة — مين تتابعه دلوقتي",
+      staleTitle:"⚠ بدون تواصل من أكتر من 7 أيام",
+      pipelineStages:"مراحل العملاء (Pipeline)", ownerPerf:"أداء المسؤولين",
+      noResults:"مفيش نتائج.", noLeads:"ابدأ بتسجيل أول عميل، أو ارفع شيت إكسيل.",
+      dragHint:"اسحب الكارت لمرحلة تانية", rotting:"متأخر", card:"كارت",
+      value:"القيمة", owner:"المسؤول", stage:"المرحلة", noStage:"مفيش",
+      showClosed:"إظهار المغلقة", langBtn:"EN", timeline:"سجل التواصل", logCall:"＋ تسجيل مكالمة / ملاحظة",
+      nextFollowup:"المتابعة القادمة:", noFollowup:"مفيش متابعة مجدولة",
+      onTime:"✓ في الوقت — مرحلة", slaOf:"المهلة", days:"يوم",
+      projectData:"🏗 بيانات المشروع", clientData:"👤 بيانات العميل", datesData:"📅 التواريخ والمدد", salesNotes:"📝 ملاحظات البيع",
+      call:"📞 اتصال", whatsapp:"واتساب", field:"حقل",
+      mktExport:"📊 تقرير التسويق (Excel)", print:"🖨 طباعة / PDF", perfReport:"تقرير الأداء"
+    },
+    en:{
+      dash:"Dashboard", pipeline:"Pipeline", leads:"Leads", report:"Report", users:"👤 Users",
+      search:"Search by name, phone, or compound…",
+      allStatuses:"All stages", allQuality:"All quality", allOwners:"All owners", allSources:"All sources",
+      hideTerminal:"Hide cancelled & lost", lookalike:"🎯 Interested & potential (Look-alike)",
+      newLead:"＋ New Lead", edit:"✎ Edit", del:"Delete", save:"Save", cancel:"Cancel", close:"×",
+      totalLeads:"Total Leads", activePipeline:"Active Pipeline ›", won:"Won ›", convRate:"Conversion Rate",
+      dueFollowups:"Due Follow-ups ›", todayOnly:"Today Only ›", lostMonth:"Lost/Cancelled this month ›",
+      noContact7:"No contact +7 days ›", overdueStage:"Overdue in stage ›",
+      weighted:"Weighted Forecast ›", weightedSub:"Value × stage probability",
+      active:"active", needsFollowup:"needs follow-up", exceededSla:"past their stage SLA",
+      todayOrLate:"Today or overdue", todayAppts:"Today's follow-ups",
+      prioTitle:"🔥 Follow-up Priority — who to chase now",
+      staleTitle:"⚠ No contact for more than 7 days",
+      pipelineStages:"Pipeline Stages", ownerPerf:"Owner Performance",
+      noResults:"No results.", noLeads:"Add your first lead, or import an Excel sheet.",
+      dragHint:"Drag a card to another stage", rotting:"rotting", card:"cards",
+      value:"Value", owner:"Owner", stage:"Stage", noStage:"None",
+      showClosed:"Show closed", langBtn:"ع", timeline:"Activity Log", logCall:"＋ Log call / note",
+      nextFollowup:"Next follow-up:", noFollowup:"No follow-up scheduled",
+      onTime:"✓ On time — stage", slaOf:"SLA", days:"days",
+      projectData:"🏗 Project Details", clientData:"👤 Client Details", datesData:"📅 Dates & Durations", salesNotes:"📝 Sales Notes",
+      call:"📞 Call", whatsapp:"WhatsApp", field:"fields",
+      mktExport:"📊 Marketing Report (Excel)", print:"🖨 Print / PDF", perfReport:"Performance Report"
+    }
+  };
+  const t = k => (T[LANG] && T[LANG][k]) || T.ar[k] || k;
+  function applyLang(){
+    const html=document.documentElement;
+    html.setAttribute("lang", isEn()?"en":"ar");
+    html.setAttribute("dir",  isEn()?"ltr":"rtl");
+    try{localStorage.setItem("crm:lang",LANG);}catch(e){}
+  }
+  window.toggleLang=function(){
+    LANG = isEn() ? "ar" : "en";
+    applyLang();
+    location.reload();
+  };
   const STORE_KEY="crm:leads", CAMP_KEY="crm:campaigns";
 
   // ── PIPELINE: كل مرحلة ليها SLA (عدد أيام قبل ما تعتبر متأخرة) ──
   const STATUSES=[
-    {k:"new",t:"جديد",c:"#4A6076",sla:1,hint:"محتاج أول تواصل خلال 24 ساعة"},
-    {k:"no_answer",t:"مردّش (محاولات)",c:"#B08838",sla:2,hint:"حاول تاني بعد يومين — جرّب وقت مختلف"},
-    {k:"contacted",t:"تم التعارف",c:"#3E6F73",sla:5,hint:"اتعرفت عليه — لازم تحدد احتياجه وميزانيته خلال 5 أيام"},
-    {k:"qualified",t:"مؤهل (عرفت احتياجه)",c:"#2F7D8C",sla:5,hint:"عارف الاحتياج والميزانية — رتّب معاينة أو ابدأ تسعير"},
-    {k:"site_visit",t:"معاينة موقع",c:"#6B8E5A",sla:3,hint:"بعد المعاينة ابدأ التسعير خلال 3 أيام"},
-    {k:"pricing",t:"تحت التسعير (داخلي)",c:"#8A6D3B",sla:5,hint:"شغل داخلي — لازم يخلص خلال 5 أيام"},
-    {k:"quoted",t:"عرض سعر مُرسل",c:"#B0532F",sla:7,hint:"تابع بعد أسبوع لو مفيش رد"},
-    {k:"negotiation",t:"تفاوض",c:"#7A5CA8",sla:7,hint:"مرحلة حساسة — تابع كل أسبوع"},
-    {k:"on_hold",t:"مؤجّل مؤقتاً",c:"#7C7C8A",sla:30,hint:"راجعه بعد شهر"},
-    {k:"won",t:"تم الإغلاق ✓",c:"#5C7355",sla:0},
-    {k:"lost",t:"خسارة",c:"#9A4B4B",sla:0},
-    {k:"cancelled",t:"إلغاء الطلب",c:"#8A8079",sla:0}];
+    {k:"new",t:"جديد",e:"New",c:"#4A6076",sla:1,prob:10,hint:"محتاج أول تواصل خلال 24 ساعة",hintE:"Needs first contact within 24 hours"},
+    {k:"no_answer",t:"مردّش (محاولات)",e:"No Answer",c:"#B08838",sla:2,prob:10,hint:"حاول تاني بعد يومين — جرّب وقت مختلف",hintE:"Retry in 2 days — try a different time"},
+    {k:"contacted",t:"تم التعارف",e:"Contacted",c:"#3E6F73",sla:5,prob:20,hint:"اتعرفت عليه — لازم تحدد احتياجه وميزانيته خلال 5 أيام",hintE:"Qualify his needs and budget within 5 days"},
+    {k:"qualified",t:"مؤهل (عرفت احتياجه)",e:"Qualified",c:"#2F7D8C",sla:5,prob:35,hint:"عارف الاحتياج والميزانية — رتّب معاينة أو ابدأ تسعير",hintE:"Schedule a site visit or start pricing"},
+    {k:"site_visit",t:"معاينة / ميتنج",e:"Visit / Meeting",c:"#6B8E5A",sla:3,prob:50,hint:"بعد اللقاء ابدأ التسعير خلال 3 أيام",hintE:"Start pricing within 3 days after the meeting"},
+    {k:"pricing",t:"تحت التسعير (داخلي)",e:"Pricing (internal)",c:"#8A6D3B",sla:5,prob:60,hint:"شغل داخلي — لازم يخلص خلال 5 أيام",hintE:"Internal work — must finish within 5 days"},
+    {k:"quoted",t:"عرض سعر مُرسل",e:"Proposal Sent",c:"#B0532F",sla:7,prob:70,hint:"تابع بعد أسبوع لو مفيش رد",hintE:"Follow up after a week if no reply"},
+    {k:"negotiation",t:"تفاوض",e:"Negotiation",c:"#7A5CA8",sla:7,prob:85,hint:"مرحلة حساسة — تابع كل أسبوع",hintE:"Critical stage — follow up weekly"},
+    {k:"on_hold",t:"مؤجّل مؤقتاً",e:"On Hold",c:"#7C7C8A",sla:30,prob:15,hint:"راجعه بعد شهر",hintE:"Review after a month"},
+    {k:"won",t:"تم الإغلاق ✓",e:"Won ✓",c:"#5C7355",sla:0,prob:100,fold:true},
+    {k:"lost",t:"خسارة",e:"Lost",c:"#9A4B4B",sla:0,prob:0,fold:true},
+    {k:"cancelled",t:"إلغاء الطلب",e:"Cancelled",c:"#8A8079",sla:0,prob:0,fold:true}];
   const TERMINAL=["won","lost","cancelled"];
   const isActive=l=>!TERMINAL.includes(l.status);
   // خريطة تحويل الحالات القديمة للجديدة (backward compatibility)
@@ -634,26 +750,30 @@
     "أخرى — مذكورة في الملاحظات"];
   // ── مستوى الميزانية (لتقرير التسويق) ──
   const BUDGET_FIT=[
-    {k:"above",t:"فوق البدجت",c:"#5C7355"},
-    {k:"in",t:"في البدجت",c:"#3E6F73"},
-    {k:"below",t:"تحت البدجت",c:"#B08838"},
-    {k:"unknown",t:"غير محدد",c:"#8A8079"}];
+    {k:"above",t:"فوق البدجت",e:"Above budget",c:"#5C7355"},
+    {k:"in",t:"في البدجت",e:"In budget",c:"#3E6F73"},
+    {k:"below",t:"تحت البدجت",e:"Below budget",c:"#B08838"},
+    {k:"unknown",t:"غير محدد",e:"Unknown",c:"#8A8079"}];
   const bfById=k=>BUDGET_FIT.find(b=>b.k===k);
+  const MEETING_TYPES=[
+    {k:"site_visit",t:"معاينة موقع",e:"Site Visit",i:"📍"},
+    {k:"meeting",t:"ميتنج (مكتب/أونلاين)",e:"Meeting (office/online)",i:"🗓"}];
+  const mtById=k=>MEETING_TYPES.find(m=>m.k===k);
   const QUALITY=[
-    {k:"interested",t:"مهتم",c:"#5C7355"},
-    {k:"potential",t:"محتمل",c:"#B08838"},
-    {k:"unsuitable",t:"غير مناسب",c:"#8A8079"},
-    {k:"invalid",t:"خاطئ (بيانات غلط)",c:"#9A4B4B"}];
+    {k:"interested",t:"مهتم",e:"Interested",c:"#5C7355"},
+    {k:"potential",t:"محتمل",e:"Potential",c:"#B08838"},
+    {k:"unsuitable",t:"غير مناسب",e:"Not a fit",c:"#8A8079"},
+    {k:"invalid",t:"خاطئ (بيانات غلط)",e:"Invalid data",c:"#9A4B4B"}];
   const qById=k=>QUALITY.find(q=>q.k===k);
   const SOURCES=[
-    {k:"campaign",t:"كامبين سوشيال ميديا",i:"📣",camp:true},
-    {k:"whatsapp",t:"واتساب مباشر",i:"💬"},
-    {k:"instagram_dm",t:"رسالة انستجرام",i:"📷"},
-    {k:"company_call",t:"اتصال على جوال الشركة",i:"📞"},
-    {k:"referral",t:"Referral",i:"🤝"},
-    {k:"existing",t:"Existing Client",i:"⭐"},
-    {k:"broker",t:"Broker",i:"🏢"},
-    {k:"linkedin",t:"LinkedIn",i:"in"}];
+    {k:"campaign",t:"كامبين سوشيال ميديا",e:"Social Campaign",i:"📣",camp:true},
+    {k:"whatsapp",t:"واتساب مباشر",e:"Direct WhatsApp",i:"💬"},
+    {k:"instagram_dm",t:"رسالة انستجرام",e:"Instagram DM",i:"📷"},
+    {k:"company_call",t:"اتصال على جوال الشركة",e:"Company Phone Call",i:"📞"},
+    {k:"referral",t:"Referral",e:"Referral",i:"🤝"},
+    {k:"existing",t:"Existing Client",e:"Existing Client",i:"⭐"},
+    {k:"broker",t:"Broker",e:"Broker",i:"🏢"},
+    {k:"linkedin",t:"LinkedIn",e:"LinkedIn",i:"in"}];
   const SERVICES=["تصميم داخلي","تصميم لاند سكيب","تصميم معماري","تشطيب Core & Shell","ديكور و ستايلنج","أثاث","Renovation","Turnkey","مخططات هندسية","شوب درووينج"];
   const CATS={
     residential:{t:"سكني",subs:["فيلا","تاون هاوس","توين هاوس","دوبلكس","شقة","روف","بيزمنت"]},
@@ -793,7 +913,7 @@
     const i=leads.findIndex(x=>x.id===l.id); if(i>=0)leads[i]=l; else leads.unshift(l);
     try{
       await db.collection("leads").doc(l.id).set(JSON.parse(JSON.stringify(l)));
-      logAudit(i>=0?"تعديل بيانات":"إضافة عميل جديد", l.id, l.name, "الحالة: "+stById(l.status).t);
+      logAudit(i>=0?"تعديل بيانات":"إضافة عميل جديد", l.id, l.name, "الحالة: "+L(stById(l.status)));
     }catch(e){toast("تعذّر الحفظ على السحابة");}
   }
   async function removeLead(id){
@@ -901,16 +1021,27 @@
     const thisMonthLost=leads.filter(l=>["cancelled","lost"].includes(l.status)&&(l.updatedAt||0)>=monthStart).length;
     const staleCount=leads.filter(l=>{if(!isActive(l))return false;const lt=lastTs(l)||l.createdAt;return Math.floor((Date.now()-lt)/864e5)>7;}).length;
     const overdueStage=leads.filter(l=>stageOverdue(l)).length;
+    // التوقع المرجّح: القيمة × احتمالية المرحلة (زي Odoo)
+    let weighted={};
+    if(canSeeValue()){
+      convLeads.filter(l=>isActive(l)).forEach(l=>{
+        const st=stById(l.status), pr=(st.prob||0)/100, v=Number(l.value)||0;
+        if(!v||!pr)return; const c=l.currency||"EGP";
+        weighted[c]=(weighted[c]||0)+v*pr;
+      });
+    }
+    const weightedTxt=Object.entries(weighted).filter(([,v])=>v>0).map(([c,v])=>fmt(Math.round(v))+" "+c).join(" · ");
     $("#kpiGrid").innerHTML=`
-      <div class="kpi accent" style="cursor:pointer" onclick="applyQuick(null)"><div class="lbl">إجمالي العملاء</div><div class="val num">${leads.length}</div><div class="sub muted">${active.length} نشط</div></div>
-      <div class="kpi" style="cursor:pointer" onclick="applyQuick('active')"><div class="lbl">Pipeline النشطة ›</div><div class="val num" style="font-size:17px">${canSeeValue()?totalsByCurrency(l=>isActive(l)):active.length+" عميل"}</div></div>
-      <div class="kpi" style="cursor:pointer" onclick="applyQuick('won')"><div class="lbl">مكسوب ›</div><div class="val num" style="color:var(--sage)">${won.length}</div><div class="sub muted">${canSeeValue()?totalsByCurrency(l=>l.status==='won'):""}</div></div>
-      <div class="kpi"><div class="lbl">نسبة التحويل</div><div class="val num">${conv}<small>%</small></div><div class="sub muted">${won.length}/${closed.length}</div></div>
-      <div class="kpi" style="cursor:pointer" onclick="applyQuick('due')"><div class="lbl">متابعات مستحقة ›</div><div class="val num" style="color:${due?'var(--rose)':'var(--ink)'}">${due}</div><div class="sub muted">النهاردة أو متأخرة</div></div>
-      <div class="kpi" style="cursor:pointer" onclick="applyQuick('today')"><div class="lbl">النهاردة بس ›</div><div class="val num" style="color:${dueToday?'var(--clay)':'var(--ink)'}">${dueToday}</div><div class="sub muted">مواعيد اليوم</div></div>
-      ${thisMonthLost?`<div class="kpi" style="cursor:pointer" onclick="applyQuick('lost_month')"><div class="lbl">إلغاء/خسارة الشهر ›</div><div class="val num" style="color:var(--rose)">${thisMonthLost}</div><div class="sub muted">${now.toLocaleString('ar-EG',{month:'long'})}</div></div>`:""}
-      ${staleCount?`<div class="kpi" style="cursor:pointer" onclick="applyQuick('stale')"><div class="lbl">بدون تواصل +7 أيام ›</div><div class="val num" style="color:var(--gold)">${staleCount}</div><div class="sub muted">محتاجة متابعة</div></div>`:""}
-      ${overdueStage?`<div class="kpi" style="cursor:pointer;border-color:var(--gold)" onclick="applyQuick('overdue_stage')"><div class="lbl">متأخرين عن مهلة المرحلة ›</div><div class="val num" style="color:#8A6D3B">${overdueStage}</div><div class="sub muted">تجاوزوا SLA مرحلتهم</div></div>`:""}`;
+      <div class="kpi accent" style="cursor:pointer" onclick="applyQuick(null)"><div class="lbl">${t("totalLeads")}</div><div class="val num">${leads.length}</div><div class="sub muted">${active.length} ${t("active")}</div></div>
+      <div class="kpi" style="cursor:pointer" onclick="applyQuick('active')"><div class="lbl">${t("activePipeline")}</div><div class="val num" style="font-size:17px">${canSeeValue()?totalsByCurrency(l=>isActive(l)):active.length+" عميل"}</div></div>
+      <div class="kpi" style="cursor:pointer" onclick="applyQuick('won')"><div class="lbl">${t("won")}</div><div class="val num" style="color:var(--sage)">${won.length}</div><div class="sub muted">${canSeeValue()?totalsByCurrency(l=>l.status==='won'):""}</div></div>
+      <div class="kpi"><div class="lbl">${t("convRate")}</div><div class="val num">${conv}<small>%</small></div><div class="sub muted">${won.length}/${closed.length}</div></div>
+      <div class="kpi" style="cursor:pointer" onclick="applyQuick('due')"><div class="lbl">${t("dueFollowups")}</div><div class="val num" style="color:${due?'var(--rose)':'var(--ink)'}">${due}</div><div class="sub muted">${t("todayOrLate")}</div></div>
+      <div class="kpi" style="cursor:pointer" onclick="applyQuick('today')"><div class="lbl">${t("todayOnly")}</div><div class="val num" style="color:${dueToday?'var(--clay)':'var(--ink)'}">${dueToday}</div><div class="sub muted">${t("todayAppts")}</div></div>
+      ${thisMonthLost?`<div class="kpi" style="cursor:pointer" onclick="applyQuick('lost_month')"><div class="lbl">${t("lostMonth")}</div><div class="val num" style="color:var(--rose)">${thisMonthLost}</div><div class="sub muted">${now.toLocaleString('ar-EG',{month:'long'})}</div></div>`:""}
+      ${staleCount?`<div class="kpi" style="cursor:pointer" onclick="applyQuick('stale')"><div class="lbl">${t("noContact7")}</div><div class="val num" style="color:var(--gold)">${staleCount}</div><div class="sub muted">${t("needsFollowup")}</div></div>`:""}
+      ${overdueStage?`<div class="kpi" style="cursor:pointer;border-color:var(--gold)" onclick="applyQuick('overdue_stage')"><div class="lbl">${t("overdueStage")}</div><div class="val num" style="color:#8A6D3B">${overdueStage}</div><div class="sub muted">${t("exceededSla")}</div></div>`:""}
+      ${weightedTxt?`<div class="kpi" style="border-color:var(--sage)"><div class="lbl">${t("weighted")}</div><div class="val num" style="font-size:16px;color:var(--sage)">${weightedTxt}</div><div class="sub muted">${t("weightedSub")}</div></div>`:""}`;
 
     // priority (all, scrollable)
     const scored=leads.map(l=>({l,p:priority(l)})).filter(x=>x.p&&x.p.sc>0).sort((a,b)=>b.p.sc-a.p.sc);
@@ -926,7 +1057,7 @@
 
     const maxC=Math.max(1,...PIPELINE.map(k=>leads.filter(l=>l.status===k).length));
     $("#funnel").innerHTML=PIPELINE.map(k=>{const s=stById(k),c=leads.filter(l=>l.status===k).length,w=Math.max(6,Math.round(c/maxC*100));
-      return `<div class="fbar" style="cursor:pointer" onclick="applyQuick('st:${k}')"><div class="fname">${s.t}</div><div class="ftrack"><div class="ffill" style="width:${w}%;background:${s.c}">${c}</div></div></div>`;}).join("");
+      return `<div class="fbar" style="cursor:pointer" onclick="applyQuick('st:${k}')"><div class="fname">${L(s)}</div><div class="ftrack"><div class="ffill" style="width:${w}%;background:${s.c}">${c}</div></div></div>`;}).join("");
 
     // stale leads card
     const staleLeads=leads.filter(l=>{
@@ -947,7 +1078,7 @@
           return '<div class="prio-item" onclick="openDetail(\''+l.id+'\')">'
             +'<div class="prio-rank" style="background:var(--gold)">'+days+'ي</div>'
             +'<div class="prio-main"><div class="prio-name">'+esc(l.name)+'</div>'
-            +'<div class="prio-reason">'+esc(stById(l.status).t)+' · '+esc(l.owner||"—")+'</div></div>'
+            +'<div class="prio-reason">'+esc(L(stById(l.status)))+' · '+esc(l.owner||"—")+'</div></div>'
             +'<div class="prio-val num" style="font-size:12px">'+val+'</div></div>';
         }).join("");
       }
@@ -989,7 +1120,7 @@
     if(f==="lost_month")return"إلغاء/خسارة الشهر ده";
     if(f==="stale")return"بدون تواصل أكتر من 7 أيام";
     if(f==="overdue_stage")return"متأخرين عن مهلة مرحلتهم";
-    if(f&&f.indexOf("st:")===0)return"الحالة: "+stById(f.slice(3)).t;return"";}
+    if(f&&f.indexOf("st:")===0)return"الحالة: "+L(stById(f.slice(3)));return"";}
   function passQuick(l){
     if(!quickFilter)return true;
     if(quickFilter==="active")return isActive(l);
@@ -1001,6 +1132,105 @@
     if(quickFilter==="overdue_stage")return !!stageOverdue(l);
     if(quickFilter.indexOf("st:")===0)return l.status===quickFilter.slice(3);
     return true;}
+  // ══════════ KANBAN (Odoo-style pipeline board) ══════════
+  let kbDragId=null;
+  function kbFolded(){try{return JSON.parse(localStorage.getItem("crm:kbFold")||"{}");}catch(e){return {};}}
+  function kbSetFold(k,v){const f=kbFolded();f[k]=v;try{localStorage.setItem("crm:kbFold",JSON.stringify(f));}catch(e){}}
+  window.kbToggleFold=function(k){const f=kbFolded();kbSetFold(k,!f[k]);renderKanban();};
+
+  window.kbSetPriority=function(ev,id,p){
+    ev.stopPropagation();
+    const l=leads.find(x=>x.id===id); if(!l||!canWrite())return;
+    l.priority=(l.priority===p)?0:p;
+    putLead(l).then(()=>{renderKanban();renderLeads();});
+  };
+
+  function renderKanban(){
+    const board=document.getElementById("kbBoard"); if(!board)return;
+    const showClosed=document.getElementById("kbShowClosed")?.checked;
+    const ownerF=document.getElementById("kbOwner")?.value||"";
+    const folded=kbFolded();
+    const cols=STATUSES.filter(st=>showClosed?true:!st.fold);
+    const pool=leads.filter(l=>!ownerF||l.owner===ownerF);
+
+    board.innerHTML=cols.map(st=>{
+      const items=pool.filter(l=>normStatus(l.status)===st.k)
+        .sort((a,b)=>(b.priority||0)-(a.priority||0)||(b.updatedAt||0)-(a.updatedAt||0));
+      const rot=items.filter(l=>stageOverdue(l)).length;
+      const isFold=!!folded[st.k];
+      // مجموع القيمة لكل عملة في العمود
+      let sumTxt="";
+      if(canSeeValue()){
+        const tot={};
+        items.forEach(l=>{const c=l.currency||"EGP";tot[c]=(tot[c]||0)+(Number(l.value)||0);});
+        sumTxt=Object.entries(tot).filter(([,v])=>v>0).map(([c,v])=>fmt(v)+" "+c).join(" · ");
+      }
+      const cards=items.length?items.map(l=>{
+        const ov=stageOverdue(l), src=srcById(l.source), ql=qById(l.quality);
+        const pr=l.priority||0;
+        const stars=[1,2,3].map(n=>`<span onclick="kbSetPriority(event,'${l.id}',${n})" style="color:${n<=pr?'#D9A441':'#D8D0C6'}">★</span>`).join("");
+        const di=dueInfo(l.nextFollowUp);
+        return `<div class="kb-card ${ov?"rotting":""}" style="border-inline-start-color:${st.c}"
+            draggable="${canWrite()?"true":"false"}" data-id="${l.id}" onclick="openDetail('${l.id}')">
+          <div class="kb-n">${esc(l.name)}</div>
+          <div class="kb-m">
+            ${l.phone?`<span>📞 ${esc(l.phone)}</span>`:""}
+            ${src?`<span>${src.i} ${esc(L(src))}</span>`:""}
+            ${l.compound?`<span>🏛 ${esc(l.compound)}</span>`:""}
+          </div>
+          <div class="kb-f">
+            <span class="kb-star">${canWrite()?stars:""}</span>
+            ${canSeeValue()&&l.value?`<span class="kb-v">${fmt(l.value)} ${esc(l.currency||"EGP")}</span>`:""}
+          </div>
+          <div class="kb-f" style="margin-top:6px">
+            ${ov?`<span class="kb-badge" style="background:#FCE9E4;color:#9A4B4B">⏳ ${ov.over}${isEn()?"d":"ي"}</span>`:""}
+            ${di?`<span class="kb-badge ${di.cls}" style="background:transparent;border:1px solid currentColor">${esc(di.txt)}</span>`:""}
+            ${(l.status==="site_visit"&&l.meetingType&&mtById(l.meetingType))?`<span class="kb-badge" style="background:#EAF1E5;color:#5C7355">${mtById(l.meetingType).i} ${esc(L(mtById(l.meetingType)))}</span>`:""}
+            ${ql?`<span class="kb-badge" style="background:${ql.c}1A;color:${ql.c}">${esc(L(ql))}</span>`:""}
+            ${l.owner?`<span class="kb-badge" style="background:var(--ivory);color:var(--ink-soft)">${esc(l.owner)}</span>`:""}
+          </div>
+        </div>`;
+      }).join(""):`<div class="kb-empty">—</div>`;
+
+      return `<div class="kb-col ${isFold?"folded":""}" data-stage="${st.k}">
+        <div class="kb-head" onclick="kbToggleFold('${st.k}')">
+          <div class="kb-ttl"><span class="kb-dot" style="background:${st.c}"></span>${esc(L(st))}</div>
+          <div style="display:flex;gap:4px;align-items:center;flex:0 0 auto">
+            ${rot?`<span class="kb-rot">${rot} ${t("rotting")}</span>`:""}
+            <span class="kb-cnt">${items.length}</span>
+          </div>
+        </div>
+        ${sumTxt?`<div class="kb-sum"><span>${sumTxt}</span>${st.prob?`<span>${st.prob}%</span>`:""}</div>`:""}
+        <div class="kb-body">${cards}</div>
+      </div>`;
+    }).join("");
+
+    if(canWrite()) kbBindDnD();
+  }
+
+  function kbBindDnD(){
+    document.querySelectorAll(".kb-card[draggable='true']").forEach(c=>{
+      c.addEventListener("dragstart",e=>{kbDragId=c.dataset.id;c.classList.add("dragging");e.dataTransfer.effectAllowed="move";});
+      c.addEventListener("dragend",()=>{c.classList.remove("dragging");kbDragId=null;
+        document.querySelectorAll(".kb-col").forEach(x=>x.classList.remove("drag-over"));});
+    });
+    document.querySelectorAll(".kb-col").forEach(col=>{
+      col.addEventListener("dragover",e=>{e.preventDefault();e.dataTransfer.dropEffect="move";col.classList.add("drag-over");});
+      col.addEventListener("dragleave",()=>col.classList.remove("drag-over"));
+      col.addEventListener("drop",async e=>{
+        e.preventDefault(); col.classList.remove("drag-over");
+        const id=kbDragId, ns=col.dataset.stage; if(!id||!ns)return;
+        const l=leads.find(x=>x.id===id); if(!l||normStatus(l.status)===ns)return;
+        // الحالات النهائية بتتغير من صفحة العميل عشان السبب الإلزامي
+        if(TERMINAL.includes(ns)){ openDetail(id); toast(isEn()?"Set the reason from the lead page":"حدد السبب من صفحة العميل"); return; }
+        l.stageChangedAt=Date.now(); l.status=ns; l.updatedAt=Date.now();
+        await putLead(l);
+        renderKanban(); renderLeadsAndDash();
+        toast(isEn()?("Moved to "+L(stById(ns))):("اتنقل لـ "+L(stById(ns))));
+      });
+    });
+  }
+
   function renderLeads(){
     const q=$("#searchInput").value.trim().toLowerCase();
     const sf=$("#statusFilter").value, of=$("#ownerFilter").value, srcf=$("#sourceFilter").value, qf=$("#qualityFilter").value;
@@ -1030,9 +1260,9 @@
       const ov=stageOverdue(l);
       return `<div class="lead" style="border-inline-start-color:${s.c}" onclick="openDetail('${l.id}')">
         <div class="l-top"><div><div class="l-name">${esc(l.name)}</div>
-          <div class="l-meta">${l.phone?`<span>📞 ${esc(l.phone)}${l.phoneVerified?' ✓':''}</span>`:""}${l.email?`<span>✉</span>`:""}${src?`<span>${src.i} ${esc(src.t)}</span>`:""}${l.compound?`<span>🏛 ${esc(l.compound)}</span>`:""}</div></div>
+          <div class="l-meta">${l.phone?`<span>📞 ${esc(l.phone)}${l.phoneVerified?' ✓':''}</span>`:""}${l.email?`<span>✉</span>`:""}${src?`<span>${src.i} ${esc(L(src))}</span>`:""}${l.compound?`<span>🏛 ${esc(l.compound)}</span>`:""}</div></div>
           <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end">
-            <span class="chip" style="background:${s.c}1A;color:${s.c}">${s.t}</span>
+            <span class="chip" style="background:${s.c}1A;color:${s.c}">${L(s)}</span>
             ${ov?`<span class="chip" style="background:#FCF3E8;color:#8A6D3B;font-size:10.5px" title="${esc(ov.hint||"")}">⏳ متأخر ${ov.over}ي</span>`:""}
             ${ql?`<span class="chip" style="background:${ql.c}1A;color:${ql.c};font-size:10.5px">${ql.t}</span>`:""}</div></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:9px">
@@ -1065,12 +1295,16 @@
   }
   function toggleCampAdd(){$("#campAdd").style.display=$("#f-campaign").value==="__new"?"block":"none";}
   function setStatus(active){$("#f-status").value=active;
-    $("#f-status-pills").innerHTML=STATUSES.map(s=>`<span class="pill status ${s.k===active?"on":""}" style="${s.k===active?`background:${s.c}`:""}" data-st="${s.k}">${s.t}</span>`).join("");
+    $("#f-status-pills").innerHTML=STATUSES.map(s=>`<span class="pill status ${s.k===active?"on":""}" style="${s.k===active?`background:${s.c}`:""}" data-st="${s.k}">${L(s)}</span>`).join("");
     $$("#f-status-pills .pill").forEach(p=>p.onclick=()=>setStatus(p.dataset.st));
     const wrap=$("#cancelReasonWrap");if(wrap)wrap.style.display=active==="cancelled"?"block":"none";
-    const lwrap=$("#lostReasonWrap");if(lwrap)lwrap.style.display=active==="lost"?"block":"none";}
+    const lwrap=$("#lostReasonWrap");if(lwrap)lwrap.style.display=active==="lost"?"block":"none";
+    const mwrap=$("#meetingTypeWrap");if(mwrap)mwrap.style.display=active==="site_visit"?"block":"none";}
+  function setMeetingType(active){$("#f-meetingtype").value=active||"";
+    $("#f-meetingtype-pills").innerHTML=MEETING_TYPES.map(m=>`<span class="pill ${m.k===active?"on":""}" style="${m.k===active?"background:#6B8E5A":""}" data-mt="${m.k}">${m.i} ${L(m)}</span>`).join("");
+    $$("#f-meetingtype-pills .pill").forEach(p=>p.onclick=()=>setMeetingType(p.dataset.mt));}
   function setQuality(active){$("#f-quality").value=active||"";
-    $("#f-quality-pills").innerHTML=QUALITY.map(q=>`<span class="pill ${q.k===active?"on":""}" style="${q.k===active?`background:${q.c}`:""}" data-q="${q.k}">${q.t}</span>`).join("");
+    $("#f-quality-pills").innerHTML=QUALITY.map(q=>`<span class="pill ${q.k===active?"on":""}" style="${q.k===active?`background:${q.c}`:""}" data-q="${q.k}">${L(q)}</span>`).join("");
     $$("#f-quality-pills .pill").forEach(p=>p.onclick=()=>setQuality(p.dataset.q===active?"":p.dataset.q));}
 
   window.openForm=function(id){
@@ -1084,7 +1318,7 @@
     $("#f-rdate").value=l.receivedDate||(ed?"":todayStr());
     $("#f-rtime").value=l.receivedTime||(ed?"":nowHM());
     fillSel($("#f-owner"),OWNERS,l.owner||OWNERS[0]);
-    $("#f-source").innerHTML=SOURCES.map(s=>`<option value="${s.k}" ${s.k===l.source?"selected":""}>${s.i} ${s.t}</option>`).join("");
+    $("#f-source").innerHTML=SOURCES.map(s=>`<option value="${s.k}" ${s.k===l.source?"selected":""}>${s.i} ${L(s)}</option>`).join("");
     $("#f-source").onchange=onSourceChange;
     renderServices(l.services||[]);
     renderCats(l.projectCategory||"",l.projectSubtype||"");
@@ -1096,7 +1330,7 @@
     $("#f-drive").value=l.driveLink||"";$("#f-pain").value=l.painPoints||"";$("#f-plus").value=l.ourPlus||"";
     $("#f-adname").value=l.adName||"";$("#f-adset").value=l.adsetName||"";
     $("#f-note").value="";$("#firstNoteWrap").style.display=ed?"none":"block";
-    setStatus(l.status||"new");setQuality(l.quality||"");
+    setStatus(l.status||"new");setQuality(l.quality||"");setMeetingType(l.meetingType||"");
     const bfEl=$("#f-budgetFit");if(bfEl)bfEl.value=l.budgetFit||"unknown";
     const jbEl=$("#f-job");if(jbEl)jbEl.value=l.job||"";
     const rsEl=$("#f-residence");if(rsEl)rsEl.value=l.residence||"";
@@ -1133,7 +1367,7 @@
       cancelReason:$("#f-status").value==="cancelled"?($("#f-cancelReason").value||null):null,
       lostReason:$("#f-status").value==="lost"?($("#f-lostReason").value||null):null,
       adName:$("#f-adname").value.trim(),adsetName:$("#f-adset").value.trim(),
-      quality:$("#f-quality").value||null,quoteStartDate:$("#f-quotestart").value||null,quoteSubmitDate:$("#f-quotesubmit").value||null,
+      quality:$("#f-quality").value||null,meetingType:$("#f-status").value==="site_visit"?($("#f-meetingtype").value||null):null,quoteStartDate:$("#f-quotestart").value||null,quoteSubmitDate:$("#f-quotesubmit").value||null,
       budgetFit:$("#f-budgetFit")?.value||"unknown",job:$("#f-job")?.value.trim()||null,residence:$("#f-residence")?.value.trim()||null,
       updatedAt:Date.now()};
     // تتبع وقت دخول المرحلة (للـ SLA)
@@ -1191,7 +1425,7 @@
         <div><div style="font-size:19px;font-weight:700">${esc(l.name)} ${l.phoneVerified?'<span class="chip" style="background:var(--sage-soft);color:var(--sage);font-size:10.5px">✓ Verified</span>':''}</div>
           <div class="detail-sub" style="margin-top:6px">${l.email?`<span>✉ ${esc(l.email)}</span>`:""}${srcById(l.source)?`<span>${srcById(l.source).i} ${esc(srcLabel(l))}</span>`:""}</div></div>
         <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end">
-          <span class="chip" style="background:${s.c}1A;color:${s.c}">${s.t}</span>
+          <span class="chip" style="background:${s.c}1A;color:${s.c}">${L(s)}${(l.status==="site_visit"&&l.meetingType&&mtById(l.meetingType))?" · "+mtById(l.meetingType).i+" "+L(mtById(l.meetingType)):""}</span>
           ${ql?`<span class="chip" style="background:${ql.c}1A;color:${ql.c};font-size:10.5px">${ql.t}</span>`:""}</div></div>
       ${l.phone?`<div style="display:flex;gap:8px;margin:12px 0;flex-wrap:wrap">
         <a href="tel:${esc(telNum)}" class="btn btn-primary btn-sm" style="flex:1;justify-content:center">📞 اتصال ${esc(l.phone)}</a>
@@ -1200,7 +1434,7 @@
       ${(l.services||[]).length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">${l.services.map(x=>`<span class="tag" style="background:#fff;border-color:var(--clay);color:var(--clay)">${esc(x)}</span>`).join("")}</div>`:""}
       ${sug?`<div class="info-box" style="margin-bottom:12px;border-color:${sug.good?'var(--sage)':'var(--gold)'};background:${sug.good?'var(--sage-soft)':'#FCF6EA'}"><div class="ib-l">⏰ أنسب وقت للتواصل</div><div style="font-size:13.5px;font-weight:600">${esc(sug.txt)}</div></div>`:""}
       ${ov?`<div class="sla-warn"><div class="sw-t">⏳ متأخر ${ov.over} يوم في مرحلة "${ov.stage}"</div><div class="sw-s">قعد ${ov.days} يوم والمفروض يتحرك خلال ${ov.sla}. ${esc(ov.hint||"")}</div></div>`
-        :(isActive(l)?`<div class="stage-ok">✓ في الوقت — مرحلة "${stById(l.status).t}"${stById(l.status).sla?` (المهلة ${stById(l.status).sla} يوم)`:""}</div>`:"")}
+        :(isActive(l)?`<div class="stage-ok">✓ في الوقت — مرحلة "${L(stById(l.status))}"${stById(l.status).sla?` (المهلة ${stById(l.status).sla} يوم)`:""}</div>`:"")}
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
         ${di?`<span class="due-flag ${di.cls}">المتابعة القادمة: ${di.txt}</span>`:'<span class="muted" style="font-size:13px">مفيش متابعة مجدولة</span>'}
         ${l.driveLink?`<a href="${esc(l.driveLink)}" target="_blank" class="btn btn-ghost btn-sm">🔗 ملفات Drive</a>`:""}
@@ -1217,7 +1451,7 @@
       ${acc("client","👤 بيانات العميل","",`<div class="info-grid">
         ${info("الوظيفة",l.job)}${info("منطقة السكن",l.residence)}
         ${info("البريد",l.email)}${info("المصدر",srcById(l.source)?srcLabel(l):"")}
-        ${info("مستوى الميزانية",bfById(l.budgetFit)?bfById(l.budgetFit).t:"")}
+        ${info("مستوى الميزانية",bfById(l.budgetFit)?L(bfById(l.budgetFit)):"")}
         ${info("اسم الإعلان",l.adName)}${info("المجموعة الإعلانية",l.adsetName)}
       </div>`,false)}
 
@@ -1236,7 +1470,7 @@
       <div id="detailPane"></div>
       ${canWrite()?`<div style="display:flex;gap:10px;margin-top:18px;border-top:1px solid var(--line-soft);padding-top:14px">
       ${canEdit()?`<button class="btn btn-ghost btn-sm" onclick="openEdit('${l.id}')" style="flex:1">✎ تعديل</button>`:""}
-        <select class="filter" id="quickStatus" style="flex:1">${STATUSES.map(st=>`<option value="${st.k}" ${st.k===l.status?"selected":""}>تغيير لـ: ${st.t}</option>`).join("")}</select>
+        <select class="filter" id="quickStatus" style="flex:1">${STATUSES.map(st=>`<option value="${st.k}" ${st.k===l.status?"selected":""}>تغيير لـ: ${L(st)}</option>`).join("")}</select>
       </div>
       <div id="quickReasonWrap" style="display:none;margin-top:8px;background:var(--ivory);border:1px solid var(--line);border-radius:11px;padding:10px">
         <div id="quickReasonLabel" style="font-size:12.5px;font-weight:600;margin-bottom:6px;color:var(--rose)">اختر السبب</div>
@@ -1404,7 +1638,7 @@
       <div class="field"><label>ابحث في العميل المكرّر</label><input id="mergeSearch" placeholder="اسم أو تليفون…" oninput="filterMergeList()"></div>
       <div id="mergeList" style="display:flex;flex-direction:column;gap:8px;max-height:320px;overflow-y:auto">
         ${others.map(l=>`<div class="tl-item" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between" onclick="doMerge('${l.id}')">
-          <div><div style="font-weight:600">${esc(l.name)}</div><div class="muted" style="font-size:12px">${esc(l.phone||"")} · ${stById(l.status).t}</div></div>
+          <div><div style="font-weight:600">${esc(l.name)}</div><div class="muted" style="font-size:12px">${esc(l.phone||"")} · ${L(stById(l.status))}</div></div>
           <span class="btn btn-ghost btn-sm" style="pointer-events:none">دمج</span></div>`).join("")}
       </div>
       <p class="muted" style="font-size:12px;margin-top:12px">الدمج: ملاحظات وتواريخ العميل المكرّر تنضم للعميل الأساسي، والمكرّر يتحذف.</p>`;
@@ -1448,7 +1682,7 @@
     const totals=fn=>totalsByCurrencyArr(scope.filter(fn));
     function totalsByCurrencyArr(arr){const t={EGP:0,SAR:0,USD:0};arr.forEach(l=>t[l.currency]=(t[l.currency]||0)+(Number(l.value)||0));return Object.entries(t).filter(([,v])=>v>0).map(([c,v])=>fmt(v)+" "+c).join(" · ")||"—";}
     // sources
-    const srcMap={};scope.forEach(l=>{const t=srcById(l.source)?srcById(l.source).t:"غير محدد";srcMap[t]=(srcMap[t]||0)+1;});
+    const srcMap={};scope.forEach(l=>{const t=srcById(l.source)?L(srcById(l.source)):"غير محدد";srcMap[t]=(srcMap[t]||0)+1;});
     const srcArr=Object.entries(srcMap).sort((a,b)=>b[1]-a[1]),maxSrc=Math.max(1,...srcArr.map(s=>s[1]));
     // campaigns
     const campRows=campaigns.map(c=>{const m=scope.filter(l=>l.campaignId===c.id);const w=m.filter(l=>l.status==="won").length;return{c,n:m.length,w};}).filter(x=>x.n>0).sort((a,b)=>b.n-a.n);
@@ -1478,12 +1712,12 @@
         <tr><td>مكسوب</td><td class="num" style="text-align:left;font-weight:600;color:var(--sage)">${totals(l=>l.status==='won')}</td></tr>
         <tr><td>عرض سعر / تفاوض</td><td class="num" style="text-align:left;font-weight:600">${totals(l=>l.status==='quoted'||l.status==='negotiation')}</td></tr></tbody></table></div>`:""}
       <div class="report-block"><h3>حسب الحالة</h3><table class="perf"><thead><tr><th>الحالة</th><th>العدد</th>${canSeeValue()?"<th>القيمة</th>":""}</tr></thead><tbody>
-        ${STATUSES.map(s=>{const c=scope.filter(l=>l.status===s.k).length;return c?`<tr style="cursor:pointer" onclick="goFilterStatus('${s.k}')" title="اضغط لعرض العملاء"><td><span class="chip" style="background:${s.c}1A;color:${s.c}">${s.t}</span></td><td class="num">${c} ›</td>${canSeeValue()?`<td class="num" style="font-size:12px">${totals(l=>l.status===s.k)}</td>`:""}</tr>`:"";}).join("")}</tbody></table><div style="font-size:11.5px;color:var(--ink-soft);margin-top:6px">اضغط على أي حالة للانتقال لقائمة العملاء بهذا الفلتر</div></div>
+        ${STATUSES.map(s=>{const c=scope.filter(l=>l.status===s.k).length;return c?`<tr style="cursor:pointer" onclick="goFilterStatus('${s.k}')" title="اضغط لعرض العملاء"><td><span class="chip" style="background:${s.c}1A;color:${s.c}">${L(s)}</span></td><td class="num">${c} ›</td>${canSeeValue()?`<td class="num" style="font-size:12px">${totals(l=>l.status===s.k)}</td>`:""}</tr>`:"";}).join("")}</tbody></table><div style="font-size:11.5px;color:var(--ink-soft);margin-top:6px">اضغط على أي حالة للانتقال لقائمة العملاء بهذا الفلتر</div></div>
       ${Object.keys(qualMap).length?`<div class="report-block"><h3>جودة الـ Leads (تقييم تسويقي)</h3><table class="perf"><tbody>${Object.entries(qualMap).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:left;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
       ${Object.keys(lostMap).length?`<div class="report-block"><h3>أسباب الخسارة</h3><table class="perf"><tbody>${Object.entries(lostMap).sort((a,b)=>b[1]-a[1]).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:left;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
       ${Object.keys(cancelMap).length?`<div class="report-block"><h3>أسباب الإلغاء</h3><table class="perf"><tbody>${Object.entries(cancelMap).sort((a,b)=>b[1]-a[1]).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:left;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
       ${pricedLeads.length?`<div class="report-block"><h3>مدة التسعير</h3><table class="perf"><thead><tr><th>العميل</th><th>بداية</th><th>تقديم</th><th>مدة</th><th>الحالة</th></tr></thead><tbody>
-        ${pricedLeads.map(l=>{const d=Math.max(0,Math.round((new Date(l.quoteSubmitDate)-new Date(l.quoteStartDate))/86400000));return`<tr><td style="font-weight:600">${esc(l.name)}</td><td class="num">${l.quoteStartDate}</td><td class="num">${l.quoteSubmitDate}</td><td class="num">${d} يوم</td><td><span class="chip" style="background:${stById(l.status).c}1A;color:${stById(l.status).c}">${stById(l.status).t}</span></td></tr>`;}).join("")}</tbody></table></div>`:""}
+        ${pricedLeads.map(l=>{const d=Math.max(0,Math.round((new Date(l.quoteSubmitDate)-new Date(l.quoteStartDate))/86400000));return`<tr><td style="font-weight:600">${esc(l.name)}</td><td class="num">${l.quoteStartDate}</td><td class="num">${l.quoteSubmitDate}</td><td class="num">${d} يوم</td><td><span class="chip" style="background:${stById(l.status).c}1A;color:${stById(l.status).c}">${L(stById(l.status))}</span></td></tr>`;}).join("")}</tbody></table></div>`:""}
       <div class="report-block"><h3>مصادر العملاء</h3><div class="src-bars">
         ${srcArr.map(([n,c])=>`<div class="src-bar"><div class="sname">${esc(n)}</div><div class="strack"><div class="sfill" style="width:${Math.round(c/maxSrc*100)}%"></div></div><div class="scount num">${c}</div></div>`).join("")}</div></div>
       ${campRows.length?`<div class="report-block"><h3>أداء الكامبينات</h3><table class="perf"><thead><tr><th>الكامبين</th><th>المنصة</th><th>عملاء</th><th>مكسوب</th></tr></thead><tbody>
@@ -1632,14 +1866,14 @@
       "الاسم":l.name||"",
       "التليفون":l.phone||"",
       "تليفون ثانوي":l.phone2||"",
-      "المصدر":srcById(l.source)?srcById(l.source).t:"",
+      "المصدر":srcById(l.source)?L(srcById(l.source)):"",
       "الكامبين":campName(l.campaignId),
       "رقم الكامبين":l.campaignId||"",
       "اسم الإعلان":l.adName||"",
       "المجموعة الإعلانية":l.adsetName||"",
-      "التقييم":qById(l.quality)?qById(l.quality).t:"",
-      "مستوى الميزانية":bfById(l.budgetFit)?bfById(l.budgetFit).t:"غير محدد",
-      "الحالة":stById(l.status).t,
+      "التقييم":qById(l.quality)?L(qById(l.quality)):"",
+      "مستوى الميزانية":bfById(l.budgetFit)?L(bfById(l.budgetFit)):"غير محدد",
+      "الحالة":L(stById(l.status)),
       "نوع المشروع":[CATS[l.projectCategory]?.t,l.projectSubtype].filter(Boolean).join(" · "),
       "المساحة":l.area?(l.area+" "+(l.areaUnit||"م²")):"",
       "موقع المشروع":[l.location,l.district].filter(Boolean).join(" / "),
@@ -1656,7 +1890,7 @@
     XLSX.utils.book_append_sheet(wb,ws,"تقرير التسويق");
     // شيت تاني: Look-alike pool بس (اسم + تليفون للرفع على Meta)
     const pool=scope.filter(l=>["interested","site_visit","won"].includes(normStatus(l.status)))
-      .map(l=>({"الاسم":l.name||"","التليفون":l.phone||"","المدينة":l.location||"","المصدر":srcById(l.source)?srcById(l.source).t:""}));
+      .map(l=>({"الاسم":l.name||"","التليفون":l.phone||"","المدينة":l.location||"","المصدر":srcById(l.source)?L(srcById(l.source)):""}));
     if(pool.length){
       const ws2=XLSX.utils.json_to_sheet(pool);
       ws2["!cols"]=[{wch:24},{wch:16},{wch:16},{wch:18}];
@@ -1669,7 +1903,7 @@
 
   $("#exportBtn").onclick=function(){if(!leads.length){toast("مفيش بيانات");return;}
     const hdr=["الاسم","التليفون","Verified","الإيميل","تاريخ الإرسال","وقت الإرسال","المصدر","المنصة","Campaign","اسم الإعلان","المجموعة الإعلانية","الخدمات","تصنيف المشروع","نوع المشروع","المساحة","المكان","المنطقة","الكمباوند","القيمة","العملة","المسؤول","الحالة","لينك Drive","Pain Points","ميزتنا","متابعة","ملاحظات","تاريخ الإضافة"];
-    const rows=leads.map(l=>[l.name,l.phone,l.phoneVerified?"نعم":"لا",l.email||"",l.receivedDate||"",l.receivedTime||"",srcById(l.source)?srcById(l.source).t:"",l.platform||"",l.campaignId?campLabel(l.campaignId):"",l.adName||"",l.adsetName||"",(l.services||[]).join(" / "),CATS[l.projectCategory]?.t||"",l.projectSubtype||"",l.area||"",l.location||"",l.district||"",l.compound||"",l.value||"",l.currency||"",l.owner||"",stById(l.status).t,l.driveLink||"",l.painPoints||"",l.ourPlus||"",l.nextFollowUp||"",(l.notes||[]).length,new Date(l.createdAt).toLocaleDateString("en-GB")]);
+    const rows=leads.map(l=>[l.name,l.phone,l.phoneVerified?"نعم":"لا",l.email||"",l.receivedDate||"",l.receivedTime||"",srcById(l.source)?L(srcById(l.source)):"",l.platform||"",l.campaignId?campLabel(l.campaignId):"",l.adName||"",l.adsetName||"",(l.services||[]).join(" / "),CATS[l.projectCategory]?.t||"",l.projectSubtype||"",l.area||"",l.location||"",l.district||"",l.compound||"",l.value||"",l.currency||"",l.owner||"",L(stById(l.status)),l.driveLink||"",l.painPoints||"",l.ourPlus||"",l.nextFollowUp||"",(l.notes||[]).length,new Date(l.createdAt).toLocaleDateString("en-GB")]);
     const csv="\uFEFF"+[hdr,...rows].map(r=>r.map(c=>`"${String(c==null?"":c).replace(/"/g,'""')}"`).join(",")).join("\n");
     const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download="plinth-leads-"+todayStr()+".csv";a.click();toast("تم التصدير");};
   $("#printBtn").onclick=()=>window.print();
@@ -1688,9 +1922,9 @@
 
   // ---- nav ----
   function renderAll(){renderDash();renderLeads();renderReport();}
-  function renderLeadsAndDash(){renderDash();renderLeads();}
+  function renderLeadsAndDash(){renderDash();renderLeads();renderKanban();}
   function closeAll(){$("#formOverlay").classList.remove("show");$("#detailOverlay").classList.remove("show");}
-  $$('nav.tabs button').forEach(b=>b.onclick=()=>{$$('nav.tabs button').forEach(x=>x.classList.remove("active"));b.classList.add("active");$$('.view').forEach(v=>v.classList.remove("active"));$("#tab-"+b.dataset.tab).classList.add("active");window.scrollTo(0,0);});
+  $$('nav.tabs button').forEach(b=>b.onclick=()=>{$$('nav.tabs button').forEach(x=>x.classList.remove("active"));b.classList.add("active");$$('.view').forEach(v=>v.classList.remove("active"));$("#tab-"+b.dataset.tab).classList.add("active");window.scrollTo(0,0);if(b.dataset.tab==="pipeline")renderKanban();});
   $("#addFab").onclick=()=>openForm();
   $("#searchInput").oninput=renderLeads;$("#statusFilter").onchange=renderLeads;$("#ownerFilter").onchange=renderLeads;$("#sourceFilter").onchange=renderLeads;$("#qualityFilter").onchange=renderLeads;
   document.getElementById("hideTerminalCheck")?.addEventListener("change",renderLeads);
@@ -1736,13 +1970,17 @@
     el.classList.remove=(...args)=>{orig.remove(...args);if(args.includes("show"))updateBodyLock();};
   });
 
-  $("#statusFilter").innerHTML='<option value="">كل الحالات</option>'+STATUSES.map(s=>`<option value="${s.k}">${s.t}</option>`).join("");
+  $("#statusFilter").innerHTML='<option value="">'+t("allStatuses")+'</option>'+STATUSES.map(s=>`<option value="${s.k}">${L(s)}</option>`).join("");
   $("#f-cancelReason").innerHTML='<option value="">— اختر سبب —</option>'+CANCEL_REASONS.map(r=>`<option>${r}</option>`).join("");
   $("#f-lostReason").innerHTML='<option value="">— اختر سبب —</option>'+LOST_REASONS.map(r=>`<option>${r}</option>`).join("");
-  $("#f-budgetFit").innerHTML=BUDGET_FIT.map(b=>`<option value="${b.k}">${b.t}</option>`).join("");
-  $("#qualityFilter").innerHTML='<option value="">كل الجودة</option>'+QUALITY.map(q=>`<option value="${q.k}">${q.t}</option>`).join("");
-  $("#ownerFilter").innerHTML='<option value="">كل المسؤولين</option>'+OWNERS.map(o=>`<option>${o}</option>`).join("");
-  $("#sourceFilter").innerHTML='<option value="">كل المصادر</option>'+SOURCES.map(s=>`<option value="${s.k}">${s.t}</option>`).join("");
+  $("#f-budgetFit").innerHTML=BUDGET_FIT.map(b=>`<option value="${b.k}">${L(b)}</option>`).join("");
+  $("#qualityFilter").innerHTML='<option value="">'+t("allQuality")+'</option>'+QUALITY.map(q=>`<option value="${q.k}">${L(q)}</option>`).join("");
+  $("#ownerFilter").innerHTML='<option value="">'+t("allOwners")+'</option>'+OWNERS.map(o=>`<option>${o}</option>`).join("");
+  const kbOwnerEl=document.getElementById("kbOwner");
+  if(kbOwnerEl) kbOwnerEl.innerHTML='<option value="">'+t("allOwners")+'</option>'+OWNERS.map(o=>`<option>${o}</option>`).join("");
+  kbOwnerEl&&kbOwnerEl.addEventListener("change",renderKanban);
+  document.getElementById("kbShowClosed")?.addEventListener("change",renderKanban);
+  $("#sourceFilter").innerHTML='<option value="">'+t("allSources")+'</option>'+SOURCES.map(s=>`<option value="${s.k}">${L(s)}</option>`).join("");
 
   // ---- user management (admin only) ----
   async function loadUsersTab(){
@@ -1815,6 +2053,26 @@
   }
 
   (function init(){
+    applyLang();
+    // ترجمة عناصر الواجهة الثابتة
+    (function localizeChrome(){
+      const set=(sel,val)=>{const el=document.querySelector(sel);if(el)el.textContent=val;};
+      set('nav.tabs button[data-tab="dash"]',t("dash"));
+      set('nav.tabs button[data-tab="pipeline"]',t("pipeline"));
+      set('nav.tabs button[data-tab="leads"]',t("leads"));
+      set('nav.tabs button[data-tab="report"]',t("report"));
+      set('#usersTabBtn',t("users"));
+      set('#langBtn',t("langBtn"));
+      set('#kbTitle',t("pipeline"));
+      set('#kbShowClosedLbl',t("showClosed"));
+      set('#kbHint',t("dragHint"));
+      const si=document.getElementById("searchInput"); if(si)si.placeholder=t("search");
+      if(isEn()){
+        const br=document.querySelector(".brand span"); if(br)br.textContent="Leads & Inquiries · Sales Pipeline";
+        set('#mktExportBtn',t("mktExport"));
+        set('#printBtn',t("print"));
+      }
+    })();
     applyViewMode();
     $("#loadingState").innerHTML='<div class="spinner"></div>جاري تحميل…';
     try{ initCloud(); }
