@@ -385,19 +385,19 @@
   <section class="view" id="tab-dash">
     <div class="kpi-grid" id="kpiGrid"></div>
     <div class="card">
-      <div class="card-h">🔥 أولوية المتابعة — مين تتابعه دلوقتي <span class="muted num" id="prioCount" style="font-weight:400;font-size:12px"></span></div>
+      <div class="card-h" id="prioTitleEl">🔥 أولوية المتابعة — مين تتابعه دلوقتي <span class="muted num" id="prioCount" style="font-weight:400;font-size:12px"></span></div>
       <div class="card-b"><div class="prio" id="prioList" style="max-height:360px;overflow-y:auto"></div></div>
     </div>
     <div class="card" id="staleCard" style="display:none;border-color:var(--gold)">
-      <div class="card-h" style="color:var(--gold)">⚠ بدون تواصل من أكتر من 7 أيام <span class="muted num" id="staleCountEl" style="font-weight:400;font-size:12px"></span></div>
+      <div class="card-h" id="staleTitleEl" style="color:var(--gold)">⚠ بدون تواصل من أكتر من 7 أيام <span class="muted num" id="staleCountEl" style="font-weight:400;font-size:12px"></span></div>
       <div class="card-b"><div class="prio" id="staleList" style="max-height:240px;overflow-y:auto"></div></div>
     </div>
     <div class="card">
-      <div class="card-h">مراحل العملاء (Pipeline)</div>
+      <div class="card-h" id="pipelineStagesTitle">مراحل العملاء (Pipeline)</div>
       <div class="card-b"><div class="funnel" id="funnel"></div></div>
     </div>
     <div class="card">
-      <div class="card-h">أداء الفريق <span class="muted" style="font-weight:400;font-size:12px">مين بيتابع مين</span></div>
+      <div class="card-h" id="ownerPerfTitleEl">أداء الفريق <span class="muted" style="font-weight:400;font-size:12px" id="ownerPerfSub">مين بيتابع مين</span></div>
       <div class="card-b" id="ownerPerf"></div>
     </div>
   </section>
@@ -425,11 +425,11 @@
     <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;align-items:center">
       <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;color:var(--ink-soft)">
         <input type="checkbox" id="hideTerminalCheck" style="width:auto;margin:0" checked>
-        إخفاء الإلغاء والخسارة
+        <span id="hideTerminalLbl">إخفاء الإلغاء والخسارة</span>
       </label>
       <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;color:var(--sage)">
         <input type="checkbox" id="lookalikeCheck" style="width:auto;margin:0">
-        🎯 المهتمين والمحتملين (Look-alike)
+        <span id="lookalikeLbl">🎯 المهتمين والمحتملين (Look-alike)</span>
       </label>
     </div>
     <div id="quickChip" style="display:none;margin-bottom:12px"></div>
@@ -437,18 +437,18 @@
   </section>
 
   <section class="view" id="tab-users">
-    <div class="row"><div class="section-title">إدارة المستخدمين</div>
-      <button class="btn btn-primary btn-sm" onclick="openAddUser()">＋ مستخدم جديد</button></div>
+    <div class="row"><div class="section-title" id="usersMgmtTitle">إدارة المستخدمين</div>
+      <button class="btn btn-primary btn-sm" onclick="openAddUser()" id="newUserBtn">＋ مستخدم جديد</button></div>
     <div class="card"><div class="card-b" id="usersList" style="padding-top:8px"></div></div>
     <div class="card" style="margin-top:18px">
-      <div class="card-h">سجل التعديلات (Audit Log)</div>
+      <div class="card-h" id="auditLogTitle">سجل التعديلات (Audit Log)</div>
       <div class="card-b" id="auditLog" style="padding-top:8px"></div>
     </div>
   </section>
 
   <section class="view" id="tab-report">
     <div class="row no-print">
-      <div class="section-title">تقرير الأداء</div>
+      <div class="section-title" id="perfReportTitle">تقرير الأداء</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn btn-ghost btn-sm" id="mktExportBtn" style="color:var(--sage);border-color:#B8D9B8">📊 تقرير التسويق (Excel)</button>
         <button class="btn btn-ghost btn-sm" id="printBtn">🖨 طباعة / PDF</button>
@@ -457,19 +457,11 @@
     <div class="card no-print" style="margin-bottom:18px">
       <div class="card-b" style="padding-top:14px">
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
-          <div class="field" style="margin:0;flex:1;min-width:120px"><label style="font-size:12px;font-weight:600">من تاريخ</label><input type="date" id="rptFrom"></div>
-          <div class="field" style="margin:0;flex:1;min-width:120px"><label style="font-size:12px;font-weight:600">إلى تاريخ</label><input type="date" id="rptTo"></div>
+          <div class="field" style="margin:0;flex:1;min-width:120px"><label id="rptFromLbl" style="font-size:12px;font-weight:600">من تاريخ</label><input type="date" id="rptFrom"></div>
+          <div class="field" style="margin:0;flex:1;min-width:120px"><label id="rptToLbl" style="font-size:12px;font-weight:600">إلى تاريخ</label><input type="date" id="rptTo"></div>
           <div class="field" style="margin:0">
-            <label style="font-size:12px;font-weight:600">أو اختار شهر</label>
-            <select class="filter" id="rptMonth" style="width:100%">
-              <option value="">كل الفترات</option>
-              <option value="2026-01">يناير 2026</option><option value="2026-02">فبراير 2026</option>
-              <option value="2026-03">مارس 2026</option><option value="2026-04">أبريل 2026</option>
-              <option value="2026-05">مايو 2026</option><option value="2026-06">يونيو 2026</option>
-              <option value="2026-07">يوليو 2026</option><option value="2026-08">أغسطس 2026</option>
-              <option value="2026-09">سبتمبر 2026</option><option value="2026-10">أكتوبر 2026</option>
-              <option value="2026-11">نوفمبر 2026</option><option value="2026-12">ديسمبر 2026</option>
-            </select>
+            <label id="rptMonthLbl" style="font-size:12px;font-weight:600">أو اختار شهر</label>
+            <select class="filter" id="rptMonth" style="width:100%"></select>
           </div>
           <button class="btn btn-primary btn-sm" id="rptApply">تطبيق</button>
           <button class="btn btn-ghost btn-sm" id="rptClear">كل الفترات</button>
@@ -620,7 +612,7 @@
 <!-- ADD USER MODAL -->
 <div class="overlay" id="addUserOverlay">
   <div class="modal">
-    <div class="modal-h"><h2>مستخدم جديد</h2><button class="x-btn" onclick="document.getElementById('addUserOverlay').classList.remove('show')">×</button></div>
+    <div class="modal-h"><h2 id="addUserModalTitle">مستخدم جديد</h2><button class="x-btn" onclick="document.getElementById('addUserOverlay').classList.remove('show')">×</button></div>
     <div class="modal-b">
       <div class="field"><label>الاسم</label><input id="au-name" placeholder="اسم المستخدم"></div>
       <div class="field"><label>البريد الإلكتروني</label><input id="au-email" type="email" placeholder="user@email.com"></div>
@@ -681,7 +673,32 @@
       onTime:"✓ في الوقت — مرحلة", slaOf:"المهلة", days:"يوم",
       projectData:"🏗 بيانات المشروع", clientData:"👤 بيانات العميل", datesData:"📅 التواريخ والمدد", salesNotes:"📝 ملاحظات البيع",
       call:"📞 اتصال", whatsapp:"واتساب", field:"حقل",
-      mktExport:"📊 تقرير التسويق (Excel)", print:"🖨 طباعة / PDF", perfReport:"تقرير الأداء"
+      mktExport:"📊 تقرير التسويق (Excel)", print:"🖨 طباعة / PDF", perfReport:"تقرير الأداء",
+      rptTitle:"تقرير العملاء المحتملين", allPeriods:"كل الفترات", client:"عميل", period:"الفترة",
+      periodTotal:"إجمالي الفترة", active2:"نشط", won2:"مكسوب", conv2:"تحويل", avgPriceDuration:"متوسط مدة التسعير", day:"يوم",
+      bizValue:"قيمة الأعمال", activePipeline2:"Pipeline نشط", quotedNego:"عرض سعر / تفاوض",
+      byStatus:"حسب الحالة", status:"الحالة", count:"العدد", clickToFilter:"اضغط لعرض العملاء",
+      clickStatusHint:"اضغط على أي حالة للانتقال لقائمة العملاء بهذا الفلتر",
+      leadQuality:"جودة الـ Leads (تقييم تسويقي)", lostReasons:"أسباب الخسارة", cancelReasons:"أسباب الإلغاء",
+      pricingDuration:"مدة التسعير", start:"بداية", submit:"تقديم", duration:"مدة",
+      leadSources:"مصادر العملاء", campaignPerf:"أداء الكامبينات", campaign:"الكامبين", platform:"المنصة", clients:"عملاء",
+      servicesRequested:"الخدمات المطلوبة", projectClassification:"تصنيف المشاريع",
+      teamPerf:"أداء الفريق", responsible:"المسؤول", cancelCol:"إلغاء",
+      ownerPerfCols:"العملاء,مكسوب,تحويل,قيمة نشطة",
+      qfActive:"الـ Pipeline النشطة", qfWon:"مكسوب", qfDue:"متابعات مستحقة/متأخرة",
+      qfToday:"متابعات النهاردة بس", qfLostMonth:"إلغاء/خسارة الشهر ده",
+      qfStale:"بدون تواصل أكتر من 7 أيام", qfOverdue:"متأخرين عن مهلة مرحلتهم", qfStatus:"الحالة",
+      nameCol:"الاسم", emailCol:"البريد", roleCol:"الدور", you:"أنت", noUsers:"مفيش مستخدمين.",
+      userCol:"المستخدم", actionCol:"العملية", timeCol:"الوقت", auditEmpty:"السجل فاضي.",
+      usersLoadErr:"تعذّر تحميل المستخدمين — تأكد من Firestore Rules.", roleUpdated:"تم تحديث الدور", roleChangeAction:"تغيير دور مستخدم",
+      fromDate:"من تاريخ", toDate:"إلى تاريخ", orPickMonth:"أو اختار شهر", apply:"تطبيق", teamPerfSub:"مين بيتابع مين",
+      noUrgent:"مفيش عملاء محتاجين متابعة عاجلة دلوقتي. ✦",
+      newUser:"مستخدم جديد", auditLogTitle:"سجل التعديلات (Audit Log)",
+      rsOverdue:"متابعة متأخرة", rsDueToday:"متابعة مستحقة النهاردة", rsDueSoon:"متابعة قريبة",
+      rsNegotiation:"في مرحلة تفاوض", rsQuoted:"بعد عرض السعر", rsHighValue:"قيمة عالية",
+      rsNewLead:"عميل جديد محتاج أول تواصل", rsNoContactDays:"مفيش تواصل من {n} يوم", noOwner:"بدون مسؤول",
+      slotMorning:"الصباح (9–12)", slotNoon:"الظهر (12–3)", slotAfternoon:"العصر (3–6)", slotEvening:"المساء (6–9)",
+      bestTimeAnswered:"العميل بيرد عادةً في ", bestTimeMissed:"جرّبت {tried} ومردّش — جرّب {next}"
     },
     en:{
       dash:"Dashboard", pipeline:"Pipeline", leads:"Leads", report:"Report", users:"👤 Users",
@@ -706,7 +723,32 @@
       onTime:"✓ On time — stage", slaOf:"SLA", days:"days",
       projectData:"🏗 Project Details", clientData:"👤 Client Details", datesData:"📅 Dates & Durations", salesNotes:"📝 Sales Notes",
       call:"📞 Call", whatsapp:"WhatsApp", field:"fields",
-      mktExport:"📊 Marketing Report (Excel)", print:"🖨 Print / PDF", perfReport:"Performance Report"
+      mktExport:"📊 Marketing Report (Excel)", print:"🖨 Print / PDF", perfReport:"Performance Report",
+      rptTitle:"Leads Report", allPeriods:"All periods", client:"lead", period:"Period",
+      periodTotal:"Period Total", active2:"Active", won2:"Won", conv2:"Conversion", avgPriceDuration:"Avg. pricing time", day:"days",
+      bizValue:"Business Value", activePipeline2:"Active Pipeline", quotedNego:"Proposal / Negotiation",
+      byStatus:"By Status", status:"Status", count:"Count", clickToFilter:"Click to view leads",
+      clickStatusHint:"Click any status to jump to the filtered leads list",
+      leadQuality:"Lead Quality (marketing rating)", lostReasons:"Lost Reasons", cancelReasons:"Cancellation Reasons",
+      pricingDuration:"Pricing Duration", start:"Start", submit:"Submitted", duration:"Duration",
+      leadSources:"Lead Sources", campaignPerf:"Campaign Performance", campaign:"Campaign", platform:"Platform", clients:"clients",
+      servicesRequested:"Requested Services", projectClassification:"Project Classification",
+      teamPerf:"Team Performance", responsible:"Owner", cancelCol:"Cancelled",
+      ownerPerfCols:"Leads,Won,Conversion,Active Value",
+      qfActive:"Active Pipeline", qfWon:"Won", qfDue:"Due/overdue follow-ups",
+      qfToday:"Today's follow-ups only", qfLostMonth:"Lost/cancelled this month",
+      qfStale:"No contact for over 7 days", qfOverdue:"Overdue in their stage", qfStatus:"Status",
+      nameCol:"Name", emailCol:"Email", roleCol:"Role", you:"You", noUsers:"No users yet.",
+      userCol:"User", actionCol:"Action", timeCol:"Time", auditEmpty:"No activity logged yet.",
+      usersLoadErr:"Couldn't load users — check Firestore Rules.", roleUpdated:"Role updated", roleChangeAction:"Changed user role",
+      fromDate:"From date", toDate:"To date", orPickMonth:"Or pick a month", apply:"Apply", teamPerfSub:"Who's tracking whom",
+      noUrgent:"No leads need urgent follow-up right now. ✦",
+      newUser:"New User", auditLogTitle:"Audit Log",
+      rsOverdue:"Overdue follow-up", rsDueToday:"Follow-up due today", rsDueSoon:"Follow-up coming up",
+      rsNegotiation:"In negotiation", rsQuoted:"After proposal sent", rsHighValue:"High value",
+      rsNewLead:"New lead needs first contact", rsNoContactDays:"No contact for {n} days", noOwner:"Unassigned",
+      slotMorning:"Morning (9–12)", slotNoon:"Noon (12–3)", slotAfternoon:"Afternoon (3–6)", slotEvening:"Evening (6–9)",
+      bestTimeAnswered:"Client usually answers around ", bestTimeMissed:"Tried {tried} with no answer — try {next}"
     }
   };
   const t = k => (T[LANG] && T[LANG][k]) || T.ar[k] || k;
@@ -1106,21 +1148,21 @@
     if(TERMINAL.includes(l.status))return null;
     let sc=0;const rs=[];
     const di=dueInfo(l.nextFollowUp);
-    if(di){if(di.cls==="due-over"){sc+=50;rs.push("متابعة متأخرة");}
-      else if(di.cls==="due-today"){sc+=36;rs.push("متابعة مستحقة النهاردة");}
-      else if(di.cls==="due-soon"){sc+=16;rs.push("متابعة قريبة");}}
-    if(l.status==="negotiation"){sc+=26;rs.push("في مرحلة تفاوض");}
-    else if(l.status==="quoted"){sc+=19;rs.push("بعد عرض السعر");}
+    if(di){if(di.cls==="due-over"){sc+=50;rs.push(t("rsOverdue"));}
+      else if(di.cls==="due-today"){sc+=36;rs.push(t("rsDueToday"));}
+      else if(di.cls==="due-soon"){sc+=16;rs.push(t("rsDueSoon"));}}
+    if(l.status==="negotiation"){sc+=26;rs.push(t("rsNegotiation"));}
+    else if(l.status==="quoted"){sc+=19;rs.push(t("rsQuoted"));}
     const nv=normVal(l);
-    if(nv>=2e6){sc+=22;rs.push("قيمة عالية");}else if(nv>=5e5){sc+=11;}
-    if(l.status==="new"){sc+=22;rs.push("عميل جديد محتاج أول تواصل");}
+    if(nv>=2e6){sc+=22;rs.push(t("rsHighValue"));}else if(nv>=5e5){sc+=11;}
+    if(l.status==="new"){sc+=22;rs.push(t("rsNewLead"));}
     const lt=lastTs(l), days=Math.floor((Date.now()-(lt||l.createdAt))/864e5);
-    if(l.status!=="new"&&days>=7){sc+=Math.min(18,days);rs.push("مفيش تواصل من "+days+" يوم");}
+    if(l.status!=="new"&&days>=7){sc+=Math.min(18,days);rs.push(t("rsNoContactDays").replace("{n}",days));}
     return{sc,rs,days};
   }
 
   // ---- best contact time suggestion ----
-  const SLOTS=[{k:0,t:"الصباح (9–12)",lo:9,hi:12},{k:1,t:"الظهر (12–3)",lo:12,hi:15},{k:2,t:"العصر (3–6)",lo:15,hi:18},{k:3,t:"المساء (6–9)",lo:18,hi:21}];
+  const SLOTS=[{k:0,tk:"slotMorning",lo:9,hi:12},{k:1,tk:"slotNoon",lo:12,hi:15},{k:2,tk:"slotAfternoon",lo:15,hi:18},{k:3,tk:"slotEvening",lo:18,hi:21}];
   function slotOf(h){for(const s of SLOTS)if(h>=s.lo&&h<s.hi)return s.k;return h<9?0:3;}
   function suggestContact(l){
     const calls=(l.notes||[]).filter(n=>n.kind==="call"&&n.outcome);
@@ -1130,14 +1172,14 @@
     if(answered.length){ // client tends to answer at a certain time
       const cnt=[0,0,0,0];answered.forEach(n=>cnt[slotOf(new Date(n.ts).getHours())]++);
       const best=cnt.indexOf(Math.max(...cnt));
-      return {txt:"العميل بيرد عادةً في "+SLOTS[best].t,good:true};
+      return {txt:t("bestTimeAnswered")+t(SLOTS[best].tk),good:true};
     }
     // only missed attempts -> suggest an untried slot
     const tried=new Set(missed.map(n=>slotOf(new Date(n.ts).getHours())));
     const order=[3,0,2,1]; // مساء، صباح، عصر، ظهر
     const next=order.find(k=>!tried.has(k));
-    const triedTxt=[...tried].map(k=>SLOTS[k].t).join(" و ");
-    if(next!=null)return{txt:"جرّبت "+triedTxt+" ومردّش — جرّب "+SLOTS[next].t,good:false};
+    const triedTxt=[...tried].map(k=>t(SLOTS[k].tk)).join(isEn()?" and ":" و ");
+    if(next!=null)return{txt:t("bestTimeMissed").replace("{tried}",triedTxt).replace("{next}",t(SLOTS[next].tk)),good:false};
     return{txt:"جرّبت كل الأوقات — جرّب الواتساب أو إيميل بدل الاتصال",good:false};
   }
 
@@ -1173,7 +1215,7 @@
       <div class="kpi"><div class="lbl">${t("convRate")}</div><div class="val num">${conv}<small>%</small></div><div class="sub muted">${won.length}/${closed.length}</div></div>
       <div class="kpi" style="cursor:pointer" onclick="applyQuick('due')"><div class="lbl">${t("dueFollowups")}</div><div class="val num" style="color:${due?'var(--rose)':'var(--ink)'}">${due}</div><div class="sub muted">${t("todayOrLate")}</div></div>
       <div class="kpi" style="cursor:pointer" onclick="applyQuick('today')"><div class="lbl">${t("todayOnly")}</div><div class="val num" style="color:${dueToday?'var(--clay)':'var(--ink)'}">${dueToday}</div><div class="sub muted">${t("todayAppts")}</div></div>
-      ${thisMonthLost?`<div class="kpi" style="cursor:pointer" onclick="applyQuick('lost_month')"><div class="lbl">${t("lostMonth")}</div><div class="val num" style="color:var(--rose)">${thisMonthLost}</div><div class="sub muted">${now.toLocaleString('ar-EG',{month:'long'})}</div></div>`:""}
+      ${thisMonthLost?`<div class="kpi" style="cursor:pointer" onclick="applyQuick('lost_month')"><div class="lbl">${t("lostMonth")}</div><div class="val num" style="color:var(--rose)">${thisMonthLost}</div><div class="sub muted">${now.toLocaleString(isEn()?'en-GB':'ar-EG',{month:'long'})}</div></div>`:""}
       ${staleCount?`<div class="kpi" style="cursor:pointer" onclick="applyQuick('stale')"><div class="lbl">${t("noContact7")}</div><div class="val num" style="color:var(--gold)">${staleCount}</div><div class="sub muted">${t("needsFollowup")}</div></div>`:""}
       ${overdueStage?`<div class="kpi" style="cursor:pointer;border-color:var(--gold)" onclick="applyQuick('overdue_stage')"><div class="lbl">${t("overdueStage")}</div><div class="val num" style="color:#8A6D3B">${overdueStage}</div><div class="sub muted">${t("exceededSla")}</div></div>`:""}
       ${weightedTxt?`<div class="kpi" style="border-color:var(--sage)"><div class="lbl">${t("weighted")}</div><div class="val num" style="font-size:16px;color:var(--sage)">${weightedTxt}</div><div class="sub muted">${t("weightedSub")}</div></div>`:""}`;
@@ -1186,9 +1228,9 @@
       const l=x.l;return `<div class="prio-item" onclick="openDetail('${l.id}')">
         <div class="prio-rank" style="background:${heat(x.p.sc)}">${i+1}</div>
         <div class="prio-main"><div class="prio-name">${esc(l.name)}</div>
-          <div class="prio-reason"><b>${x.p.rs[0]||""}</b>${x.p.rs[1]?" · "+x.p.rs[1]:""} · ${esc(l.owner||"بدون مسؤول")}</div></div>
+          <div class="prio-reason"><b>${x.p.rs[0]||""}</b>${x.p.rs[1]?" · "+x.p.rs[1]:""} · ${esc(l.owner||t("noOwner"))}</div></div>
         <div class="prio-val num">${canSeeValue()&&l.value?fmt(l.value)+" "+l.currency:""}</div></div>`;
-    }).join(""):'<p class="muted" style="padding:12px 0">مفيش عملاء محتاجين متابعة عاجلة دلوقتي. ✦</p>';
+    }).join(""):`<p class="muted" style="padding:12px 0">${t("noUrgent")}</p>`;
 
     const maxC=Math.max(1,...PIPELINE.map(k=>leads.filter(l=>l.status===k).length));
     $("#funnel").innerHTML=PIPELINE.map(k=>{const s=stById(k),c=leads.filter(l=>l.status===k).length,w=Math.max(6,Math.round(c/maxC*100));
@@ -1220,10 +1262,10 @@
     }
 
     const owners=[...new Set(leads.map(l=>l.owner).filter(Boolean))];
-    $("#ownerPerf").innerHTML=owners.length?`<table class="perf"><thead><tr><th>المسؤول</th><th>العملاء</th><th>مكسوب</th><th>تحويل</th>${canSeeValue()?"<th>قيمة نشطة</th>":""}</tr></thead><tbody>`+
+    $("#ownerPerf").innerHTML=owners.length?`<table class="perf"><thead><tr><th>${t("responsible")}</th><th>${t("clients")}</th><th>${t("won2")}</th><th>${t("conv2")}</th>${canSeeValue()?`<th>${t("value")}</th>`:""}</tr></thead><tbody>`+
       owners.map(o=>{const m=leads.filter(l=>l.owner===o),w=m.filter(l=>l.status==="won").length,cl=m.filter(l=>l.status==="won"||l.status==="lost").length;
         return `<tr><td style="font-weight:600">${esc(o)}</td><td class="num">${m.length}</td><td class="num" style="color:var(--sage)">${w}</td><td class="num">${cl?Math.round(w/cl*100):0}%</td>${canSeeValue()?`<td class="num" style="font-size:12px">${totalsByCurrency(l=>l.owner===o&&isActive(l))}</td>`:""}</tr>`;}).join("")+`</tbody></table>`
-      :'<p class="muted" style="padding:12px 0">لسه مفيش عملاء.</p>';
+      :`<p class="muted" style="padding:12px 0">${t("noLeads")}</p>`;
   }
 
   // ---- leads list ----
@@ -1250,12 +1292,12 @@
     renderLeads();
   };
   function quickLabel(f){
-    if(f==="active")return"الـ Pipeline النشطة";if(f==="won")return"مكسوب";if(f==="due")return"متابعات مستحقة/متأخرة";
-    if(f==="today")return"متابعات النهاردة بس";
-    if(f==="lost_month")return"إلغاء/خسارة الشهر ده";
-    if(f==="stale")return"بدون تواصل أكتر من 7 أيام";
-    if(f==="overdue_stage")return"متأخرين عن مهلة مرحلتهم";
-    if(f&&f.indexOf("st:")===0)return"الحالة: "+L(stById(f.slice(3)));return"";}
+    if(f==="active")return t("qfActive");if(f==="won")return t("qfWon");if(f==="due")return t("qfDue");
+    if(f==="today")return t("qfToday");
+    if(f==="lost_month")return t("qfLostMonth");
+    if(f==="stale")return t("qfStale");
+    if(f==="overdue_stage")return t("qfOverdue");
+    if(f&&f.indexOf("st:")===0)return t("qfStatus")+": "+L(stById(f.slice(3)));return"";}
   function passQuick(l){
     if(!quickFilter)return true;
     if(quickFilter==="active")return isActive(l);
@@ -1832,24 +1874,24 @@
   function renderReport(){
     const allVisible=canSeeReferral()?leads:leads.filter(l=>l.source!=="referral");
     const scope=allVisible.filter(filterByDate);
-    const label=rptFrom||rptTo?`الفترة: ${rptFrom||"…"} → ${rptTo||"…"} · ${scope.length} عميل`:"كل الفترات · "+allVisible.length+" عميل";
+    const label=rptFrom||rptTo?`${t("period")}: ${rptFrom||"…"} → ${rptTo||"…"} · ${scope.length} ${t("client")}`:t("allPeriods")+" · "+allVisible.length+" "+t("client");
     const rptLbl=$("#rptLabel");if(rptLbl)rptLbl.textContent=label;
-    const now=new Date().toLocaleDateString("ar-EG",{day:"numeric",month:"long",year:"numeric"});
+    const now=new Date().toLocaleDateString(isEn()?"en-GB":"ar-EG",{day:"numeric",month:"long",year:"numeric"});
     const won=scope.filter(l=>l.status==="won"),lost=scope.filter(l=>l.status==="lost"),closed=won.length+lost.length;
     const cr=closed?Math.round(won.length/closed*100):0,active=scope.filter(l=>isActive(l));
     const totals=fn=>totalsByCurrencyArr(scope.filter(fn));
     function totalsByCurrencyArr(arr){const t={EGP:0,SAR:0,USD:0};arr.forEach(l=>t[l.currency]=(t[l.currency]||0)+(Number(l.value)||0));return Object.entries(t).filter(([,v])=>v>0).map(([c,v])=>fmt(v)+" "+c).join(" · ")||"—";}
     // sources
-    const srcMap={};scope.forEach(l=>{const t=srcById(l.source)?L(srcById(l.source)):"غير محدد";srcMap[t]=(srcMap[t]||0)+1;});
+    const srcMap={};scope.forEach(l=>{const tx=srcById(l.source)?L(srcById(l.source)):(isEn()?"Unspecified":"غير محدد");srcMap[tx]=(srcMap[tx]||0)+1;});
     const srcArr=Object.entries(srcMap).sort((a,b)=>b[1]-a[1]),maxSrc=Math.max(1,...srcArr.map(s=>s[1]));
     // campaigns
     const campRows=campaigns.map(c=>{const m=scope.filter(l=>l.campaignId===c.id);const w=m.filter(l=>l.status==="won").length;return{c,n:m.length,w};}).filter(x=>x.n>0).sort((a,b)=>b.n-a.n);
     // services + categories
     const svcMap={};scope.forEach(l=>(l.services||[]).forEach(s=>svcMap[s]=(svcMap[s]||0)+1));
     const svcArr=Object.entries(svcMap).sort((a,b)=>b[1]-a[1]);
-    const catMap={};scope.forEach(l=>{if(l.projectCategory){const t=CATS[l.projectCategory]?.t||l.projectCategory;catMap[t]=(catMap[t]||0)+1;}});
+    const catMap={};scope.forEach(l=>{if(l.projectCategory){const tx=CATS[l.projectCategory]?.t||l.projectCategory;catMap[tx]=(catMap[tx]||0)+1;}});
     // quality
-    const qualMap={};scope.forEach(l=>{if(l.quality){const q=qById(l.quality);if(q)qualMap[q.t]=(qualMap[q.t]||0)+1;}});
+    const qualMap={};scope.forEach(l=>{if(l.quality){const q=qById(l.quality);if(q)qualMap[L(q)]=(qualMap[L(q)]||0)+1;}});
     const lostMap={};scope.filter(l=>l.status==="lost"&&l.lostReason).forEach(l=>{lostMap[l.lostReason]=(lostMap[l.lostReason]||0)+1;});
     const cancelMap={};scope.filter(l=>l.status==="cancelled"&&l.cancelReason).forEach(l=>{cancelMap[l.cancelReason]=(cancelMap[l.cancelReason]||0)+1;});
     // pricing duration
@@ -1857,32 +1899,32 @@
     const avgDays=pricedLeads.length?Math.round(pricedLeads.reduce((s,l)=>{const diff=(new Date(l.quoteSubmitDate)-new Date(l.quoteStartDate))/86400000;return s+Math.max(0,diff);},0)/pricedLeads.length):null;
     const owners=[...new Set(scope.map(l=>l.owner).filter(Boolean))];
     $("#reportBody").innerHTML=`
-      <div style="text-align:center;margin-bottom:22px"><div style="font-size:20px;font-weight:700">تقرير العملاء المحتملين</div><div class="muted" style="font-size:13px">PLINTH + PARTNERS · ${now}${rptFrom||rptTo?" · "+label:""}</div></div>
+      <div style="text-align:center;margin-bottom:22px"><div style="font-size:20px;font-weight:700">${t("rptTitle")}</div><div class="muted" style="font-size:13px">PLINTH + PARTNERS · ${now}${rptFrom||rptTo?" · "+label:""}</div></div>
       <div class="kpi-grid">
-        <div class="kpi accent"><div class="lbl">إجمالي الفترة</div><div class="val num">${scope.length}</div></div>
-        <div class="kpi"><div class="lbl">نشط</div><div class="val num">${active.length}</div></div>
-        <div class="kpi"><div class="lbl">مكسوب</div><div class="val num" style="color:var(--sage)">${won.length}</div></div>
-        <div class="kpi"><div class="lbl">تحويل</div><div class="val num">${cr}%</div></div>
-        ${avgDays!==null?`<div class="kpi"><div class="lbl">متوسط مدة التسعير</div><div class="val num">${avgDays}<small> يوم</small></div></div>`:""}
+        <div class="kpi accent"><div class="lbl">${t("periodTotal")}</div><div class="val num">${scope.length}</div></div>
+        <div class="kpi"><div class="lbl">${t("active2")}</div><div class="val num">${active.length}</div></div>
+        <div class="kpi"><div class="lbl">${t("won2")}</div><div class="val num" style="color:var(--sage)">${won.length}</div></div>
+        <div class="kpi"><div class="lbl">${t("conv2")}</div><div class="val num">${cr}%</div></div>
+        ${avgDays!==null?`<div class="kpi"><div class="lbl">${t("avgPriceDuration")}</div><div class="val num">${avgDays}<small> ${t("day")}</small></div></div>`:""}
       </div>
-      ${canSeeValue()?`<div class="report-block"><h3>قيمة الأعمال</h3><table class="perf"><tbody>
-        <tr><td>Pipeline نشط</td><td class="num" style="text-align:left;font-weight:600">${totals(l=>isActive(l))}</td></tr>
-        <tr><td>مكسوب</td><td class="num" style="text-align:left;font-weight:600;color:var(--sage)">${totals(l=>l.status==='won')}</td></tr>
-        <tr><td>عرض سعر / تفاوض</td><td class="num" style="text-align:left;font-weight:600">${totals(l=>l.status==='quoted'||l.status==='negotiation')}</td></tr></tbody></table></div>`:""}
-      <div class="report-block"><h3>حسب الحالة</h3><table class="perf"><thead><tr><th>الحالة</th><th>العدد</th>${canSeeValue()?"<th>القيمة</th>":""}</tr></thead><tbody>
-        ${STATUSES.map(s=>{const c=scope.filter(l=>l.status===s.k).length;return c?`<tr style="cursor:pointer" onclick="goFilterStatus('${s.k}')" title="اضغط لعرض العملاء"><td><span class="chip" style="background:${s.c}1A;color:${s.c}">${L(s)}</span></td><td class="num">${c} ›</td>${canSeeValue()?`<td class="num" style="font-size:12px">${totals(l=>l.status===s.k)}</td>`:""}</tr>`:"";}).join("")}</tbody></table><div style="font-size:11.5px;color:var(--ink-soft);margin-top:6px">اضغط على أي حالة للانتقال لقائمة العملاء بهذا الفلتر</div></div>
-      ${Object.keys(qualMap).length?`<div class="report-block"><h3>جودة الـ Leads (تقييم تسويقي)</h3><table class="perf"><tbody>${Object.entries(qualMap).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:left;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
-      ${Object.keys(lostMap).length?`<div class="report-block"><h3>أسباب الخسارة</h3><table class="perf"><tbody>${Object.entries(lostMap).sort((a,b)=>b[1]-a[1]).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:left;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
-      ${Object.keys(cancelMap).length?`<div class="report-block"><h3>أسباب الإلغاء</h3><table class="perf"><tbody>${Object.entries(cancelMap).sort((a,b)=>b[1]-a[1]).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:left;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
-      ${pricedLeads.length?`<div class="report-block"><h3>مدة التسعير</h3><table class="perf"><thead><tr><th>العميل</th><th>بداية</th><th>تقديم</th><th>مدة</th><th>الحالة</th></tr></thead><tbody>
-        ${pricedLeads.map(l=>{const d=Math.max(0,Math.round((new Date(l.quoteSubmitDate)-new Date(l.quoteStartDate))/86400000));return`<tr><td style="font-weight:600">${esc(l.name)}</td><td class="num">${l.quoteStartDate}</td><td class="num">${l.quoteSubmitDate}</td><td class="num">${d} يوم</td><td><span class="chip" style="background:${stById(l.status).c}1A;color:${stById(l.status).c}">${L(stById(l.status))}</span></td></tr>`;}).join("")}</tbody></table></div>`:""}
-      <div class="report-block"><h3>مصادر العملاء</h3><div class="src-bars">
+      ${canSeeValue()?`<div class="report-block"><h3>${t("bizValue")}</h3><table class="perf"><tbody>
+        <tr><td>${t("activePipeline2")}</td><td class="num" style="text-align:left;font-weight:600">${totals(l=>isActive(l))}</td></tr>
+        <tr><td>${t("won2")}</td><td class="num" style="text-align:left;font-weight:600;color:var(--sage)">${totals(l=>l.status==='won')}</td></tr>
+        <tr><td>${t("quotedNego")}</td><td class="num" style="text-align:left;font-weight:600">${totals(l=>l.status==='quoted'||l.status==='negotiation')}</td></tr></tbody></table></div>`:""}
+      <div class="report-block"><h3>${t("byStatus")}</h3><table class="perf"><thead><tr><th>${t("status")}</th><th>${t("count")}</th>${canSeeValue()?`<th>${t("value")}</th>`:""}</tr></thead><tbody>
+        ${STATUSES.map(s=>{const c=scope.filter(l=>l.status===s.k).length;return c?`<tr style="cursor:pointer" onclick="goFilterStatus('${s.k}')" title="${t("clickToFilter")}"><td><span class="chip" style="background:${s.c}1A;color:${s.c}">${L(s)}</span></td><td class="num">${c} ›</td>${canSeeValue()?`<td class="num" style="font-size:12px">${totals(l=>l.status===s.k)}</td>`:""}</tr>`:"";}).join("")}</tbody></table><div style="font-size:11.5px;color:var(--ink-soft);margin-top:6px">${t("clickStatusHint")}</div></div>
+      ${Object.keys(qualMap).length?`<div class="report-block"><h3>${t("leadQuality")}</h3><table class="perf"><tbody>${Object.entries(qualMap).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:left;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
+      ${Object.keys(lostMap).length?`<div class="report-block"><h3>${t("lostReasons")}</h3><table class="perf"><tbody>${Object.entries(lostMap).sort((a,b)=>b[1]-a[1]).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:left;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
+      ${Object.keys(cancelMap).length?`<div class="report-block"><h3>${t("cancelReasons")}</h3><table class="perf"><tbody>${Object.entries(cancelMap).sort((a,b)=>b[1]-a[1]).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:left;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
+      ${pricedLeads.length?`<div class="report-block"><h3>${t("pricingDuration")}</h3><table class="perf"><thead><tr><th>${t("client")}</th><th>${t("start")}</th><th>${t("submit")}</th><th>${t("duration")}</th><th>${t("status")}</th></tr></thead><tbody>
+        ${pricedLeads.map(l=>{const d=Math.max(0,Math.round((new Date(l.quoteSubmitDate)-new Date(l.quoteStartDate))/86400000));return`<tr><td style="font-weight:600">${esc(l.name)}</td><td class="num">${l.quoteStartDate}</td><td class="num">${l.quoteSubmitDate}</td><td class="num">${d} ${t("day")}</td><td><span class="chip" style="background:${stById(l.status).c}1A;color:${stById(l.status).c}">${L(stById(l.status))}</span></td></tr>`;}).join("")}</tbody></table></div>`:""}
+      <div class="report-block"><h3>${t("leadSources")}</h3><div class="src-bars">
         ${srcArr.map(([n,c])=>`<div class="src-bar"><div class="sname">${esc(n)}</div><div class="strack"><div class="sfill" style="width:${Math.round(c/maxSrc*100)}%"></div></div><div class="scount num">${c}</div></div>`).join("")}</div></div>
-      ${campRows.length?`<div class="report-block"><h3>أداء الكامبينات</h3><table class="perf"><thead><tr><th>الكامبين</th><th>المنصة</th><th>عملاء</th><th>مكسوب</th></tr></thead><tbody>
+      ${campRows.length?`<div class="report-block"><h3>${t("campaignPerf")}</h3><table class="perf"><thead><tr><th>${t("campaign")}</th><th>${t("platform")}</th><th>${t("clients")}</th><th>${t("won2")}</th></tr></thead><tbody>
         ${campRows.map(x=>`<tr><td style="font-weight:600">#${esc(x.c.id)} ${esc(x.c.name||"")}</td><td>${x.c.platform}</td><td class="num">${x.n}</td><td class="num" style="color:var(--sage)">${x.w}</td></tr>`).join("")}</tbody></table></div>`:""}
-      ${svcArr.length?`<div class="report-block"><h3>الخدمات المطلوبة</h3><table class="perf"><tbody>${svcArr.map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:left;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
-      ${Object.keys(catMap).length?`<div class="report-block"><h3>تصنيف المشاريع</h3><table class="perf"><tbody>${Object.entries(catMap).sort((a,b)=>b[1]-a[1]).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:left;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
-      ${owners.length?`<div class="report-block"><h3>أداء الفريق</h3><table class="perf"><thead><tr><th>المسؤول</th><th>عملاء</th><th>مكسوب</th><th>إلغاء</th><th>تحويل</th></tr></thead><tbody>
+      ${svcArr.length?`<div class="report-block"><h3>${t("servicesRequested")}</h3><table class="perf"><tbody>${svcArr.map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:left;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
+      ${Object.keys(catMap).length?`<div class="report-block"><h3>${t("projectClassification")}</h3><table class="perf"><tbody>${Object.entries(catMap).sort((a,b)=>b[1]-a[1]).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:left;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
+      ${owners.length?`<div class="report-block"><h3>${t("teamPerf")}</h3><table class="perf"><thead><tr><th>${t("responsible")}</th><th>${t("clients")}</th><th>${t("won2")}</th><th>${t("cancelCol")}</th><th>${t("conv2")}</th></tr></thead><tbody>
         ${owners.map(o=>{const m=scope.filter(l=>l.owner===o),w=m.filter(l=>l.status==="won").length,cn=m.filter(l=>l.status==="cancelled").length,cl=w+m.filter(l=>l.status==="lost").length;return `<tr><td style="font-weight:600">${esc(o)}</td><td class="num">${m.length}</td><td class="num" style="color:var(--sage)">${w}</td><td class="num" style="color:var(--ink-soft)">${cn}</td><td class="num">${cl?Math.round(w/cl*100):0}%</td></tr>`;}).join("")}</tbody></table></div>`:""}`;
   }
 
@@ -2146,30 +2188,30 @@
     try{
       const snap=await db.collection("users").get();
       const users=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
-      $("#usersList").innerHTML=users.length?`<table class="perf"><thead><tr><th>الاسم</th><th>البريد</th><th>الدور</th><th></th></tr></thead><tbody>`+
+      $("#usersList").innerHTML=users.length?`<table class="perf"><thead><tr><th>${t("nameCol")}</th><th>${t("emailCol")}</th><th>${t("roleCol")}</th><th></th></tr></thead><tbody>`+
         users.map(u=>`<tr>
           <td style="font-weight:600">${esc(u.name||"")}</td>
           <td style="font-size:12.5px">${esc(u.email||"")}</td>
           <td><select data-uid="${esc(u.id)}" class="roleSelect" style="border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-family:inherit;font-size:12.5px;background:var(--paper)">
-            ${Object.entries(ROLES).map(([k,t])=>`<option value="${k}" ${k===u.role?"selected":""}>${t}</option>`).join("")}
+            ${Object.entries(ROLES).map(([k,tx])=>`<option value="${k}" ${k===u.role?"selected":""}>${tx}</option>`).join("")}
           </select></td>
-          <td>${u.id===currentUser.uid?'<span class="muted" style="font-size:12px">أنت</span>':`<button class="btn btn-danger btn-sm" onclick="deleteUser('${esc(u.id)}','${esc(u.name||u.email)}')">حذف</button>`}</td>
+          <td>${u.id===currentUser.uid?`<span class="muted" style="font-size:12px">${t("you")}</span>`:`<button class="btn btn-danger btn-sm" onclick="deleteUser('${esc(u.id)}','${esc(u.name||u.email)}')">${t("del")}</button>`}</td>
         </tr>`).join("")+`</tbody></table>`
-      :'<p class="muted" style="padding:12px 0">مفيش مستخدمين.</p>';
+      :`<p class="muted" style="padding:12px 0">${t("noUsers")}</p>`;
       // role change handler
       $$(".roleSelect").forEach(sel=>sel.onchange=async e=>{
         const uid=sel.dataset.uid, newRole=e.target.value;
         await db.collection("users").doc(uid).update({role:newRole});
-        logAudit("تغيير دور مستخدم",uid,sel.closest("tr").querySelector("td").textContent,"→ "+ROLES[newRole]);
-        toast("تم تحديث الدور");
+        logAudit(t("roleChangeAction"),uid,sel.closest("tr").querySelector("td").textContent,"→ "+ROLES[newRole]);
+        toast(t("roleUpdated"));
       });
       // load audit
       const aSnap=await db.collection("audit").orderBy("ts","desc").limit(50).get();
       const rows=aSnap.docs.map(d=>d.data());
-      $("#auditLog").innerHTML=rows.length?`<table class="perf"><thead><tr><th>المستخدم</th><th>العملية</th><th>العميل</th><th>الوقت</th></tr></thead><tbody>`+
-        rows.map(r=>`<tr><td style="font-weight:600">${esc(r.userName||"")}</td><td>${esc(r.action)}</td><td style="font-size:12.5px">${esc(r.leadName||r.detail||"")}</td><td class="muted" style="font-size:11.5px">${new Date(r.ts).toLocaleString("ar-EG",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</td></tr>`).join("")+`</tbody></table>`
-      :'<p class="muted" style="padding:12px 0">السجل فاضي.</p>';
-    }catch(e){$("#usersList").innerHTML='<p class="muted">تعذّر تحميل المستخدمين — تأكد من Firestore Rules.</p>';}
+      $("#auditLog").innerHTML=rows.length?`<table class="perf"><thead><tr><th>${t("userCol")}</th><th>${t("actionCol")}</th><th>${t("client")}</th><th>${t("timeCol")}</th></tr></thead><tbody>`+
+        rows.map(r=>`<tr><td style="font-weight:600">${esc(r.userName||"")}</td><td>${esc(r.action)}</td><td style="font-size:12.5px">${esc(r.leadName||r.detail||"")}</td><td class="muted" style="font-size:11.5px">${new Date(r.ts).toLocaleString(isEn()?"en-GB":"ar-EG",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</td></tr>`).join("")+`</tbody></table>`
+      :`<p class="muted" style="padding:12px 0">${t("auditEmpty")}</p>`;
+    }catch(e){$("#usersList").innerHTML=`<p class="muted">${t("usersLoadErr")}</p>`;}
   }
   function openAddUser(){if(!isAdmin())return; document.getElementById("addUserOverlay").classList.add("show");}
   window.openAddUser=openAddUser;
@@ -2225,6 +2267,38 @@
       set('#kbTitle',t("pipeline"));
       set('#kbShowClosedLbl',t("showClosed"));
       set('#kbHint',t("dragHint"));
+      // العنوانين دول فيهم <span> عداد جوه — نحدّث النص بس ونسيب الـ span
+      const setPrefix=(sel,val,span)=>{const el=document.querySelector(sel);if(el){const s=el.querySelector(span);el.textContent=val+" ";if(s)el.appendChild(s);}};
+      setPrefix('#prioTitleEl',t("prioTitle"),'#prioCount');
+      setPrefix('#staleTitleEl',t("staleTitle"),'#staleCountEl');
+      set('#pipelineStagesTitle',t("pipelineStages"));
+      setPrefix('#ownerPerfTitleEl',t("ownerPerf")+" ",'#ownerPerfSub');
+      const opSub=document.getElementById("ownerPerfSub"); if(opSub)opSub.textContent=t("teamPerfSub");
+      set('#perfReportTitle',t("perfReport"));
+      set('#rptFromLbl',t("fromDate"));
+      set('#rptToLbl',t("toDate"));
+      set('#rptMonthLbl',t("orPickMonth"));
+      set('#rptApply',t("apply"));
+      set('#rptClear',t("allPeriods"));
+      // بناء قائمة الشهور ديناميكياً باللغة الحالية
+      const rptMonthSel=document.getElementById("rptMonth");
+      if(rptMonthSel){
+        let opts=`<option value="">${t("allPeriods")}</option>`;
+        const yr=new Date().getFullYear();
+        for(let m=1;m<=12;m++){
+          const d=new Date(yr,m-1,1);
+          const label=d.toLocaleDateString(isEn()?"en-GB":"ar-EG",{month:"long",year:"numeric"});
+          const val=yr+"-"+String(m).padStart(2,"0");
+          opts+=`<option value="${val}">${label}</option>`;
+        }
+        rptMonthSel.innerHTML=opts;
+      }
+      set('#hideTerminalLbl',t("hideTerminal"));
+      set('#lookalikeLbl',t("lookalike"));
+      set('#usersMgmtTitle',t("users").replace(/^👤\s*/,""));
+      set('#newUserBtn',"＋ "+t("newUser"));
+      set('#addUserModalTitle',t("newUser"));
+      set('#auditLogTitle',t("auditLogTitle"));
       const si=document.getElementById("searchInput"); if(si)si.placeholder=t("search");
       if(isEn()){
         const br=document.querySelector(".brand span"); if(br)br.textContent="Leads & Inquiries · Sales Pipeline";
