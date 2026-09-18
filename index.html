@@ -61,7 +61,7 @@
   .num{font-family:"IBM Plex Mono",monospace;font-feature-settings:"tnum"}
 
   header{position:sticky;top:0;z-index:30;background:rgba(251,248,242,.85);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
-  .head-in{max-width:1100px;margin:0 auto;padding:13px 18px;display:flex;align-items:center;gap:13px}
+  .head-in{max-width:1100px;margin:0 auto;padding:13px 18px;display:flex;align-items:center;gap:13px;flex-wrap:wrap}
   .logo{width:44px;height:44px;border-radius:12px;flex:none;background:linear-gradient(150deg,var(--clay),var(--clay-deep));display:grid;place-items:center;color:#FBF1E6;font-weight:700;font-size:15px;box-shadow:0 6px 16px -6px rgba(143,64,35,.6);letter-spacing:.5px}
   .brand h1{font-size:16px;font-weight:700;letter-spacing:-.01em}
   .brand span{font-size:11.5px;color:var(--ink-soft);font-weight:400}
@@ -163,9 +163,12 @@
   .kb-col{flex:0 0 268px;background:var(--ivory);border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;max-height:74vh;overflow:hidden}
   .kb-strip{height:5px;width:100%;flex:0 0 5px}
   .kb-col.drag-over{background:#EDE4D8;border-color:var(--clay);border-style:dashed}
-  .kb-col.folded{flex:0 0 58px}
+  .kb-col.folded{flex:0 0 46px}
   .kb-col.folded .kb-body,.kb-col.folded .kb-sum{display:none}
-  .kb-col.folded .kb-head{writing-mode:vertical-rl;height:190px;justify-content:flex-start;padding:12px 6px}
+  .kb-col.folded .kb-head{flex-direction:column;height:auto;min-height:190px;padding:12px 6px;gap:10px;justify-content:flex-start}
+  .kb-col.folded .kb-ttl{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;font-size:12px}
+  .kb-col.folded .kb-head>div:last-child{display:flex;flex-direction:column;align-items:center;gap:6px}
+  .kb-col.folded .kb-rot,.kb-col.folded .kb-cnt{writing-mode:horizontal-tb;transform:none}
   .kb-head{padding:10px 12px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:6px;cursor:pointer;user-select:none}
   .kb-ttl{font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:6px;min-width:0}
   .kb-dot{width:8px;height:8px;border-radius:50%;flex:0 0 8px}
@@ -198,6 +201,11 @@
   .acc-b{display:none;padding:12px 13px}
   .acc.open .acc-b{display:block}
   .sla-warn{background:#FCF3E8;border:1px solid var(--gold);border-radius:11px;padding:10px 12px;margin-bottom:12px}
+  .add-job-card{background:var(--surface2);border:1.5px dashed var(--clay);border-radius:13px;padding:14px}
+  .add-job-hdr{font-size:12.5px;font-weight:700;color:var(--clay);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+  .add-job-grid{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px;align-items:end}
+  .add-job-btn{height:41px;white-space:nowrap}
+  @media(max-width:640px){.add-job-grid{grid-template-columns:1fr 1fr}.add-job-btn{grid-column:1 / -1}}
   .sla-warn .sw-t{font-size:13px;font-weight:700;color:#8A6D3B;margin-bottom:3px}
   .sla-warn .sw-s{font-size:12px;color:var(--ink-soft);line-height:1.6}
   .stage-ok{background:var(--sage-soft);border:1px solid #B8D9B8;border-radius:11px;padding:9px 12px;margin-bottom:12px;font-size:12.5px;color:var(--sage)}
@@ -327,6 +335,15 @@
     .modal{max-width:580px}
     .field input,.field select,.field textarea{font-size:15px}
     .pill{padding:8px 12px}
+    /* منع طفح عناصر الهيدر (اسم/دور/خروج) بره الشاشة على الآيباد */
+    .head-in{padding:10px 14px;gap:8px}
+    .brand{min-width:0}
+    .brand h1{font-size:14px}
+    .brand span{font-size:10.5px}
+    .head-spacer{flex:0 1 auto;min-width:8px}
+    #userChip{flex-wrap:wrap;max-width:100%}
+    #viewAsSelect{max-width:150px}
+    .icon-btn span{display:none}
   }
 </style>
 </head>
@@ -666,7 +683,7 @@
       staleTitle:"⚠ بدون تواصل من أكتر من 7 أيام",
       pipelineStages:"مراحل العملاء (Pipeline)", ownerPerf:"أداء المسؤولين",
       noResults:"مفيش نتائج.", noLeads:"ابدأ بتسجيل أول عميل، أو ارفع شيت إكسيل.",
-      dragHint:"اسحب الكارت لمرحلة تانية", rotting:"متأخر", card:"كارت",
+      dragHint:"اسحب الكارت لمرحلة تانية · ⭐ دوس على النجوم لتحديد الأولوية", rotting:"متأخر", card:"كارت",
       value:"القيمة", owner:"المسؤول", stage:"المرحلة", noStage:"مفيش",
       showClosed:"إظهار المغلقة", langBtn:"EN", timeline:"سجل التواصل", logCall:"＋ تسجيل مكالمة / ملاحظة",
       nextFollowup:"المتابعة القادمة:", noFollowup:"مفيش متابعة مجدولة",
@@ -722,7 +739,11 @@
       fieldEmail:"البريد", fieldSource2:"المصدر", fieldBudgetFit:"مستوى الميزانية",
       fieldAdName:"اسم الإعلان", fieldAdsetName:"المجموعة الإعلانية", fieldReceivedDate:"تاريخ الإرسال / التسجيل",
       fieldLastContact:"آخر تواصل", fieldPricingDuration:"مدة التسعير", fieldCount:"حقل",
-      ourPlusLbl:"✦ ميزتنا", editBtn:"✎ تعديل"
+      ourPlusLbl:"✦ ميزتنا", editBtn:"✎ تعديل",
+      originalWonValue:"القيمة الأصلية عند الإغلاق", autoMigrated:"نظام (تلقائي)",
+      starsHint:"⭐ الأولوية — دوس على النجوم لتحديد مدى إلحاح المتابعة (1-3). العملاء بأولوية أعلى بيظهروا الأول في العمود.",
+      loginNamedFor:"يوجد لكل مستخدم", cannotChangeSelf:"مينفعش تغيّر صلاحيتك بنفسك", cannotChangeSuperAdmin:"مينفعش حد يغيّر الـ Super Admin",
+      cannotChangeSame:"مينفعش تغيّر مستخدم في نفس رتبتك أو أعلى منك"
     },
     en:{
       dash:"Dashboard", pipeline:"Pipeline", leads:"Leads", report:"Report", users:"👤 Users",
@@ -740,7 +761,7 @@
       staleTitle:"⚠ No contact for more than 7 days",
       pipelineStages:"Pipeline Stages", ownerPerf:"Owner Performance",
       noResults:"No results.", noLeads:"Add your first lead, or import an Excel sheet.",
-      dragHint:"Drag a card to another stage", rotting:"rotting", card:"cards",
+      dragHint:"Drag a card to another stage · ⭐ click stars to set priority", rotting:"rotting", card:"cards",
       value:"Value", owner:"Owner", stage:"Stage", noStage:"None",
       showClosed:"Show closed", langBtn:"ع", timeline:"Activity Log", logCall:"＋ Log call / note",
       nextFollowup:"Next follow-up:", noFollowup:"No follow-up scheduled",
@@ -796,7 +817,11 @@
       fieldEmail:"Email", fieldSource2:"Source", fieldBudgetFit:"Budget Fit",
       fieldAdName:"Ad Name", fieldAdsetName:"Ad Set", fieldReceivedDate:"Date Received / Registered",
       fieldLastContact:"Last Contact", fieldPricingDuration:"Pricing Duration", fieldCount:"fields",
-      ourPlusLbl:"✦ Our Edge", editBtn:"✎ Edit"
+      ourPlusLbl:"✦ Our Edge", editBtn:"✎ Edit",
+      originalWonValue:"Original value at closing", autoMigrated:"System (auto)",
+      starsHint:"⭐ Priority — click the stars to set follow-up urgency (1-3). Higher-priority leads show first in the column.",
+      loginNamedFor:"Each user has", cannotChangeSelf:"You cannot change your own role", cannotChangeSuperAdmin:"No one can change the Super Admin",
+      cannotChangeSame:"You cannot change a user at your rank or above"
     }
   };
   const t = k => (T[LANG] && T[LANG][k]) || T.ar[k] || k;
@@ -1161,6 +1186,10 @@
 
   async function putLead(l){
     l.updatedAt=Date.now();
+    // ترحيل تلقائي: عميل مكسوب وعنده قيمة تقديرية بس مفيش Jobs مسجّلة → نعمل Job أول تلقائي بنفس القيمة
+    if(l.status==="won"&&l.value&&Number(l.value)>0&&!jobsOf(l).length){
+      l.jobs=[{id:uid(),title:t("originalWonValue"),value:Number(l.value),currency:l.currency||"EGP",date:l.updatedAt?new Date(l.updatedAt).toISOString().slice(0,10):todayStr(),addedBy:t("autoMigrated"),ts:Date.now(),auto:true}];
+    }
     const i=leads.findIndex(x=>x.id===l.id); if(i>=0)leads[i]=l; else leads.unshift(l);
     try{
       await db.collection("leads").doc(l.id).set(JSON.parse(JSON.stringify(l)));
@@ -1286,7 +1315,7 @@
     const jobsGrandTxt=canSeeValue()?allJobsTotalsText(l=>true):"";
     $("#kpiGrid").innerHTML=`
       <div class="kpi accent" style="cursor:pointer" onclick="applyQuick(null)"><div class="lbl">${t("totalLeads")}</div><div class="val num">${leads.length}</div><div class="sub muted">${active.length} ${t("active")}</div></div>
-      <div class="kpi" style="cursor:pointer" onclick="applyQuick('active')"><div class="lbl">${t("activePipeline")}</div><div class="val num" style="font-size:17px">${canSeeValue()?totalsByCurrency(l=>isActive(l)):active.length+" عميل"}</div></div>
+      <div class="kpi" style="cursor:pointer" onclick="applyQuick('active')"><div class="lbl">${t("activePipeline")}</div><div class="val num">${active.length}</div><div class="sub muted">${canSeeValue()?totalsByCurrency(l=>isActive(l)):""}</div></div>
       <div class="kpi" style="cursor:pointer" onclick="applyQuick('won')"><div class="lbl">${t("won")}</div><div class="val num" style="color:var(--sage)">${won.length}</div><div class="sub muted">${canSeeValue()?totalsByCurrency(l=>l.status==='won'):""}</div></div>
       <div class="kpi"><div class="lbl">${t("convRate")}</div><div class="val num">${conv}<small>%</small></div><div class="sub muted">${won.length}/${closed.length}</div></div>
       <div class="kpi" style="cursor:pointer" onclick="applyQuick('due')"><div class="lbl">${t("dueFollowups")}</div><div class="val num" style="color:${due?'var(--rose)':'var(--ink)'}">${due}</div><div class="sub muted">${t("todayOrLate")}</div></div>
@@ -1294,8 +1323,8 @@
       ${thisMonthLost?`<div class="kpi" style="cursor:pointer" onclick="applyQuick('lost_month')"><div class="lbl">${t("lostMonth")}</div><div class="val num" style="color:var(--rose)">${thisMonthLost}</div><div class="sub muted">${now.toLocaleString(isEn()?'en-GB':'ar-EG',{month:'long'})}</div></div>`:""}
       ${staleCount?`<div class="kpi" style="cursor:pointer" onclick="applyQuick('stale')"><div class="lbl">${t("noContact7")}</div><div class="val num" style="color:var(--gold)">${staleCount}</div><div class="sub muted">${t("needsFollowup")}</div></div>`:""}
       ${overdueStage?`<div class="kpi" style="cursor:pointer;border-color:var(--gold)" onclick="applyQuick('overdue_stage')"><div class="lbl">${t("overdueStage")}</div><div class="val num" style="color:#8A6D3B">${overdueStage}</div><div class="sub muted">${t("exceededSla")}</div></div>`:""}
-      ${weightedTxt?`<div class="kpi" style="border-color:var(--sage)"><div class="lbl">${t("weighted")}</div><div class="val num" style="font-size:16px;color:var(--sage)">${weightedTxt}</div><div class="sub muted">${t("weightedSub")}</div></div>`:""}
-      ${jobsGrandTxt?`<div class="kpi accent" style="border-color:var(--clay)"><div class="lbl">${t("jobsGrandTotal")}</div><div class="val num" style="font-size:16px;color:var(--clay)">${jobsGrandTxt}</div><div class="sub muted">${t("jobsTitle").replace("💼 ","")}</div></div>`:""}`;
+      ${weightedTxt?`<div class="kpi" style="border-color:var(--sage)"><div class="lbl">${t("weighted")}</div><div class="val num" style="color:var(--sage)">${weightedTxt}</div><div class="sub muted">${t("weightedSub")}</div></div>`:""}
+      ${jobsGrandTxt?`<div class="kpi accent" style="border-color:var(--clay)"><div class="lbl">${t("jobsGrandTotal")}</div><div class="val num" style="color:var(--clay)">${jobsGrandTxt}</div><div class="sub muted">${t("jobsTitle").replace("💼 ","")}</div></div>`:""}`;
 
     // priority (all, scrollable)
     const scored=leads.map(l=>({l,p:priority(l)})).filter(x=>x.p&&x.p.sc>0).sort((a,b)=>b.p.sc-a.p.sc);
@@ -1434,7 +1463,7 @@
             ${l.compound?`<span>🏛 ${esc(l.compound)}</span>`:""}
           </div>
           <div class="kb-f">
-            <span class="kb-star">${canWrite()?stars:""}</span>
+            <span class="kb-star" title="${t("starsHint")}">${canWrite()?stars:""}</span>
             ${canSeeValue()&&l.value?`<span class="kb-v">${fmt(l.value)} ${esc(l.currency||"EGP")}</span>`:""}
           </div>
           <div class="kb-f" style="margin-top:6px">
@@ -1521,7 +1550,7 @@
           <div class="l-meta">${l.phone?`<span>📞 ${esc(l.phone)}${l.phoneVerified?' ✓':''}</span>`:""}${l.email?`<span>✉</span>`:""}${src?`<span>${src.i} ${esc(L(src))}</span>`:""}${l.compound?`<span>🏛 ${esc(l.compound)}</span>`:""}</div></div>
           <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end">
             <span class="chip" style="background:${s.c}1A;color:${s.c}">${L(s)}</span>
-            ${ov?`<span class="chip" style="background:#FCF3E8;color:#8A6D3B;font-size:10.5px" title="${esc(ov.hint||"")}">⏳ متأخر ${ov.over}ي</span>`:""}
+            ${ov?`<span class="chip" style="background:#FCF3E8;color:#8A6D3B;font-size:10.5px" title="${esc(ov.hint||"")}">⏳ ${t("rotting")} ${ov.over}${isEn()?"d":"ي"}</span>`:""}
             ${ql?`<span class="chip" style="background:${ql.c}1A;color:${ql.c};font-size:10.5px">${L(ql)}</span>`:""}</div></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:9px">
           ${proj?`<span class="tag">${esc(proj)}</span>`:""}${l.area?`<span class="tag">${esc(l.area)} ${esc(l.areaUnit||"م²")}</span>`:""}
@@ -1748,11 +1777,14 @@
         const totalTxt=jobsTotalsText(l);
         return `${rows||`<div class="muted" style="font-size:12.5px;padding:6px 0 12px">${t("noJobs")}</div>`}
           ${totalTxt?`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--sage-soft);border-radius:11px;margin-bottom:12px"><span style="font-weight:700;font-size:13px;color:var(--sage)">${t("jobsTotal")}</span><span class="num" style="font-weight:700;color:var(--sage)">${totalTxt}</span></div>`:""}
-          ${canWrite()?`<div style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;align-items:end">
-            <div class="field" style="margin:0"><label style="font-size:11.5px">${t("jobTitle")}</label><input id="newJobTitle" placeholder="${t("jobTitlePlaceholder")}"></div>
-            <div class="field" style="margin:0"><label style="font-size:11.5px">${t("jobValue")}</label><input id="newJobValue" type="number" placeholder="0"></div>
-            <div class="field" style="margin:0"><label style="font-size:11.5px">${t("jobDate")}</label><input id="newJobDate" type="date" value="${todayStr()}"></div>
-            <button class="btn btn-primary btn-sm" onclick="addJob('${l.id}')" style="height:41px">${t("addJob")}</button>
+          ${canWrite()?`<div class="add-job-card">
+            <div class="add-job-hdr">${t("addJob")}</div>
+            <div class="add-job-grid">
+              <div class="field" style="margin:0"><label style="font-size:11.5px">${t("jobTitle")}</label><input id="newJobTitle" placeholder="${t("jobTitlePlaceholder")}"></div>
+              <div class="field" style="margin:0"><label style="font-size:11.5px">${t("jobValue")}</label><input id="newJobValue" type="number" placeholder="0"></div>
+              <div class="field" style="margin:0"><label style="font-size:11.5px">${t("jobDate")}</label><input id="newJobDate" type="date" value="${todayStr()}"></div>
+              <button class="btn btn-primary btn-sm add-job-btn" onclick="addJob('${l.id}')">${t("addJob")}</button>
+            </div>
           </div>`:""}`;
       })(),true):""}
 
@@ -2249,7 +2281,17 @@
   function renderAll(){renderDash();renderLeads();renderReport();}
   function renderLeadsAndDash(){renderDash();renderLeads();renderKanban();}
   function closeAll(){$("#formOverlay").classList.remove("show");$("#detailOverlay").classList.remove("show");}
-  $$('nav.tabs button').forEach(b=>b.onclick=()=>{$$('nav.tabs button').forEach(x=>x.classList.remove("active"));b.classList.add("active");$$('.view').forEach(v=>v.classList.remove("active"));$("#tab-"+b.dataset.tab).classList.add("active");window.scrollTo(0,0);if(b.dataset.tab==="pipeline")renderKanban();});
+  $$('nav.tabs button').forEach(b=>b.onclick=()=>{$$('nav.tabs button').forEach(x=>x.classList.remove("active"));b.classList.add("active");$$('.view').forEach(v=>v.classList.remove("active"));$("#tab-"+b.dataset.tab).classList.add("active");window.scrollTo(0,0);
+    if(b.dataset.tab==="pipeline")renderKanban();
+    if(b.dataset.tab==="leads"){
+      // تصفير الفلاتر عند الدخول المباشر لتبويب العملاء (مش عبر KPI/quick filter)
+      quickFilter=null;
+      $("#searchInput").value="";$("#statusFilter").value="";$("#ownerFilter").value="";$("#sourceFilter").value="";$("#qualityFilter").value="";
+      const htc=document.getElementById("hideTerminalCheck");if(htc)htc.checked=true;
+      const lac=document.getElementById("lookalikeCheck");if(lac)lac.checked=false;
+      renderLeads();
+    }
+  });
   $("#addFab").onclick=()=>openForm();
   $("#searchInput").oninput=renderLeads;$("#statusFilter").onchange=renderLeads;$("#ownerFilter").onchange=renderLeads;$("#sourceFilter").onchange=renderLeads;$("#qualityFilter").onchange=renderLeads;
   document.getElementById("hideTerminalCheck")?.addEventListener("change",renderLeads);
@@ -2313,15 +2355,26 @@
     try{
       const snap=await db.collection("users").get();
       const users=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+      // رتبة كل دور — الأعلى رقماً هو الأقوى. Admin يقدر يغيّر بس اللي رتبته أقل منه، محدش يقدر يغيّر Super Admin أو نفسه
+      const RANK={super_admin:4,admin:3,sales:2,marketing:2,viewer:1};
+      const myRank=RANK[actualRole]||0;
       $("#usersList").innerHTML=users.length?`<table class="perf"><thead><tr><th>${t("nameCol")}</th><th>${t("emailCol")}</th><th>${t("roleCol")}</th><th></th></tr></thead><tbody>`+
-        users.map(u=>`<tr>
+        users.map(u=>{
+          const isSelf=u.id===currentUser.uid;
+          const targetRank=RANK[u.role]||0;
+          // يقدر يغيّر لو مش نفسه، ومش super_admin، ورتبته أقل من رتبتي
+          const canChangeThis=isSuperAdmin() ? (!isSelf && u.role!=="super_admin") : (!isSelf && targetRank<myRank);
+          const roleCell=canChangeThis
+            ? `<select data-uid="${esc(u.id)}" class="roleSelect" style="border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-family:inherit;font-size:12.5px;background:var(--paper)">
+                ${Object.entries(ROLES).filter(([k])=>isSuperAdmin()||RANK[k]<myRank).map(([k,tx])=>`<option value="${k}" ${k===u.role?"selected":""}>${tx}</option>`).join("")}
+              </select>`
+            : `<span style="font-size:12.5px;font-weight:600">${esc(ROLES[u.role]||u.role)}</span>`;
+          return `<tr>
           <td style="font-weight:600">${esc(u.name||"")}</td>
           <td style="font-size:12.5px">${esc(u.email||"")}</td>
-          <td><select data-uid="${esc(u.id)}" class="roleSelect" style="border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-family:inherit;font-size:12.5px;background:var(--paper)">
-            ${Object.entries(ROLES).map(([k,tx])=>`<option value="${k}" ${k===u.role?"selected":""}>${tx}</option>`).join("")}
-          </select></td>
-          <td>${u.id===currentUser.uid?`<span class="muted" style="font-size:12px">${t("you")}</span>`:`<button class="btn btn-danger btn-sm" onclick="deleteUser('${esc(u.id)}','${esc(u.name||u.email)}')">${t("del")}</button>`}</td>
-        </tr>`).join("")+`</tbody></table>`
+          <td>${roleCell}</td>
+          <td>${isSelf?`<span class="muted" style="font-size:12px">${t("you")}</span>`:(canDelete()&&canChangeThis?`<button class="btn btn-danger btn-sm" onclick="deleteUser('${esc(u.id)}','${esc(u.name||u.email)}')">${t("del")}</button>`:"")}</td>
+        </tr>`;}).join("")+`</tbody></table>`
       :`<p class="muted" style="padding:12px 0">${t("noUsers")}</p>`;
       // role change handler
       $$(".roleSelect").forEach(sel=>sel.onchange=async e=>{
@@ -2329,6 +2382,7 @@
         await db.collection("users").doc(uid).update({role:newRole});
         logAudit(t("roleChangeAction"),uid,sel.closest("tr").querySelector("td").textContent,"→ "+ROLES[newRole]);
         toast(t("roleUpdated"));
+        loadUsersTab();
       });
       // load audit
       const aSnap=await db.collection("audit").orderBy("ts","desc").limit(50).get();
@@ -2433,6 +2487,8 @@
       set('#firstNoteLblEl',t("firstNoteLbl"));
       const fNote=document.getElementById("f-note"); if(fNote)fNote.placeholder=t("firstNotePh");
       set('#mergeModalTitle',t("mergeDuplicateTitle"));
+      set('#formTitle',t("newLeadTitle"));
+      set('#addFab',t("newLead"));
       const si=document.getElementById("searchInput"); if(si)si.placeholder=t("search");
       if(isEn()){
         const br=document.querySelector(".brand span"); if(br)br.textContent="Leads & Inquiries · Sales Pipeline";
