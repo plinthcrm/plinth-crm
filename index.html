@@ -49,7 +49,7 @@
     background:radial-gradient(1200px 600px at 100% -10%,#211d18 0%,transparent 55%),radial-gradient(900px 500px at -10% 110%,#1c1915 0%,transparent 50%),var(--ivory);
   }
   [data-theme="dark"] header{background:rgba(30,27,23,.85)}
-  [data-theme="dark"] .logo{box-shadow:0 6px 16px -6px rgba(0,0,0,.7)}
+  [data-theme="dark"] .brand-logo{filter:brightness(0) invert(1) opacity(.92)}
   [data-theme="dark"] input[type="color"]{filter:none}
   [data-theme="dark"] ::selection{background:var(--clay);color:#1E1B17}
   [data-theme="dark"] .kb-head{filter:brightness(1.15)}
@@ -62,7 +62,7 @@
 
   header{position:sticky;top:0;z-index:30;background:rgba(251,248,242,.85);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
   .head-in{max-width:1100px;margin:0 auto;padding:13px 18px;display:flex;align-items:center;gap:13px;flex-wrap:wrap}
-  .logo{width:44px;height:44px;border-radius:12px;flex:none;background:linear-gradient(150deg,var(--clay),var(--clay-deep));display:grid;place-items:center;color:#FBF1E6;font-weight:700;font-size:15px;box-shadow:0 6px 16px -6px rgba(143,64,35,.6);letter-spacing:.5px}
+  .brand-logo{height:26px;width:auto;flex:none;object-fit:contain}
   .brand h1{font-size:16px;font-weight:700;letter-spacing:-.01em}
   .brand span{font-size:11.5px;color:var(--ink-soft);font-weight:400}
   .head-spacer{flex:1}
@@ -281,7 +281,7 @@
     /* header */
     .head-in{padding:10px 14px;gap:8px;flex-wrap:wrap}
     .brand h1{font-size:14px}.brand span{font-size:10.5px}
-    .logo{width:38px;height:38px;font-size:13px;border-radius:10px}
+    .brand-logo{height:20px}
     .icon-btn{padding:7px 9px;font-size:12px;gap:4px}
     #userChip{font-size:11.5px;padding:5px 9px}
     /* condense header buttons on mobile */
@@ -366,9 +366,8 @@
 
 <header>
   <div class="head-in">
-    <div class="logo">P+P</div>
+    <img src="data:image/png;base64,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" alt="Plinth + Partners" class="brand-logo">
     <div class="brand">
-      <h1>PLINTH + PARTNERS</h1>
       <span>Leads &amp; Inquiries · متابعة العملاء المحتملين</span>
     </div>
     <div class="head-spacer"></div>
@@ -392,7 +391,7 @@
     <button data-tab="pipeline" id="pipeTabBtn">الـ Pipeline</button>
     <button data-tab="leads">العملاء</button>
     <button data-tab="report">التقرير</button>
-    <button data-tab="users" id="usersTabBtn" style="display:none">👤 المستخدمون</button>
+    <button data-tab="users" id="usersTabBtn" style="display:none">👤 المستخدمون<span id="pendingTransferBadge" class="kb-rot" style="display:none;margin-inline-start:6px"></span></button>
   </nav>
 </header>
 
@@ -457,6 +456,10 @@
     <div class="row"><div class="section-title" id="usersMgmtTitle">إدارة المستخدمين</div>
       <button class="btn btn-primary btn-sm" onclick="openAddUser()" id="newUserBtn">＋ مستخدم جديد</button></div>
     <div class="card"><div class="card-b" id="usersList" style="padding-top:8px"></div></div>
+    <div class="card" style="margin-top:18px" id="pendingTransfersCard">
+      <div class="card-h" id="pendingTransfersTitle" style="color:var(--gold)">⏳ طلبات نقل المسؤولية المعلّقة</div>
+      <div class="card-b" id="pendingTransfersList" style="padding-top:8px"></div>
+    </div>
     <div class="card" style="margin-top:18px">
       <div class="card-h" id="auditLogTitle">سجل التعديلات (Audit Log)</div>
       <div class="card-b" id="auditLog" style="padding-top:8px"></div>
@@ -500,98 +503,98 @@
       <input type="hidden" id="f-id">
 
       <div class="form-sec">
-        <h4>البيانات الأساسية</h4>
-        <div class="field"><label>الاسم / الجهة *</label><input id="f-name" placeholder="اسم العميل أو الشركة"></div>
-        <div class="field"><label>التليفون الأساسي</label><input id="f-phone" placeholder="+20 / +966">
+        <h4 id="fh-basic">البيانات الأساسية</h4>
+        <div class="field"><label id="fl-name">الاسم / الجهة *</label><input id="f-name" placeholder="اسم العميل أو الشركة"></div>
+        <div class="field"><label id="fl-phone">التليفون الأساسي</label><input id="f-phone" placeholder="+20 / +966">
           <label style="display:flex;align-items:center;gap:7px;margin-top:8px;font-weight:500;cursor:pointer">
-            <input type="checkbox" id="f-verified" style="width:auto;margin:0"> الرقم متأكد منه (Verified) ✓</label>
+            <input type="checkbox" id="f-verified" style="width:auto;margin:0"> <span id="fl-verified">الرقم متأكد منه (Verified) ✓</span></label>
         </div>
-        <div class="field"><label>تليفون ثانوي (اختياري)</label><input id="f-phone2" placeholder="+20 / +966"></div>
-        <div class="field"><label>الإيميل (إن وُجد)</label><input id="f-email" type="email" placeholder="client@email.com"></div>
+        <div class="field"><label id="fl-phone2">تليفون ثانوي (اختياري)</label><input id="f-phone2" placeholder="+20 / +966"></div>
+        <div class="field"><label id="fl-email">الإيميل (إن وُجد)</label><input id="f-email" type="email" placeholder="client@email.com"></div>
         <div class="grid2">
-          <div class="field"><label>المسؤول عن المتابعة</label><select id="f-owner"></select></div>
-          <div class="field"><label>تاريخ إرسال العميل</label><input id="f-rdate" type="date"></div>
+          <div class="field"><label id="fl-owner">المسؤول عن المتابعة</label><select id="f-owner"></select></div>
+          <div class="field"><label id="fl-rdate">تاريخ إرسال العميل</label><input id="f-rdate" type="date"></div>
         </div>
-        <div class="field"><label>وقت الإرسال</label><input id="f-rtime" type="time"></div>
+        <div class="field"><label id="fl-rtime">وقت الإرسال</label><input id="f-rtime" type="time"></div>
       </div>
 
       <div class="form-sec">
-        <h4>مصدر العميل</h4>
-        <div class="field"><label>المصدر</label><select id="f-source"></select></div>
+        <h4 id="fh-source">مصدر العميل</h4>
+        <div class="field"><label id="fl-source">المصدر</label><select id="f-source"></select></div>
         <div class="field" id="campaignWrap" style="display:none">
-          <label>الكامبين</label>
+          <label id="fl-campaign">الكامبين</label>
           <select id="f-campaign"></select>
           <div id="campAdd" style="display:none;margin-top:8px;background:var(--surface2);border:1px solid var(--line);border-radius:11px;padding:10px">
             <div class="grid3">
-              <div class="field" style="margin:0"><label>المنصة</label><select id="nc-platform"><option value="IG">Instagram</option><option value="FB">Facebook</option></select></div>
+              <div class="field" style="margin:0"><label id="fl-platform">المنصة</label><select id="nc-platform"><option value="IG">Instagram</option><option value="FB">Facebook</option></select></div>
               <div class="field" style="margin:0"><label>Campaign ID</label><input id="nc-id" placeholder="C-01"></div>
-              <div class="field" style="margin:0"><label>اسم الكامبين</label><input id="nc-name" placeholder="عرض رمضان"></div>
+              <div class="field" style="margin:0"><label id="fl-campname">اسم الكامبين</label><input id="nc-name" placeholder="عرض رمضان"></div>
             </div>
             <button class="btn btn-ghost btn-sm" id="ncAddBtn" style="margin-top:8px;width:100%">إضافة الكامبين</button>
           </div>
         </div>
         <div class="grid2" id="adWrap" style="display:none">
-          <div class="field"><label>اسم الإعلان</label><input id="f-adname" placeholder="Ad name"></div>
-          <div class="field"><label>المجموعة الإعلانية</label><input id="f-adset" placeholder="Ad set"></div>
+          <div class="field"><label id="fl-adname">اسم الإعلان</label><input id="f-adname" placeholder="Ad name"></div>
+          <div class="field"><label id="fl-adset">المجموعة الإعلانية</label><input id="f-adset" placeholder="Ad set"></div>
         </div>
       </div>
 
       <div class="form-sec">
-        <h4>الخدمة المطلوبة</h4>
-        <div class="field"><label>نوع الخدمة (اختر واحدة أو أكثر)</label><div class="pills" id="f-services"></div></div>
+        <h4 id="fh-service">الخدمة المطلوبة</h4>
+        <div class="field"><label id="fl-servicetype">نوع الخدمة (اختر واحدة أو أكثر)</label><div class="pills" id="f-services"></div></div>
       </div>
 
       <div class="form-sec">
-        <h4>المشروع</h4>
+        <h4 id="fh-project">المشروع</h4>
         <div class="grid2">
-          <div class="field"><label>تصنيف المشروع</label><select id="f-cat"></select></div>
-          <div class="field"><label>نوع المشروع</label><select id="f-sub"></select></div>
+          <div class="field"><label id="fl-cat">تصنيف المشروع</label><select id="f-cat"></select></div>
+          <div class="field"><label id="fl-sub">نوع المشروع</label><select id="f-sub"></select></div>
         </div>
         <div class="grid3">
-          <div class="field"><label>المساحة</label><div style="display:flex;gap:6px"><input id="f-area" type="number" inputmode="numeric" placeholder="0" style="flex:1"><select id="f-area-unit" style="border:1px solid var(--line);border-radius:11px;padding:0 8px;font-family:inherit;font-size:13px;background:var(--paper)"><option value="م²">م²</option><option value="فدان">فدان</option><option value="متر طولي">م طولي</option><option value="قيراط">قيراط</option></select></div></div>
-          <div class="field"><label>المدينة / المكان</label><input id="f-location" placeholder="القاهرة / الرياض"></div>
-          <div class="field"><label>اسم المنطقة</label><input id="f-district" placeholder="التجمع / حطين"></div>
+          <div class="field"><label id="fl-area">المساحة</label><div style="display:flex;gap:6px"><input id="f-area" type="number" inputmode="numeric" placeholder="0" style="flex:1"><select id="f-area-unit" style="border:1px solid var(--line);border-radius:11px;padding:0 8px;font-family:inherit;font-size:13px;background:var(--paper)"></select></div></div>
+          <div class="field"><label id="fl-location">المدينة / المكان</label><input id="f-location" placeholder="القاهرة / الرياض"></div>
+          <div class="field"><label id="fl-district">اسم المنطقة</label><input id="f-district" placeholder="التجمع / حطين"></div>
         </div>
-        <div class="field"><label>اسم الكمباوند</label><input id="f-compound" placeholder="SODIC / Hyde Park…"></div>
+        <div class="field"><label id="fl-compound">اسم الكمباوند</label><input id="f-compound" placeholder="SODIC / Hyde Park…"></div>
       </div>
 
       <div class="form-sec">
-        <h4>القيمة والحالة</h4>
+        <h4 id="fh-value">القيمة والحالة</h4>
         <div class="grid2" id="valueFieldsWrap">
-          <div class="field"><label>القيمة التقديرية</label><input id="f-value" type="number" inputmode="numeric" placeholder="0"></div>
-          <div class="field"><label>العملة</label><select id="f-currency"><option>EGP</option><option>SAR</option><option>USD</option></select></div>
+          <div class="field"><label id="fl-value">القيمة التقديرية</label><input id="f-value" type="number" inputmode="numeric" placeholder="0"></div>
+          <div class="field"><label id="fl-currency">العملة</label><select id="f-currency"><option>EGP</option><option>SAR</option><option>USD</option></select></div>
         </div>
-        <div class="field"><label>الحالة</label><div class="pills" id="f-status-pills"></div><input type="hidden" id="f-status"></div>
+        <div class="field"><label id="fl-status">الحالة</label><div class="pills" id="f-status-pills"></div><input type="hidden" id="f-status"></div>
         <div class="field" id="meetingTypeWrap" style="display:none">
-          <label>نوع اللقاء</label>
+          <label id="fl-meetingtype">نوع اللقاء</label>
           <div class="pills" id="f-meetingtype-pills"></div><input type="hidden" id="f-meetingtype">
         </div>
-        <div class="field"><label>جودة الـ Lead (تقييم تسويقي)</label><div class="pills" id="f-quality-pills"></div><input type="hidden" id="f-quality"></div>
-        <div class="field"><label>مستوى الميزانية (مهم لتقرير التسويق)</label><select id="f-budgetFit"></select></div>
+        <div class="field"><label id="fl-quality">جودة الـ Lead (تقييم تسويقي)</label><div class="pills" id="f-quality-pills"></div><input type="hidden" id="f-quality"></div>
+        <div class="field"><label id="fl-budgetfit">مستوى الميزانية (مهم لتقرير التسويق)</label><select id="f-budgetFit"></select></div>
         <div class="grid2">
-          <div class="field"><label>وظيفة العميل (اختياري)</label><input id="f-job" placeholder="مثلاً: طبيب، رجل أعمال…"></div>
-          <div class="field"><label>منطقة سكن العميل (اختياري)</label><input id="f-residence" placeholder="مثلاً: التجمع الخامس"></div>
+          <div class="field"><label id="fl-job">وظيفة العميل (اختياري)</label><input id="f-job" placeholder="مثلاً: طبيب، رجل أعمال…"></div>
+          <div class="field"><label id="fl-residence">منطقة سكن العميل (اختياري)</label><input id="f-residence" placeholder="مثلاً: التجمع الخامس"></div>
         </div>
         <div class="field"><label id="fFollowupLbl">تاريخ المتابعة القادمة</label><input id="f-followup" type="date"></div>
         <div class="field" id="cancelReasonWrap" style="display:none">
-          <label>سبب الإلغاء</label>
+          <label id="fl-cancelreason">سبب الإلغاء</label>
           <select id="f-cancelReason"></select>
         </div>
         <div class="field" id="lostReasonWrap" style="display:none">
-          <label>سبب الخسارة</label>
+          <label id="fl-lostreason">سبب الخسارة</label>
           <select id="f-lostReason"></select>
         </div>
         <div class="grid2">
-          <div class="field"><label>تاريخ بدء عرض السعر</label><input id="f-quotestart" type="date"></div>
-          <div class="field"><label>تاريخ تقديم عرض السعر</label><input id="f-quotesubmit" type="date"></div>
+          <div class="field"><label id="fl-quotestart">تاريخ بدء عرض السعر</label><input id="f-quotestart" type="date"></div>
+          <div class="field"><label id="fl-quotesubmit">تاريخ تقديم عرض السعر</label><input id="f-quotesubmit" type="date"></div>
         </div>
       </div>
 
       <div class="form-sec">
-        <h4>ملفات وملاحظات</h4>
-        <div class="field"><label>🔗 لينك Drive (ملفات العميل)</label><input id="f-drive" placeholder="https://drive.google.com/…"></div>
-        <div class="field"><label>Pain Points — احتياجات / مشاكل العميل</label><textarea id="f-pain" placeholder="إيه اللي مأرّقه؟ ميزانية، وقت، تجربة سابقة سيئة…"></textarea></div>
-        <div class="field"><label>Plus at our company — ميزتنا معاه</label><textarea id="f-plus" placeholder="ليه يختارنا؟ نقطة القوة اللي تكسب العميل ده"></textarea></div>
+        <h4 id="fh-notes">ملفات وملاحظات</h4>
+        <div class="field"><label id="fl-drive">🔗 لينك Drive (ملفات العميل)</label><input id="f-drive" placeholder="https://drive.google.com/…"></div>
+        <div class="field"><label id="fl-pain">Pain Points — احتياجات / مشاكل العميل</label><textarea id="f-pain" placeholder="إيه اللي مأرّقه؟ ميزانية، وقت، تجربة سابقة سيئة…"></textarea></div>
+        <div class="field"><label id="fl-plus">Plus at our company — ميزتنا معاه</label><textarea id="f-plus" placeholder="ليه يختارنا؟ نقطة القوة اللي تكسب العميل ده"></textarea></div>
         <div class="field" id="firstNoteWrap"><label id="firstNoteLblEl">ملاحظة أولى (اختياري)</label><textarea id="f-note" placeholder="تفاصيل أول تواصل…"></textarea></div>
       </div>
 
@@ -606,7 +609,7 @@
 <!-- DETAIL -->
 <div class="overlay" id="detailOverlay">
   <div class="modal">
-    <div class="modal-h"><h2>تفاصيل العميل</h2><button class="x-btn" data-close-detail>×</button></div>
+    <div class="modal-h"><h2 id="detailModalTitle">تفاصيل العميل</h2><button class="x-btn" data-close-detail>×</button></div>
     <div class="modal-b" id="detailBody"></div>
   </div>
 </div>
@@ -743,7 +746,29 @@
       originalWonValue:"القيمة الأصلية عند الإغلاق", autoMigrated:"نظام (تلقائي)",
       starsHint:"⭐ الأولوية — دوس على النجوم لتحديد مدى إلحاح المتابعة (1-3). العملاء بأولوية أعلى بيظهروا الأول في العمود.",
       loginNamedFor:"يوجد لكل مستخدم", cannotChangeSelf:"مينفعش تغيّر صلاحيتك بنفسك", cannotChangeSuperAdmin:"مينفعش حد يغيّر الـ Super Admin",
-      cannotChangeSame:"مينفعش تغيّر مستخدم في نفس رتبتك أو أعلى منك"
+      cannotChangeSame:"مينفعش تغيّر مستخدم في نفس رتبتك أو أعلى منك",
+      fhBasic:"البيانات الأساسية", flName:"الاسم / الجهة *", flPhone:"التليفون الأساسي",
+      flVerified:"الرقم متأكد منه (Verified) ✓", flPhone2:"تليفون ثانوي (اختياري)", flEmail:"الإيميل (إن وُجد)",
+      flOwner:"المسؤول عن المتابعة", flRdate:"تاريخ إرسال العميل", flRtime:"وقت الإرسال",
+      fhSource:"مصدر العميل", flSource:"المصدر", flCampaign:"الكامبين", flPlatform:"المنصة", flCampname:"اسم الكامبين",
+      flAdname:"اسم الإعلان", flAdset:"المجموعة الإعلانية",
+      fhService:"الخدمة المطلوبة", flServicetype:"نوع الخدمة (اختر واحدة أو أكثر)",
+      fhProject:"المشروع", flCat:"تصنيف المشروع", flSub:"نوع المشروع", flArea:"المساحة",
+      flLocation:"المدينة / المكان", flDistrict:"اسم المنطقة", flCompound:"اسم الكمباوند",
+      fhValue:"القيمة والحالة", flValue:"القيمة التقديرية", flCurrency:"العملة", flStatus:"الحالة",
+      flMeetingtype:"نوع اللقاء", flQuality:"جودة الـ Lead (تقييم تسويقي)", flBudgetfit:"مستوى الميزانية (مهم لتقرير التسويق)",
+      flJob:"وظيفة العميل (اختياري)", flResidence:"منطقة سكن العميل (اختياري)",
+      flCancelreason:"سبب الإلغاء", flLostreason:"سبب الخسارة", flQuotestart:"تاريخ بدء عرض السعر", flQuotesubmit:"تاريخ تقديم عرض السعر",
+      fhNotes:"ملفات وملاحظات", flDrive:"🔗 لينك Drive (ملفات العميل)", flPain:"Pain Points — احتياجات / مشاكل العميل",
+      flPlus:"Plus at our company — ميزتنا معاه", detailModalTitle:"تفاصيل العميل",
+      unitSqm:"م²", unitFeddan:"فدان", unitLinear:"م طولي", unitQirat:"قيراط",
+      newCampaign:"＋ كامبين جديد…", chooseSub:"— اختر —", pickCatFirst:"حدّد التصنيف أولاً", chooseReasonOpt:"— اختر سبب —",
+      notYourLead:"🔒 العميل ده مش مسؤوليتك", notYourLeadHint:"المسؤول عنه دلوقتي: {owner}. مينفعش تعدّل عليه أو تسجّل تواصل غير لما تنتقل المسؤولية لك.",
+      requestTransfer:"طلب نقل المسؤولية لي", transferPending:"⏳ طلب النقل بتاعك لسه محتاج موافقة Admin",
+      transferRequested:"تم إرسال طلب نقل المسؤولية", pendingTransfers:"طلبات نقل المسؤولية المعلّقة",
+      transferFrom:"من", transferTo:"لـ", approve:"موافقة ✓", reject:"رفض ✕",
+      transferApproved:"تمت الموافقة على نقل المسؤولية", transferRejected:"تم رفض طلب النقل", noPendingTransfers:"مفيش طلبات معلّقة",
+      auditTransferReq:"طلب نقل مسؤولية", auditTransferApp:"موافقة نقل مسؤولية", auditTransferRej:"رفض نقل مسؤولية"
     },
     en:{
       dash:"Dashboard", pipeline:"Pipeline", leads:"Leads", report:"Report", users:"👤 Users",
@@ -821,7 +846,29 @@
       originalWonValue:"Original value at closing", autoMigrated:"System (auto)",
       starsHint:"⭐ Priority — click the stars to set follow-up urgency (1-3). Higher-priority leads show first in the column.",
       loginNamedFor:"Each user has", cannotChangeSelf:"You cannot change your own role", cannotChangeSuperAdmin:"No one can change the Super Admin",
-      cannotChangeSame:"You cannot change a user at your rank or above"
+      cannotChangeSame:"You cannot change a user at your rank or above",
+      fhBasic:"Basic Information", flName:"Name / Company *", flPhone:"Primary Phone",
+      flVerified:"Number verified ✓", flPhone2:"Secondary Phone (optional)", flEmail:"Email (if available)",
+      flOwner:"Assigned To", flRdate:"Lead Submission Date", flRtime:"Submission Time",
+      fhSource:"Lead Source", flSource:"Source", flCampaign:"Campaign", flPlatform:"Platform", flCampname:"Campaign Name",
+      flAdname:"Ad Name", flAdset:"Ad Set",
+      fhService:"Requested Service", flServicetype:"Service Type (select one or more)",
+      fhProject:"Project", flCat:"Project Category", flSub:"Project Type", flArea:"Area",
+      flLocation:"City / Location", flDistrict:"District Name", flCompound:"Compound Name",
+      fhValue:"Value & Status", flValue:"Estimated Value", flCurrency:"Currency", flStatus:"Status",
+      flMeetingtype:"Meeting Type", flQuality:"Lead Quality (marketing rating)", flBudgetfit:"Budget Fit (important for marketing report)",
+      flJob:"Client's Job (optional)", flResidence:"Client's Residence Area (optional)",
+      flCancelreason:"Cancellation Reason", flLostreason:"Lost Reason", flQuotestart:"Quote Start Date", flQuotesubmit:"Quote Submission Date",
+      fhNotes:"Files & Notes", flDrive:"🔗 Drive Link (client files)", flPain:"Pain Points — client needs / issues",
+      flPlus:"Plus at our company — our edge with them", detailModalTitle:"Lead Details",
+      unitSqm:"m²", unitFeddan:"Feddan", unitLinear:"Linear m", unitQirat:"Qirat",
+      newCampaign:"＋ New Campaign…", chooseSub:"— Select —", pickCatFirst:"Select category first", chooseReasonOpt:"— Choose a reason —",
+      notYourLead:"🔒 This lead isn't assigned to you", notYourLeadHint:"Currently assigned to: {owner}. You can't edit or log activity until it's transferred to you.",
+      requestTransfer:"Request transfer to me", transferPending:"⏳ Your transfer request is awaiting Admin approval",
+      transferRequested:"Transfer request sent", pendingTransfers:"Pending Ownership Transfer Requests",
+      transferFrom:"From", transferTo:"To", approve:"Approve ✓", reject:"Reject ✕",
+      transferApproved:"Ownership transfer approved", transferRejected:"Transfer request rejected", noPendingTransfers:"No pending requests",
+      auditTransferReq:"Requested ownership transfer", auditTransferApp:"Approved ownership transfer", auditTransferRej:"Rejected ownership transfer"
     }
   };
   const t = k => (T[LANG] && T[LANG][k]) || T.ar[k] || k;
@@ -966,7 +1013,12 @@
     {k:"existing",t:"Existing Client",e:"Existing Client",i:"⭐"},
     {k:"broker",t:"Broker",e:"Broker",i:"🏢"},
     {k:"linkedin",t:"LinkedIn",e:"LinkedIn",i:"in"}];
-  const SERVICES=["تصميم داخلي","تصميم لاند سكيب","تصميم معماري","تشطيب Core & Shell","ديكور و ستايلنج","أثاث","Renovation","Turnkey","مخططات هندسية","شوب درووينج"];
+  const SERVICES=[
+    {k:"تصميم داخلي",e:"Interior Design"},{k:"تصميم لاند سكيب",e:"Landscape Design"},{k:"تصميم معماري",e:"Architectural Design"},
+    {k:"تشطيب Core & Shell",e:"Core & Shell Finishing"},{k:"ديكور و ستايلنج",e:"Decor & Styling"},{k:"أثاث",e:"Furniture"},
+    {k:"Renovation",e:"Renovation"},{k:"Turnkey",e:"Turnkey"},{k:"مخططات هندسية",e:"Engineering Plans"},{k:"شوب درووينج",e:"Shop Drawings"}];
+  const svcLabel=s=>isEn()?(s.e||s.k):s.k;
+  const svcDisplayByKey=k=>{const f=SERVICES.find(s=>s.k===k);return f?svcLabel(f):k;};
   const CATS={
     residential:{t:"سكني",e:"Residential",subs:["فيلا","تاون هاوس","توين هاوس","دوبلكس","شقة","روف","بيزمنت"]},
     hospitality:{t:"Hospitality",e:"Hospitality",subs:["فندق","منتجع","مطعم / كافيه","قاعة أفراح","نادي","أخرى"]},
@@ -974,7 +1026,16 @@
     office:{t:"إداري",e:"Office",subs:["مكتب","مقر شركة","Co-working","أخرى"]},
     b2b:{t:"تعامل B2B",e:"B2B",subs:["مطوّر عقاري","مقاول","مكتب استشاري / تصميم","مورّد","أخرى"]}};
   const catLabel=k=>{const c=CATS[k];if(!c)return k;return isEn()?(c.e||c.t):c.t;};
-  const OWNERS=["عمرو","عبدالله","كريم","أحمد"];
+  // ترجمة الأنواع الفرعية (subs) — النص العربي يفضل الـ key الثابت المحفوظ، الترجمة للعرض بس
+  const SUB_EN={"فيلا":"Villa","تاون هاوس":"Townhouse","توين هاوس":"Twin house","دوبلكس":"Duplex","شقة":"Apartment","روف":"Roof","بيزمنت":"Basement",
+    "فندق":"Hotel","منتجع":"Resort","مطعم / كافيه":"Restaurant / Café","قاعة أفراح":"Wedding Hall","نادي":"Club","أخرى":"Other",
+    "محل / متجر":"Shop / Store","شوروم":"Showroom","مول / مركز تجاري":"Mall / Shopping Center","عيادة":"Clinic","صيدلية":"Pharmacy",
+    "مكتب":"Office","مقر شركة":"HQ","مطوّر عقاري":"Real Estate Developer","مقاول":"Contractor","مكتب استشاري / تصميم":"Consulting / Design Firm","مورّد":"Supplier"};
+  const subLabel=s=>isEn()?(SUB_EN[s]||s):s;
+  const OWNERS_META=[
+    {k:"عمرو",e:"Amr Badra"},{k:"عبدالله",e:"Abdullah El Nashwan"},{k:"كريم",e:"Kareem Tarrad"},{k:"أحمد",e:"Ahmed El-Sawah"},{k:"هاجر",e:"Hajer Mekky"}];
+  const OWNERS=OWNERS_META.map(o=>o.k);
+  const ownerLabel=k=>{const f=OWNERS_META.find(o=>o.k===k);return f?(isEn()?f.e:f.k):k;};
   const PIPELINE=["new","no_answer","contacted","qualified","site_visit","pricing","quoted","negotiation","won"];
 
   const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
@@ -995,6 +1056,17 @@
   const isLimited=()=>currentRole==="sales"||currentRole==="marketing";
   const canWrite=()=>currentRole==="super_admin"||currentRole==="admin"||currentRole==="sales"||currentRole==="marketing";
   const canAddNotes=()=>currentRole==="super_admin"||currentRole==="admin"||currentRole==="sales";
+  // ملكية العميل: Sales/Marketing يقدروا يعدّلوا/يسجّلوا تواصل بس على العملاء المسؤولين عنهم. Admin/Super Admin دايماً 100%
+  function isMyLead(l){
+    if(isAdmin())return true; // Admin و Super Admin دايماً عندهم صلاحية كاملة على أي عميل
+    if(!l||!l.owner)return true; // عميل بدون مسؤول محدد — مسموح للكل يتصرف فيه لحد ما يتحدد
+    // قارن اسم المستخدم الحالي (بالعربي أو الإنجليزي) مع الـ key العربي الثابت للمسؤول المسجّل على العميل
+    const meta=OWNERS_META.find(o=>o.k===l.owner);
+    if(!meta)return l.owner===currentUserName; // مسؤول قديم غير معروف فى القائمة — قارنه حرفياً
+    return currentUserName===meta.k || currentUserName===meta.e;
+  }
+  function canAddNotesTo(l){ return canAddNotes() && isMyLead(l); }
+  function canModifyLead(l){ return canEdit() || (canWrite() && isMyLead(l) && currentRole!=="marketing"); }
   const canDelete=()=>currentRole==="super_admin"||currentRole==="admin";
   const canEdit=()=>currentRole==="super_admin"||currentRole==="admin";
   const canBackup=()=>currentRole==="super_admin"||currentRole==="admin";
@@ -1334,7 +1406,7 @@
       const l=x.l;return `<div class="prio-item" onclick="openDetail('${l.id}')">
         <div class="prio-rank" style="background:${heat(x.p.sc)}">${i+1}</div>
         <div class="prio-main"><div class="prio-name">${esc(l.name)}</div>
-          <div class="prio-reason"><b>${x.p.rs[0]||""}</b>${x.p.rs[1]?" · "+x.p.rs[1]:""} · ${esc(l.owner||t("noOwner"))}</div></div>
+          <div class="prio-reason"><b>${x.p.rs[0]||""}</b>${x.p.rs[1]?" · "+x.p.rs[1]:""} · ${esc(l.owner?ownerLabel(l.owner):t("noOwner"))}</div></div>
         <div class="prio-val num">${canSeeValue()&&l.value?fmt(l.value)+" "+l.currency:""}</div></div>`;
     }).join(""):`<p class="muted" style="padding:12px 0">${t("noUrgent")}</p>`;
 
@@ -1359,9 +1431,9 @@
           const days=Math.floor((Date.now()-(lastTs(l)||l.createdAt))/864e5);
           const val=canSeeValue()&&l.value?(fmt(l.value)+" "+l.currency):"";
           return '<div class="prio-item" onclick="openDetail(\''+l.id+'\')">'
-            +'<div class="prio-rank" style="background:var(--gold)">'+days+'ي</div>'
+            +'<div class="prio-rank" style="background:var(--gold)">'+days+(isEn()?"d":"ي")+'</div>'
             +'<div class="prio-main"><div class="prio-name">'+esc(l.name)+'</div>'
-            +'<div class="prio-reason">'+esc(L(stById(l.status)))+' · '+esc(l.owner||"—")+'</div></div>'
+            +'<div class="prio-reason">'+esc(L(stById(l.status)))+' · '+esc(l.owner?ownerLabel(l.owner):"—")+'</div></div>'
             +'<div class="prio-val num" style="font-size:12px">'+val+'</div></div>';
         }).join("");
       }
@@ -1370,7 +1442,7 @@
     const owners=[...new Set(leads.map(l=>l.owner).filter(Boolean))];
     $("#ownerPerf").innerHTML=owners.length?`<table class="perf"><thead><tr><th>${t("responsible")}</th><th>${t("clients")}</th><th>${t("won2")}</th><th>${t("conv2")}</th>${canSeeValue()?`<th>${t("value")}</th>`:""}</tr></thead><tbody>`+
       owners.map(o=>{const m=leads.filter(l=>l.owner===o),w=m.filter(l=>l.status==="won").length,cl=m.filter(l=>l.status==="won"||l.status==="lost").length;
-        return `<tr><td style="font-weight:600">${esc(o)}</td><td class="num">${m.length}</td><td class="num" style="color:var(--sage)">${w}</td><td class="num">${cl?Math.round(w/cl*100):0}%</td>${canSeeValue()?`<td class="num" style="font-size:12px">${totalsByCurrency(l=>l.owner===o&&isActive(l))}</td>`:""}</tr>`;}).join("")+`</tbody></table>`
+        return `<tr><td style="font-weight:600">${esc(ownerLabel(o))}</td><td class="num">${m.length}</td><td class="num" style="color:var(--sage)">${w}</td><td class="num">${cl?Math.round(w/cl*100):0}%</td>${canSeeValue()?`<td class="num" style="font-size:12px">${totalsByCurrency(l=>l.owner===o&&isActive(l))}</td>`:""}</tr>`;}).join("")+`</tbody></table>`
       :`<p class="muted" style="padding:12px 0">${t("noLeads")}</p>`;
   }
 
@@ -1471,7 +1543,7 @@
             ${di?`<span class="kb-badge ${di.cls}" style="background:transparent;border:1px solid currentColor">${esc(di.txt)}</span>`:""}
             ${(l.status==="site_visit"&&l.meetingType&&mtById(l.meetingType))?`<span class="kb-badge" style="background:#EAF1E5;color:#5C7355">${mtById(l.meetingType).i} ${esc(L(mtById(l.meetingType)))}</span>`:""}
             ${ql?`<span class="kb-badge" style="background:${ql.c}1A;color:${ql.c}">${esc(L(ql))}</span>`:""}
-            ${l.owner?`<span class="kb-badge" style="background:var(--ivory);color:var(--ink-soft)">${esc(l.owner)}</span>`:""}
+            ${l.owner?`<span class="kb-badge" style="background:var(--ivory);color:var(--ink-soft)">${esc(ownerLabel(l.owner))}</span>`:""}
           </div>
         </div>`;
       }).join(""):`<div class="kb-empty">—</div>`;
@@ -1543,7 +1615,7 @@
     if(!leads.length){el.innerHTML=`<div class="empty"><div class="big">📋</div><p>ابدأ بتسجيل أول عميل، أو ارفع شيت إكسيل.</p><button class="btn btn-primary" style="margin-top:16px" onclick="openForm()">＋ عميل جديد</button></div>`;return;}
     if(!list.length){el.innerHTML='<div class="empty"><div class="big">🔍</div><p>مفيش نتائج.</p></div>';return;}
     el.innerHTML=list.map(l=>{const s=stById(l.status),di=dueInfo(l.nextFollowUp),src=srcById(l.source),ql=qById(l.quality);
-      const proj=[l.projectCategory?catLabel(l.projectCategory):null,l.projectSubtype].filter(Boolean).join(" · ");
+      const proj=[l.projectCategory?catLabel(l.projectCategory):null,l.projectSubtype?subLabel(l.projectSubtype):null].filter(Boolean).join(" · ");
       const ov=stageOverdue(l);
       return `<div class="lead" style="border-inline-start-color:${s.c}" onclick="openDetail('${l.id}')">
         <div class="l-top"><div><div class="l-name">${esc(l.name)}</div>
@@ -1554,10 +1626,10 @@
             ${ql?`<span class="chip" style="background:${ql.c}1A;color:${ql.c};font-size:10.5px">${L(ql)}</span>`:""}</div></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:9px">
           ${proj?`<span class="tag">${esc(proj)}</span>`:""}${l.area?`<span class="tag">${esc(l.area)} ${esc(l.areaUnit||"م²")}</span>`:""}
-          ${(l.services||[]).slice(0,2).map(s=>`<span class="tag">${esc(s)}</span>`).join("")}${(l.services||[]).length>2?`<span class="tag">+${l.services.length-2}</span>`:""}</div>
+          ${(l.services||[]).slice(0,2).map(s=>`<span class="tag">${esc(svcDisplayByKey(s))}</span>`).join("")}${(l.services||[]).length>2?`<span class="tag">+${l.services.length-2}</span>`:""}</div>
         <div class="l-foot"><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           <span class="l-val num">${canSeeValue()?(l.value?fmt(l.value)+" "+l.currency:"—"):""}</span>
-          ${l.owner?`<span class="muted" style="font-size:12.5px">👤 ${esc(l.owner)}</span>`:""}
+          ${l.owner?`<span class="muted" style="font-size:12.5px">👤 ${esc(ownerLabel(l.owner))}</span>`:""}
           ${l.driveLink?`<span class="muted" style="font-size:12.5px">🔗</span>`:""}
           ${(l.notes||[]).length?`<span class="muted" style="font-size:12.5px">💬 ${l.notes.length}</span>`:""}</div>
           ${di?`<span class="due-flag ${di.cls}">${di.txt}</span>`:""}</div></div>`;}).join("");
@@ -1565,18 +1637,18 @@
 
   // ---- form ----
   function fillSel(el,arr,sel){el.innerHTML=arr.map(o=>`<option ${o===sel?"selected":""}>${o}</option>`).join("");}
-  function renderServices(sel){formServices=sel.slice();$("#f-services").innerHTML=SERVICES.map(s=>`<span class="pill ${formServices.includes(s)?"on":""}" data-s="${esc(s)}">${s}</span>`).join("");
+  function renderServices(sel){formServices=sel.slice();$("#f-services").innerHTML=SERVICES.map(s=>`<span class="pill ${formServices.includes(s.k)?"on":""}" data-s="${esc(s.k)}">${esc(svcLabel(s))}</span>`).join("");
     $$("#f-services .pill").forEach(p=>p.onclick=()=>{const v=p.dataset.s;if(formServices.includes(v))formServices=formServices.filter(x=>x!==v);else formServices.push(v);renderServices(formServices);});}
   function renderCats(cat,sub){
-    $("#f-cat").innerHTML=`<option value="">— اختر —</option>`+Object.entries(CATS).map(([k,v])=>`<option value="${k}" ${k===cat?"selected":""}>${v.t}</option>`).join("");
+    $("#f-cat").innerHTML=`<option value="">${t("chooseSub")}</option>`+Object.entries(CATS).map(([k,v])=>`<option value="${k}" ${k===cat?"selected":""}>${catLabel(k)}</option>`).join("");
     renderSubs(cat,sub);
     $("#f-cat").onchange=()=>renderSubs($("#f-cat").value,"");
   }
   function renderSubs(cat,sub){const subs=CATS[cat]?CATS[cat].subs:[];
-    $("#f-sub").innerHTML=subs.length?`<option value="">— اختر —</option>`+subs.map(s=>`<option ${s===sub?"selected":""}>${s}</option>`).join(""):`<option value="">حدّد التصنيف أولاً</option>`;}
+    $("#f-sub").innerHTML=subs.length?`<option value="">${t("chooseSub")}</option>`+subs.map(s=>`<option value="${esc(s)}" ${s===sub?"selected":""}>${esc(subLabel(s))}</option>`).join(""):`<option value="">${t("pickCatFirst")}</option>`;}
   function renderCampaignSel(sel){
     const opts=campaigns.map(c=>`<option value="${esc(c.id)}" ${c.id===sel?"selected":""}>[${c.platform}] #${esc(c.id)}${c.name?" — "+esc(c.name):""}</option>`).join("");
-    $("#f-campaign").innerHTML=opts+`<option value="__new" ${sel==="__new"?"selected":""}>＋ كامبين جديد…</option>`;
+    $("#f-campaign").innerHTML=opts+`<option value="__new" ${sel==="__new"?"selected":""}>${t("newCampaign")}</option>`;
     if(!campaigns.length&&sel!=="__new")$("#f-campaign").value="__new";
     toggleCampAdd();
   }
@@ -1604,7 +1676,7 @@
     $("#f-verified").checked=!!l.phoneVerified;$("#f-email").value=l.email||"";
     $("#f-rdate").value=l.receivedDate||(ed?"":todayStr());
     $("#f-rtime").value=l.receivedTime||(ed?"":nowHM());
-    fillSel($("#f-owner"),OWNERS,l.owner||OWNERS[0]);
+    $("#f-owner").innerHTML=OWNERS.map(o=>`<option value="${esc(o)}" ${o===(l.owner||OWNERS[0])?"selected":""}>${esc(ownerLabel(o))}</option>`).join("");
     $("#f-source").innerHTML=SOURCES.map(s=>`<option value="${s.k}" ${s.k===l.source?"selected":""}>${s.i} ${L(s)}</option>`).join("");
     $("#f-source").onchange=onSourceChange;
     renderServices(l.services||[]);
@@ -1688,7 +1760,7 @@
   function renderDetail(){
     const l=leads.find(x=>x.id===currentDetailId);if(!l)return;
     const s=stById(l.status),di=dueInfo(l.nextFollowUp),notes=(l.notes||[]).slice().sort((a,b)=>b.ts-a.ts);
-    const proj=[l.projectCategory?catLabel(l.projectCategory):null,l.projectSubtype].filter(Boolean).join(" · ");
+    const proj=[l.projectCategory?catLabel(l.projectCategory):null,l.projectSubtype?subLabel(l.projectSubtype):null].filter(Boolean).join(" · ");
     const fT=firstTs(l),lT=lastTs(l);
     const fmtD=s=>{if(!s)return"";const d=new Date(s);return isNaN(d.getTime())?String(s):d.toLocaleDateString(isEn()?"en-GB":"ar-EG");};
     const recv=(l.receivedDate?(fmtD(l.receivedDate)+(l.receivedTime?" — "+l.receivedTime:"")):(l.createdAt?fmtD(new Date(l.createdAt).toISOString().slice(0,10)):""));
@@ -1718,7 +1790,7 @@
         <a href="tel:${esc(telNum)}" class="btn btn-primary btn-sm" style="flex:1;justify-content:center">${t("call")} ${esc(l.phone)}</a>
         <a href="https://wa.me/${esc(waNum)}" target="_blank" class="btn btn-ghost btn-sm" style="justify-content:center;color:#1FA855;border-color:#9FD9B4">${t("whatsapp")}</a>
         ${l.phone2?`<a href="tel:${esc((l.phone2||"").replace(/[^\d+]/g,""))}" class="btn btn-ghost btn-sm" style="justify-content:center">📞 ${esc(l.phone2)}</a>`:""}</div>`:""}
-      ${(l.services||[]).length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">${l.services.map(x=>`<span class="tag" style="background:var(--surface2);border-color:var(--clay);color:var(--clay)">${esc(x)}</span>`).join("")}</div>`:""}
+      ${(l.services||[]).length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">${l.services.map(x=>`<span class="tag" style="background:var(--surface2);border-color:var(--clay);color:var(--clay)">${esc(svcDisplayByKey(x))}</span>`).join("")}</div>`:""}
       ${sug?`<div class="info-box" style="margin-bottom:12px;border-color:${sug.good?'var(--sage)':'var(--gold)'};background:${sug.good?'var(--sage-soft)':'#FCF6EA'}"><div class="ib-l">${t("bestContactTime")}</div><div style="font-size:13.5px;font-weight:600">${esc(sug.txt)}</div></div>`:""}
       ${ov?`<div class="sla-warn"><div class="sw-t">${t("overdueInStage").replace("{over}",ov.over)} "${ov.stage}"</div><div class="sw-s">${t("overdueDetail").replace("{days}",ov.days).replace("{sla}",ov.sla)} ${esc(ov.hint||"")}</div></div>`
         :(isActive(l)?`<div class="stage-ok">✓ ${t("onTime")} "${L(stById(l.status))}"${stById(l.status).sla?` (${t("slaOf")} ${stById(l.status).sla} ${t("days")})`:""}</div>`:"")}
@@ -1791,11 +1863,11 @@
       ${(l.painPoints||l.ourPlus)?acc("notes2",t("salesNotes"),"",`
         ${l.painPoints?`<div class="info-box" style="margin-bottom:8px"><div class="ib-l" style="color:var(--rose)">⚠ Pain Points</div><div style="font-size:13.5px;white-space:pre-wrap">${esc(l.painPoints)}</div></div>`:""}
         ${l.ourPlus?`<div class="info-box"><div class="ib-l" style="color:var(--sage)">${t("ourPlusLbl")}</div><div style="font-size:13.5px;white-space:pre-wrap">${esc(l.ourPlus)}</div></div>`:""}`,false):""}
-      ${canAddNotes()?`<div class="seg"><button class="${detailTab==='timeline'?'on':''}" data-dt="timeline">${t("timeline")} (${(l.notes||[]).length})</button><button class="${detailTab==='log'?'on':''}" data-dt="log">${t("logCall")}</button></div>`
+      ${canAddNotesTo(l)?`<div class="seg"><button class="${detailTab==='timeline'?'on':''}" data-dt="timeline">${t("timeline")} (${(l.notes||[]).length})</button><button class="${detailTab==='log'?'on':''}" data-dt="log">${t("logCall")}</button></div>`
         :`<div style="font-weight:700;font-size:13px;margin-bottom:8px">${t("timeline")} (${(l.notes||[]).length})</div>`}
       <div id="detailPane"></div>
-      ${canWrite()?`<div style="display:flex;gap:10px;margin-top:18px;border-top:1px solid var(--line-soft);padding-top:14px">
-      ${canEdit()?`<button class="btn btn-ghost btn-sm" onclick="openEdit('${l.id}')" style="flex:1">${t("editBtn")}</button>`:""}
+      ${canWrite()&&canModifyLead(l)?`<div style="display:flex;gap:10px;margin-top:18px;border-top:1px solid var(--line-soft);padding-top:14px">
+      ${canModifyLead(l)?`<button class="btn btn-ghost btn-sm" onclick="openEdit('${l.id}')" style="flex:1">${t("editBtn")}</button>`:""}
         <select class="filter" id="quickStatus" style="flex:1">${STATUSES.map(st=>`<option value="${st.k}" ${st.k===l.status?"selected":""}>${t("changeToLbl")}: ${L(st)}</option>`).join("")}</select>
       </div>
       <div id="quickReasonWrap" style="display:none;margin-top:8px;background:var(--ivory);border:1px solid var(--line);border-radius:11px;padding:10px">
@@ -1812,8 +1884,17 @@
         </div>
         <button class="btn btn-primary btn-sm" id="quickWonSave" style="width:100%;background:var(--sage)">${t("confirmContractBtn")}</button>
       </div>
-      <div style="margin-top:8px"><button class="btn btn-ghost btn-sm" onclick="openMerge('${l.id}')" style="width:100%;color:var(--ink-soft)">${t("mergeDuplicate")}</button></div>`:""}`;
-    if(canAddNotes()){
+      <div style="margin-top:8px"><button class="btn btn-ghost btn-sm" onclick="openMerge('${l.id}')" style="width:100%;color:var(--ink-soft)">${t("mergeDuplicate")}</button></div>`
+        :(canWrite()&&l.owner&&!isAdmin()?`<div style="margin-top:18px;border-top:1px solid var(--line-soft);padding-top:14px">
+        <div class="info-box" style="border-color:var(--gold);background:#FCF3E8;margin-bottom:10px">
+          <div class="ib-l" style="color:#8A6D3B">${t("notYourLead")}</div>
+          <div style="font-size:12.5px;color:var(--ink-soft);margin-top:4px">${t("notYourLeadHint").replace("{owner}",esc(ownerLabel(l.owner)))}</div>
+        </div>
+        ${(l.transferRequest&&l.transferRequest.status==="pending"&&l.transferRequest.requestedBy===currentUserName)
+          ?`<div class="muted" style="font-size:12.5px">${t("transferPending")}</div>`
+          :`<button class="btn btn-primary btn-sm" onclick="requestTransfer('${l.id}')" style="width:100%">${t("requestTransfer")}</button>`}
+      </div>`:"")}`;
+    if(canAddNotesTo(l)){
       const CANCEL_OPTS=CANCEL_REASONS;
       const LOST_OPTS=LOST_REASONS;
       const qr=$("#quickReasonWrap"), qrs=$("#quickReasonSel"), qrl=$("#quickReasonLabel");
@@ -1839,10 +1920,10 @@
       const newStatus=e.target.value;
       const qw=$("#quickWonWrap");
       if(newStatus==="cancelled"){
-        if(qr){qr.style.display="block";qrl.textContent=t("cancelReasons").replace(/\s*\(.*\)$/,"")||"سبب الإلغاء";qrs.innerHTML=`<option value="">— اختر سبب —</option>`+CANCEL_OPTS.map(r=>`<option value="${esc(r.k)}">${esc(reasonLabel(r))}</option>`).join("");}
+        if(qr){qr.style.display="block";qrl.textContent=t("cancelReasons").replace(/\s*\(.*\)$/,"")||"سبب الإلغاء";qrs.innerHTML=`<option value="">${t("chooseReasonOpt")}</option>`+CANCEL_OPTS.map(r=>`<option value="${esc(r.k)}">${esc(reasonLabel(r))}</option>`).join("");}
         if(qw)qw.style.display="none";
       } else if(newStatus==="lost"){
-        if(qr){qr.style.display="block";qrl.textContent=t("lostReasons")||"سبب الخسارة";qrs.innerHTML=`<option value="">— اختر سبب —</option>`+LOST_OPTS.map(r=>`<option value="${esc(r.k)}">${esc(reasonLabel(r))}</option>`).join("");}
+        if(qr){qr.style.display="block";qrl.textContent=t("lostReasons")||"سبب الخسارة";qrs.innerHTML=`<option value="">${t("chooseReasonOpt")}</option>`+LOST_OPTS.map(r=>`<option value="${esc(r.k)}">${esc(reasonLabel(r))}</option>`).join("");}
         if(qw)qw.style.display="none";
       } else if(newStatus==="won"){
         if(qr)qr.style.display="none";
@@ -1968,6 +2049,39 @@
     renderDetail();renderLeadsAndDash();
     toast(t("jobDeleted"));
   };
+  // ── نظام طلبات نقل المسؤولية ──
+  window.requestTransfer=async function(lid){
+    const l=leads.find(x=>x.id===lid); if(!l||!canWrite())return;
+    l.transferRequest={status:"pending",requestedBy:currentUserName,requestedByUid:currentUser?currentUser.uid:null,fromOwner:l.owner||null,ts:Date.now()};
+    await putLead(l);
+    logAudit(t("auditTransferReq"),l.id,l.name,t("transferFrom")+": "+(l.owner?ownerLabel(l.owner):"—"));
+    renderDetail();renderLeadsAndDash();
+    toast(t("transferRequested"));
+  };
+  window.approveTransfer=async function(lid){
+    if(!isAdmin())return;
+    const l=leads.find(x=>x.id===lid); if(!l||!l.transferRequest||l.transferRequest.status!=="pending")return;
+    // نلاقي الـ owner key المطابق لاسم طالب النقل
+    const req=l.transferRequest;
+    const meta=OWNERS_META.find(o=>o.k===req.requestedBy||o.e===req.requestedBy);
+    l.owner=meta?meta.k:req.requestedBy;
+    l.transferRequest={...req,status:"approved",resolvedBy:currentUserName,resolvedAt:Date.now()};
+    await putLead(l);
+    logAudit(t("auditTransferApp"),l.id,l.name,t("transferTo")+": "+ownerLabel(l.owner));
+    renderDetail();renderLeadsAndDash();
+    if(document.getElementById("tab-users")?.classList.contains("active"))loadUsersTab();
+    toast(t("transferApproved"));
+  };
+  window.rejectTransfer=async function(lid){
+    if(!isAdmin())return;
+    const l=leads.find(x=>x.id===lid); if(!l||!l.transferRequest||l.transferRequest.status!=="pending")return;
+    l.transferRequest={...l.transferRequest,status:"rejected",resolvedBy:currentUserName,resolvedAt:Date.now()};
+    await putLead(l);
+    logAudit(t("auditTransferRej"),l.id,l.name,"");
+    renderDetail();renderLeadsAndDash();
+    if(document.getElementById("tab-users")?.classList.contains("active"))loadUsersTab();
+    toast(t("transferRejected"));
+  };
   window.delNote=async function(lid,nid,isV){if(!confirm("حذف التسجيل ده؟"))return;const l=leads.find(x=>x.id===lid);l.notes=l.notes.filter(n=>n.id!==nid);if(isV)delVoice(nid);await putLead(l);renderDetail();renderLeadsAndDash();};
   window.editNote=function(lid,nid){
     const l=leads.find(x=>x.id===lid);if(!l)return;
@@ -2043,7 +2157,7 @@
     // campaigns
     const campRows=campaigns.map(c=>{const m=scope.filter(l=>l.campaignId===c.id);const w=m.filter(l=>l.status==="won").length;return{c,n:m.length,w};}).filter(x=>x.n>0).sort((a,b)=>b.n-a.n);
     // services + categories
-    const svcMap={};scope.forEach(l=>(l.services||[]).forEach(s=>svcMap[s]=(svcMap[s]||0)+1));
+    const svcMap={};scope.forEach(l=>(l.services||[]).forEach(s=>{const lbl=svcDisplayByKey(s);svcMap[lbl]=(svcMap[lbl]||0)+1;}));
     const svcArr=Object.entries(svcMap).sort((a,b)=>b[1]-a[1]);
     const catMap={};scope.forEach(l=>{if(l.projectCategory){const tx=catLabel(l.projectCategory);catMap[tx]=(catMap[tx]||0)+1;}});
     // quality
@@ -2082,7 +2196,7 @@
       ${svcArr.length?`<div class="report-block"><h3>${t("servicesRequested")}</h3><table class="perf"><tbody>${svcArr.map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:left;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
       ${Object.keys(catMap).length?`<div class="report-block"><h3>${t("projectClassification")}</h3><table class="perf"><tbody>${Object.entries(catMap).sort((a,b)=>b[1]-a[1]).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:left;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
       ${owners.length?`<div class="report-block"><h3>${t("teamPerf")}</h3><table class="perf"><thead><tr><th>${t("responsible")}</th><th>${t("clients")}</th><th>${t("won2")}</th><th>${t("cancelCol")}</th><th>${t("conv2")}</th></tr></thead><tbody>
-        ${owners.map(o=>{const m=scope.filter(l=>l.owner===o),w=m.filter(l=>l.status==="won").length,cn=m.filter(l=>l.status==="cancelled").length,cl=w+m.filter(l=>l.status==="lost").length;return `<tr><td style="font-weight:600">${esc(o)}</td><td class="num">${m.length}</td><td class="num" style="color:var(--sage)">${w}</td><td class="num" style="color:var(--ink-soft)">${cn}</td><td class="num">${cl?Math.round(w/cl*100):0}%</td></tr>`;}).join("")}</tbody></table></div>`:""}`;
+        ${owners.map(o=>{const m=scope.filter(l=>l.owner===o),w=m.filter(l=>l.status==="won").length,cn=m.filter(l=>l.status==="cancelled").length,cl=w+m.filter(l=>l.status==="lost").length;return `<tr><td style="font-weight:600">${esc(ownerLabel(o))}</td><td class="num">${m.length}</td><td class="num" style="color:var(--sage)">${w}</td><td class="num" style="color:var(--ink-soft)">${cn}</td><td class="num">${cl?Math.round(w/cl*100):0}%</td></tr>`;}).join("")}</tbody></table></div>`:""}`;
   }
 
   // ---- import excel ----
@@ -2172,7 +2286,7 @@
     if(/commerc|تجاري|محل|مول|شوروم|retail|shop|store/.test(v))return"commercial";if(/office|اداري|إداري|مكتب/.test(v))return"office";
     if(/b2b/.test(v))return"b2b";if(/resid|سكني|فيلا|شقة|شقه|تاون|villa|apartment|town|twin|duplex|roof|penthouse|chalet|شاليه/.test(v))return"residential";return"";}
   function matchServices(v){const parts=String(v).split(/[,،|/]+/).map(x=>x.trim()).filter(Boolean);const out=[];
-    parts.forEach(p=>{const m=SERVICES.find(s=>s.toLowerCase().includes(p.toLowerCase())||p.toLowerCase().includes(s.toLowerCase()));if(m&&!out.includes(m))out.push(m);});return out;}
+    parts.forEach(p=>{const m=SERVICES.find(s=>s.k.toLowerCase().includes(p.toLowerCase())||p.toLowerCase().includes(s.k.toLowerCase()));if(m&&!out.includes(m.k))out.push(m.k);});return out;}
   async function doImport(){
     const map={};$$("#importBody select[data-fld]").forEach(s=>map[s.dataset.fld]=parseInt(s.value));
     const get=(row,fk)=>map[fk]>=0?String(row[map[fk]]==null?"":row[map[fk]]).trim():"";
@@ -2279,7 +2393,15 @@
 
   // ---- nav ----
   function renderAll(){renderDash();renderLeads();renderReport();}
-  function renderLeadsAndDash(){renderDash();renderLeads();renderKanban();}
+  function renderLeadsAndDash(){renderDash();renderLeads();renderKanban();updatePendingTransferBadge();}
+  function updatePendingTransferBadge(){
+    if(!isAdmin())return;
+    const badge=document.getElementById("pendingTransferBadge");
+    if(!badge)return;
+    const pending=leads.filter(l=>l.transferRequest&&l.transferRequest.status==="pending");
+    if(pending.length){badge.textContent=pending.length;badge.style.display="inline-block";}
+    else badge.style.display="none";
+  }
   function closeAll(){$("#formOverlay").classList.remove("show");$("#detailOverlay").classList.remove("show");}
   $$('nav.tabs button').forEach(b=>b.onclick=()=>{$$('nav.tabs button').forEach(x=>x.classList.remove("active"));b.classList.add("active");$$('.view').forEach(v=>v.classList.remove("active"));$("#tab-"+b.dataset.tab).classList.add("active");window.scrollTo(0,0);
     if(b.dataset.tab==="pipeline")renderKanban();
@@ -2338,13 +2460,13 @@
   });
 
   $("#statusFilter").innerHTML='<option value="">'+t("allStatuses")+'</option>'+STATUSES.map(s=>`<option value="${s.k}">${L(s)}</option>`).join("");
-  $("#f-cancelReason").innerHTML='<option value="">— اختر سبب —</option>'+CANCEL_REASONS.map(r=>`<option value="${esc(r.k)}">${esc(reasonLabel(r))}</option>`).join("");
-  $("#f-lostReason").innerHTML='<option value="">— اختر سبب —</option>'+LOST_REASONS.map(r=>`<option value="${esc(r.k)}">${esc(reasonLabel(r))}</option>`).join("");
+  $("#f-cancelReason").innerHTML='<option value="">'+t("chooseReasonOpt")+'</option>'+CANCEL_REASONS.map(r=>`<option value="${esc(r.k)}">${esc(reasonLabel(r))}</option>`).join("");
+  $("#f-lostReason").innerHTML='<option value="">'+t("chooseReasonOpt")+'</option>'+LOST_REASONS.map(r=>`<option value="${esc(r.k)}">${esc(reasonLabel(r))}</option>`).join("");
   $("#f-budgetFit").innerHTML=BUDGET_FIT.map(b=>`<option value="${b.k}">${L(b)}</option>`).join("");
   $("#qualityFilter").innerHTML='<option value="">'+t("allQuality")+'</option>'+QUALITY.map(q=>`<option value="${q.k}">${L(q)}</option>`).join("");
-  $("#ownerFilter").innerHTML='<option value="">'+t("allOwners")+'</option>'+OWNERS.map(o=>`<option>${o}</option>`).join("");
+  $("#ownerFilter").innerHTML='<option value="">'+t("allOwners")+'</option>'+OWNERS.map(o=>`<option value="${esc(o)}">${esc(ownerLabel(o))}</option>`).join("");
   const kbOwnerEl=document.getElementById("kbOwner");
-  if(kbOwnerEl) kbOwnerEl.innerHTML='<option value="">'+t("allOwners")+'</option>'+OWNERS.map(o=>`<option>${o}</option>`).join("");
+  if(kbOwnerEl) kbOwnerEl.innerHTML='<option value="">'+t("allOwners")+'</option>'+OWNERS.map(o=>`<option value="${esc(o)}">${esc(ownerLabel(o))}</option>`).join("");
   kbOwnerEl&&kbOwnerEl.addEventListener("change",renderKanban);
   document.getElementById("kbShowClosed")?.addEventListener("change",renderKanban);
   $("#sourceFilter").innerHTML='<option value="">'+t("allSources")+'</option>'+SOURCES.map(s=>`<option value="${s.k}">${L(s)}</option>`).join("");
@@ -2384,6 +2506,20 @@
         toast(t("roleUpdated"));
         loadUsersTab();
       });
+      // pending ownership transfer requests — من كل الـ leads اللي عندها transferRequest.status==='pending'
+      const pending=leads.filter(l=>l.transferRequest&&l.transferRequest.status==="pending");
+      const badge=document.getElementById("pendingTransferBadge");
+      if(badge){ if(pending.length){badge.textContent=pending.length;badge.style.display="inline-block";} else badge.style.display="none"; }
+      const ptList=document.getElementById("pendingTransfersList");
+      if(ptList){
+        ptList.innerHTML=pending.length?pending.map(l=>`<div class="info-box" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px">
+          <div><div style="font-weight:600;font-size:13.5px">${esc(l.name)}</div>
+          <div class="muted" style="font-size:11.5px;margin-top:2px">${t("transferFrom")} ${l.transferRequest.fromOwner?esc(ownerLabel(l.transferRequest.fromOwner)):"—"} ${t("transferTo")} ${esc(l.transferRequest.requestedBy)}</div></div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-primary btn-sm" onclick="approveTransfer('${l.id}')">${t("approve")}</button>
+            <button class="btn btn-danger btn-sm" onclick="rejectTransfer('${l.id}')">${t("reject")}</button>
+          </div></div>`).join("") : `<p class="muted" style="padding:8px 0">${t("noPendingTransfers")}</p>`;
+      }
       // load audit
       const aSnap=await db.collection("audit").orderBy("ts","desc").limit(50).get();
       const rows=aSnap.docs.map(d=>d.data());
@@ -2478,6 +2614,7 @@
       set('#newUserBtn',"＋ "+t("newUser"));
       set('#addUserModalTitle',t("newUser"));
       set('#auditLogTitle',t("auditLogTitle"));
+      set('#pendingTransfersTitle',"⏳ "+t("pendingTransfers"));
       set('#importBtn',t("importExcel"));
       set('#backupBtn',t("backupBtn"));
       set('#restoreBtn',t("restoreBtnLbl"));
@@ -2487,6 +2624,30 @@
       set('#firstNoteLblEl',t("firstNoteLbl"));
       const fNote=document.getElementById("f-note"); if(fNote)fNote.placeholder=t("firstNotePh");
       set('#mergeModalTitle',t("mergeDuplicateTitle"));
+      set('#detailModalTitle',t("detailModalTitle"));
+      set('#fh-basic',t("fhBasic"));set('#fl-name',t("flName"));set('#fl-phone',t("flPhone"));
+      set('#fl-verified',t("flVerified"));set('#fl-phone2',t("flPhone2"));set('#fl-email',t("flEmail"));
+      set('#fl-owner',t("flOwner"));set('#fl-rdate',t("flRdate"));set('#fl-rtime',t("flRtime"));
+      set('#fh-source',t("fhSource"));set('#fl-source',t("flSource"));set('#fl-campaign',t("flCampaign"));
+      set('#fl-platform',t("flPlatform"));set('#fl-campname',t("flCampname"));
+      set('#fl-adname',t("flAdname"));set('#fl-adset',t("flAdset"));
+      set('#fh-service',t("fhService"));set('#fl-servicetype',t("flServicetype"));
+      set('#fh-project',t("fhProject"));set('#fl-cat',t("flCat"));set('#fl-sub',t("flSub"));set('#fl-area',t("flArea"));
+      set('#fl-location',t("flLocation"));set('#fl-district',t("flDistrict"));set('#fl-compound',t("flCompound"));
+      set('#fh-value',t("fhValue"));set('#fl-value',t("flValue"));set('#fl-currency',t("flCurrency"));set('#fl-status',t("flStatus"));
+      set('#fl-meetingtype',t("flMeetingtype"));set('#fl-quality',t("flQuality"));set('#fl-budgetfit',t("flBudgetfit"));
+      set('#fl-job',t("flJob"));set('#fl-residence',t("flResidence"));
+      set('#fl-cancelreason',t("flCancelreason"));set('#fl-lostreason',t("flLostreason"));
+      set('#fl-quotestart',t("flQuotestart"));set('#fl-quotesubmit',t("flQuotesubmit"));
+      set('#fh-notes',t("fhNotes"));set('#fl-drive',t("flDrive"));set('#fl-pain',t("flPain"));set('#fl-plus',t("flPlus"));
+      set('#saveLeadBtn',t("save"));set('#deleteLeadBtn',t("del"));set('#ncAddBtn',isEn()?"Add Campaign":"إضافة الكامبين");
+      // وحدات المساحة: القيمة المحفوظة عربي ثابت (توافق مع بيانات قديمة)، العرض بس بيتترجم
+      const auEl=document.getElementById("f-area-unit");
+      if(auEl){
+        const cur=auEl.value;
+        auEl.innerHTML=`<option value="م²">${t("unitSqm")}</option><option value="فدان">${t("unitFeddan")}</option><option value="متر طولي">${t("unitLinear")}</option><option value="قيراط">${t("unitQirat")}</option>`;
+        if(cur)auEl.value=cur;
+      }
       set('#formTitle',t("newLeadTitle"));
       set('#addFab',t("newLead"));
       const si=document.getElementById("searchInput"); if(si)si.placeholder=t("search");
