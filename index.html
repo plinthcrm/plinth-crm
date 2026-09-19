@@ -62,7 +62,7 @@
 
   header{position:sticky;top:0;z-index:30;background:rgba(251,248,242,.85);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
   .head-in{max-width:1100px;margin:0 auto;padding:13px 18px;display:flex;align-items:center;gap:13px;flex-wrap:wrap}
-  .brand-logo{height:26px;width:auto;flex:none;object-fit:contain}
+  .brand-logo{height:13px;width:auto;flex:none;object-fit:contain}
   .brand h1{font-size:16px;font-weight:700;letter-spacing:-.01em}
   .brand span{font-size:11.5px;color:var(--ink-soft);font-weight:400}
   .head-spacer{flex:1}
@@ -109,7 +109,7 @@
   .fbar .ffill{height:100%;border-radius:8px;display:flex;align-items:center;padding:0 10px;color:#fff;font-size:12.5px;font-weight:600;min-width:34px;transition:width .5s ease}
 
   table.perf{width:100%;border-collapse:collapse;font-size:13.5px}
-  table.perf th,table.perf td{padding:11px 9px;text-align:right;border-bottom:1px solid var(--line-soft)}
+  table.perf th,table.perf td{padding:11px 9px;text-align:start;border-bottom:1px solid var(--line-soft)}
   table.perf th{font-size:12px;color:var(--ink-soft);font-weight:600}
   table.perf tr:last-child td{border-bottom:none}
   .chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:600}
@@ -123,7 +123,7 @@
   .prio-name{font-weight:700;font-size:14.5px}
   .prio-reason{font-size:12px;color:var(--ink-soft);margin-top:2px}
   .prio-reason b{color:var(--clay);font-weight:600}
-  .prio-val{font-size:13px;font-weight:600;text-align:left;white-space:nowrap}
+  .prio-val{font-size:13px;font-weight:600;text-align:end;white-space:nowrap}
 
   .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
   .search{flex:1;min-width:150px}
@@ -201,11 +201,14 @@
   .acc-b{display:none;padding:12px 13px}
   .acc.open .acc-b{display:block}
   .sla-warn{background:#FCF3E8;border:1px solid var(--gold);border-radius:11px;padding:10px 12px;margin-bottom:12px}
-  .add-job-card{background:var(--surface2);border:1.5px dashed var(--clay);border-radius:13px;padding:14px}
+  .add-job-card{background:var(--surface2);border:1.5px dashed var(--clay);border-radius:13px;padding:14px;overflow:hidden}
   .add-job-hdr{font-size:12.5px;font-weight:700;color:var(--clay);margin-bottom:10px;display:flex;align-items:center;gap:6px}
-  .add-job-grid{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px;align-items:end}
-  .add-job-btn{height:41px;white-space:nowrap}
-  @media(max-width:640px){.add-job-grid{grid-template-columns:1fr 1fr}.add-job-btn{grid-column:1 / -1}}
+  .add-job-grid{display:grid;grid-template-columns:2fr 1fr 0.8fr 1fr auto;gap:10px;align-items:end}
+  .add-job-grid>.field{min-width:0}
+  .add-job-grid input,.add-job-grid select{width:100%;box-sizing:border-box}
+  .add-job-btn{height:41px;white-space:nowrap;min-width:110px}
+  @media(max-width:900px){.add-job-grid{grid-template-columns:1fr 1fr}.add-job-btn{grid-column:1 / -1}}
+  @media(max-width:420px){.add-job-grid{grid-template-columns:1fr}}
   .sla-warn .sw-t{font-size:13px;font-weight:700;color:#8A6D3B;margin-bottom:3px}
   .sla-warn .sw-s{font-size:12px;color:var(--ink-soft);line-height:1.6}
   .stage-ok{background:var(--sage-soft);border:1px solid #B8D9B8;border-radius:11px;padding:9px 12px;margin-bottom:12px;font-size:12.5px;color:var(--sage)}
@@ -264,7 +267,7 @@
   .src-bar .sname{width:140px;flex:none;font-size:12.5px}
   .src-bar .strack{flex:1;height:10px;background:var(--line-soft);border-radius:6px;overflow:hidden}
   .src-bar .sfill{height:100%;background:linear-gradient(90deg,var(--gold),var(--clay));border-radius:6px}
-  .src-bar .scount{width:30px;text-align:left;font-weight:600}
+  .src-bar .scount{width:30px;text-align:end;font-weight:600}
   .report-block{margin-bottom:24px}
   .report-block h3{font-size:14px;font-weight:700;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--clay);display:inline-block}
   .loading{text-align:center;padding:80px 20px;color:var(--ink-soft)}
@@ -281,7 +284,7 @@
     /* header */
     .head-in{padding:10px 14px;gap:8px;flex-wrap:wrap}
     .brand h1{font-size:14px}.brand span{font-size:10.5px}
-    .brand-logo{height:20px}
+    .brand-logo{height:10px}
     .icon-btn{padding:7px 9px;font-size:12px;gap:4px}
     #userChip{font-size:11.5px;padding:5px 9px}
     /* condense header buttons on mobile */
@@ -722,11 +725,21 @@
       jobsTitle:"💼 العقود / Jobs", addJob:"＋ إضافة Job", jobTitle:"عنوان الـ Job", jobValue:"القيمة",
       jobDate:"التاريخ", jobsTotal:"إجمالي العقود", noJobs:"لسه مفيش Jobs مُسجّلة.",
       jobDeleteConfirm:"تحذف الـ Job ده؟", jobAdded:"تم إضافة Job", jobDeleted:"تم حذف Job",
+      jobCurrency:"العملة", editJobTitle:"تعديل Job", jobUpdated:"تم تحديث Job", auditEditJob:"تعديل Job",
       jobTitlePlaceholder:"مثلاً: تصميم داخلي، تنفيذ Core & Shell…", jobsGrandTotal:"إجمالي قيمة العقود",
       importExcel:"⬆ إكسيل", backupBtn:"💾 نسخة", restoreBtnLbl:"📂 استرجاع", exportCsv:"⬇ CSV", logout:"خروج",
       auditEditData:"تعديل بيانات", auditNewLead:"إضافة عميل جديد",
       auditStageChange:"تغيير مرحلة", auditStageForced:"تغيير مرحلة (تجاوز)", auditStatusLbl:"الحالة",
       auditDeleteLead:"حذف عميل", auditDeleteUser:"حذف مستخدم", auditAddUser:"إضافة مستخدم", auditRoleLbl:"دور",
+      auditAddJob:"إضافة Job", auditDeleteJob:"حذف Job",
+      kindCall:"📞 مكالمة", kindNote:"📝 ملاحظة", kindMeeting:"🤝 اجتماع", kindMessage:"💬 رسالة", entryTypeLbl:"نوع التسجيل", inProgress:"جارٍ",
+      outAnswered:"رد ✓", outNoAnswer:"مردّش", outBusy:"مشغول", outOff:"مقفول",
+      callOutcomeLbl:"نتيجة المكالمة", contactDateLbl:"تاريخ التواصل", timeLbl:"الوقت",
+      detailsLbl:"التفاصيل (حصل فيها إيه)", detailsPh:"نتيجة المكالمة، اللي اتفقتوا عليه، الخطوة الجاية…",
+      voiceNoteLbl:"تسجيل صوتي قصير (اختياري)", startRecBtn:"🎙 ابدأ التسجيل", saveLogBtn:"حفظ التسجيل",
+      tlVoiceNote:"تسجيل صوتي",
+      phJob:"مثلاً: طبيب، رجل أعمال…", phResidence:"مثلاً: التجمع الخامس",
+      phPain:"إيه اللي مأرّقه؟ ميزانية، وقت، تجربة سابقة سيئة…", phPlus:"ليه يختارنا؟ نقطة القوة اللي تكسب العميل ده",
       dueOverPrefix:"متأخرة ", dueTodayLbl:"النهاردة", dueSoonPrefix:"بعد ",
       bestContactTime:"⏰ أنسب وقت للتواصل", overdueInStage:"⏳ متأخر {over} يوم في مرحلة",
       overdueDetail:"قعد {days} يوم والمفروض يتحرك خلال {sla}.", slaWord:"المهلة", dayWord:"يوم",
@@ -822,11 +835,21 @@
       jobsTitle:"💼 Contracts / Jobs", addJob:"＋ Add Job", jobTitle:"Job Title", jobValue:"Value",
       jobDate:"Date", jobsTotal:"Total Contracts", noJobs:"No jobs recorded yet.",
       jobDeleteConfirm:"Delete this job?", jobAdded:"Job added", jobDeleted:"Job deleted",
+      jobCurrency:"Currency", editJobTitle:"Edit Job", jobUpdated:"Job updated", auditEditJob:"Edited job",
       jobTitlePlaceholder:"e.g. Interior Design, Core & Shell Execution…", jobsGrandTotal:"Total Contract Value",
       importExcel:"⬆ Excel", backupBtn:"💾 Backup", restoreBtnLbl:"📂 Restore", exportCsv:"⬇ CSV", logout:"Logout",
       auditEditData:"Edited data", auditNewLead:"Added new lead",
       auditStageChange:"Changed stage", auditStageForced:"Changed stage (override)", auditStatusLbl:"Status",
       auditDeleteLead:"Deleted lead", auditDeleteUser:"Deleted user", auditAddUser:"Added user", auditRoleLbl:"Role",
+      auditAddJob:"Added job", auditDeleteJob:"Deleted job",
+      kindCall:"📞 Call", kindNote:"📝 Note", kindMeeting:"🤝 Meeting", kindMessage:"💬 Message", entryTypeLbl:"Entry Type", inProgress:"In progress",
+      outAnswered:"Answered ✓", outNoAnswer:"No Answer", outBusy:"Busy", outOff:"Switched off",
+      callOutcomeLbl:"Call Outcome", contactDateLbl:"Contact Date", timeLbl:"Time",
+      detailsLbl:"Details (what happened)", detailsPh:"Call outcome, what was agreed, next step…",
+      voiceNoteLbl:"Short voice note (optional)", startRecBtn:"🎙 Start Recording", saveLogBtn:"Save Entry",
+      tlVoiceNote:"Voice Note",
+      phJob:"e.g. Doctor, Businessman…", phResidence:"e.g. Fifth Settlement",
+      phPain:"What's holding them back? Budget, timing, bad past experience…", phPlus:"Why should they choose us? Our winning edge with this client",
       dueOverPrefix:"Overdue ", dueTodayLbl:"Today", dueSoonPrefix:"In ",
       bestContactTime:"⏰ Best time to contact", overdueInStage:"⏳ {over} days overdue in stage",
       overdueDetail:"In this stage {days} days, expected to move within {sla}.", slaWord:"SLA", dayWord:"days",
@@ -1216,6 +1239,13 @@
   }
 
   // ---- audit log ----
+  // ترجمة نص الـ action المحفوظ في Audit Log (يغطي السجلات القديمة اللي اتسجلت بنص عربي خام قبل الترجمة)
+  const AUDIT_ACTION_MAP={
+    "تعديل بيانات":"auditEditData","إضافة عميل جديد":"auditNewLead","تغيير مرحلة":"auditStageChange","تغيير مرحلة (تجاوز)":"auditStageForced",
+    "حذف عميل":"auditDeleteLead","إضافة Job":"auditAddJob","حذف Job":"auditDeleteJob","طلب نقل مسؤولية":"auditTransferReq",
+    "موافقة نقل مسؤولية":"auditTransferApp","رفض نقل مسؤولية":"auditTransferRej","تغيير دور مستخدم":"roleChangeAction",
+    "حذف مستخدم":"auditDeleteUser","إضافة مستخدم":"auditAddUser"};
+  function auditActionLabel(action){ const k=AUDIT_ACTION_MAP[action]; return k?t(k):action; }
   async function logAudit(action, leadId, leadName, detail=""){
     if(!db||!currentUser)return;
     try{ await db.collection("audit").add({uid:currentUser.uid,userName:currentUserName,action,leadId:leadId||"",leadName:leadName||"",detail,ts:Date.now()}); }
@@ -1395,7 +1425,7 @@
       ${thisMonthLost?`<div class="kpi" style="cursor:pointer" onclick="applyQuick('lost_month')"><div class="lbl">${t("lostMonth")}</div><div class="val num" style="color:var(--rose)">${thisMonthLost}</div><div class="sub muted">${now.toLocaleString(isEn()?'en-GB':'ar-EG',{month:'long'})}</div></div>`:""}
       ${staleCount?`<div class="kpi" style="cursor:pointer" onclick="applyQuick('stale')"><div class="lbl">${t("noContact7")}</div><div class="val num" style="color:var(--gold)">${staleCount}</div><div class="sub muted">${t("needsFollowup")}</div></div>`:""}
       ${overdueStage?`<div class="kpi" style="cursor:pointer;border-color:var(--gold)" onclick="applyQuick('overdue_stage')"><div class="lbl">${t("overdueStage")}</div><div class="val num" style="color:#8A6D3B">${overdueStage}</div><div class="sub muted">${t("exceededSla")}</div></div>`:""}
-      ${weightedTxt?`<div class="kpi" style="border-color:var(--sage)"><div class="lbl">${t("weighted")}</div><div class="val num" style="color:var(--sage)">${weightedTxt}</div><div class="sub muted">${t("weightedSub")}</div></div>`:""}
+      ${weightedTxt?`<div class="kpi" style="border-color:var(--sage)"><div class="lbl">${t("weighted")}</div><div class="val num" style="color:var(--sage);font-size:12px">${weightedTxt}</div><div class="sub muted">${t("weightedSub")}</div></div>`:""}
       ${jobsGrandTxt?`<div class="kpi accent" style="border-color:var(--clay)"><div class="lbl">${t("jobsGrandTotal")}</div><div class="val num" style="color:var(--clay)">${jobsGrandTxt}</div><div class="sub muted">${t("jobsTitle").replace("💼 ","")}</div></div>`:""}`;
 
     // priority (all, scrollable)
@@ -1769,8 +1799,8 @@
     const telNum=(l.phone||"").replace(/[^\d+]/g,"");
     const waNum=(l.phone||"").replace(/[^\d]/g,"");
     let priceDur="";
-    if(l.quoteStartDate&&l.quoteSubmitDate){const d=Math.round((new Date(l.quoteSubmitDate)-new Date(l.quoteStartDate))/864e5);if(d>=0)priceDur=d+" يوم";}
-    else if(l.quoteStartDate&&!l.quoteSubmitDate){const d=Math.round((Date.now()-new Date(l.quoteStartDate))/864e5);if(d>=0)priceDur="جارٍ — "+d+" يوم";}
+    if(l.quoteStartDate&&l.quoteSubmitDate){const d=Math.round((new Date(l.quoteSubmitDate)-new Date(l.quoteStartDate))/864e5);if(d>=0)priceDur=d+" "+t("dayWord");}
+    else if(l.quoteStartDate&&!l.quoteSubmitDate){const d=Math.round((Date.now()-new Date(l.quoteStartDate))/864e5);if(d>=0)priceDur=t("inProgress")+" — "+d+" "+t("dayWord");}
     const info=(lab,val)=>val?`<div class="info-box"><div class="ib-l">${lab}</div><div class="ib-v">${esc(val)}</div></div>`:"";
     const ov=stageOverdue(l);
     const acc=(key,title,count,body,defOpen)=>{
@@ -1844,18 +1874,21 @@
           <div><div style="font-weight:600;font-size:13.5px">${esc(j.title)}</div><div class="muted" style="font-size:11.5px;margin-top:2px">${esc(j.date||"")}</div></div>
           <div style="display:flex;align-items:center;gap:10px">
             <div class="num" style="font-weight:700;color:var(--clay)">${fmt(j.value)} ${esc(j.currency||"EGP")}</div>
+            ${canWrite()?`<button class="tl-del" style="color:var(--clay);border-color:var(--clay)" onclick="editJob('${l.id}','${j.id}')">${t("editBtn").replace("✎ ","")}</button>`:""}
             ${canDelete()?`<button class="tl-del" onclick="deleteJob('${l.id}','${j.id}')">${t("del")}</button>`:""}
           </div></div>`).join("");
         const totalTxt=jobsTotalsText(l);
         return `${rows||`<div class="muted" style="font-size:12.5px;padding:6px 0 12px">${t("noJobs")}</div>`}
           ${totalTxt?`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--sage-soft);border-radius:11px;margin-bottom:12px"><span style="font-weight:700;font-size:13px;color:var(--sage)">${t("jobsTotal")}</span><span class="num" style="font-weight:700;color:var(--sage)">${totalTxt}</span></div>`:""}
           ${canWrite()?`<div class="add-job-card">
-            <div class="add-job-hdr">${t("addJob")}</div>
+            <div class="add-job-hdr" id="addJobHdr-${l.id}">${t("addJob")}</div>
+            <input type="hidden" id="editJobId">
             <div class="add-job-grid">
               <div class="field" style="margin:0"><label style="font-size:11.5px">${t("jobTitle")}</label><input id="newJobTitle" placeholder="${t("jobTitlePlaceholder")}"></div>
               <div class="field" style="margin:0"><label style="font-size:11.5px">${t("jobValue")}</label><input id="newJobValue" type="number" placeholder="0"></div>
+              <div class="field" style="margin:0"><label style="font-size:11.5px">${t("jobCurrency")}</label><select id="newJobCurrency"><option>EGP</option><option>SAR</option><option>USD</option></select></div>
               <div class="field" style="margin:0"><label style="font-size:11.5px">${t("jobDate")}</label><input id="newJobDate" type="date" value="${todayStr()}"></div>
-              <button class="btn btn-primary btn-sm add-job-btn" onclick="addJob('${l.id}')">${t("addJob")}</button>
+              <button class="btn btn-primary btn-sm add-job-btn" id="addJobBtn-${l.id}" onclick="addJob('${l.id}')">${t("addJob")}</button>
             </div>
           </div>`:""}`;
       })(),true):""}
@@ -1947,41 +1980,41 @@
       // default to PM: use current time if it's PM, else 14:00
       const tNow=now.getHours()>=12?(pad(now.getHours())+":"+pad(now.getMinutes())):"14:00";
       pane.innerHTML=`
-        <div class="field" style="margin-top:6px"><label>نوع التسجيل</label>
+        <div class="field" style="margin-top:6px"><label>${t("entryTypeLbl")}</label>
           <div class="pills" id="kindPills">
-            <span class="pill on" style="background:var(--clay)" data-k="call">📞 مكالمة</span>
-            <span class="pill" data-k="note">📝 ملاحظة</span>
-            <span class="pill" data-k="meeting">🤝 اجتماع</span>
-            <span class="pill" data-k="message">💬 رسالة</span>
+            <span class="pill on" style="background:var(--clay)" data-k="call">${t("kindCall")}</span>
+            <span class="pill" data-k="note">${t("kindNote")}</span>
+            <span class="pill" data-k="meeting">${t("kindMeeting")}</span>
+            <span class="pill" data-k="message">${t("kindMessage")}</span>
           </div><input type="hidden" id="logKind" value="call"></div>
-        <div class="field" id="outcomeWrap"><label>نتيجة المكالمة</label>
+        <div class="field" id="outcomeWrap"><label>${t("callOutcomeLbl")}</label>
           <div class="pills" id="outPills">
-            <span class="pill" data-o="answered">رد ✓</span>
-            <span class="pill" data-o="no_answer">مردّش</span>
-            <span class="pill" data-o="busy">مشغول</span>
-            <span class="pill" data-o="off">مقفول</span>
+            <span class="pill" data-o="answered">${t("outAnswered")}</span>
+            <span class="pill" data-o="no_answer">${t("outNoAnswer")}</span>
+            <span class="pill" data-o="busy">${t("outBusy")}</span>
+            <span class="pill" data-o="off">${t("outOff")}</span>
           </div><input type="hidden" id="logOutcome" value=""></div>
         <div class="grid2">
-          <div class="field"><label>تاريخ التواصل</label><input id="logDate" type="date" value="${dNow}"></div>
-          <div class="field"><label>الوقت</label><input id="logTime" type="time" value="${tNow}"></div>
+          <div class="field"><label>${t("contactDateLbl")}</label><input id="logDate" type="date" value="${dNow}"></div>
+          <div class="field"><label>${t("timeLbl")}</label><input id="logTime" type="time" value="${tNow}"></div>
         </div>
         <div id="contentWrap">
-        <div class="field"><label>التفاصيل (حصل فيها إيه)</label><textarea id="logText" placeholder="نتيجة المكالمة، اللي اتفقتوا عليه، الخطوة الجاية…"></textarea></div>
-        <div class="field"><label>تسجيل صوتي قصير (اختياري)</label>
-          <div class="rec-row" id="recRow"><button class="btn btn-ghost btn-sm" id="recBtn" type="button">🎙 ابدأ التسجيل</button><span id="recStatus" class="muted" style="font-size:12.5px"></span></div>
+        <div class="field"><label>${t("detailsLbl")}</label><textarea id="logText" placeholder="${t("detailsPh")}"></textarea></div>
+        <div class="field"><label>${t("voiceNoteLbl")}</label>
+          <div class="rec-row" id="recRow"><button class="btn btn-ghost btn-sm" id="recBtn" type="button">${t("startRecBtn")}</button><span id="recStatus" class="muted" style="font-size:12.5px"></span></div>
           <audio id="recPreview" controls style="display:none"></audio></div>
         </div>
         <div class="field"><label>${t("updateNextFollowup")}</label><input id="logFollow" type="date" value="${l.nextFollowUp||""}"></div>
-        <button class="btn btn-primary" id="addLogBtn" style="width:100%">حفظ التسجيل</button>`;
+        <button class="btn btn-primary" id="addLogBtn" style="width:100%">${t("saveLogBtn")}</button>`;
       wireLog(l);
     }else{
       pane.innerHTML=notes.length?`<div class="timeline">`+notes.map(n=>{
-        const k=n.kind==="call"?{i:"📞",t:"مكالمة",c:"var(--clay)"}:n.kind==="meeting"?{i:"🤝",t:"اجتماع",c:"var(--teal)"}:n.kind==="message"?{i:"💬",t:"رسالة",c:"var(--slate)"}:n.kind==="voice"?{i:"🎙",t:"تسجيل صوتي",c:"var(--slate)"}:{i:"📝",t:"ملاحظة",c:"var(--gold)"};
-        const OUT={answered:["رد ✓","var(--sage)"],no_answer:["مردّش","var(--rose)"],busy:["مشغول","var(--gold)"],off:["مقفول","var(--slate)"]};
+        const k=n.kind==="call"?{i:"📞",t:t("kindCall").replace("📞 ",""),c:"var(--clay)"}:n.kind==="meeting"?{i:"🤝",t:t("kindMeeting").replace("🤝 ",""),c:"var(--teal)"}:n.kind==="message"?{i:"💬",t:t("kindMessage").replace("💬 ",""),c:"var(--slate)"}:n.kind==="voice"?{i:"🎙",t:t("tlVoiceNote"),c:"var(--slate)"}:{i:"📝",t:t("kindNote").replace("📝 ",""),c:"var(--gold)"};
+        const OUT={answered:[t("outAnswered"),"var(--sage)"],no_answer:[t("outNoAnswer"),"var(--rose)"],busy:[t("outBusy"),"var(--gold)"],off:[t("outOff"),"var(--slate)"]};
         const ob=n.outcome&&OUT[n.outcome]?`<span class="chip" style="background:${OUT[n.outcome][1]}1A;color:${OUT[n.outcome][1]};margin-inline-start:6px">${OUT[n.outcome][0]}</span>`:"";
         return `<div class="tl-item"><div class="tl-top"><span class="tl-kind" style="color:${k.c}">${k.i} ${k.t}${ob}</span>
           <div style="display:flex;align-items:center;gap:10px"><span class="tl-time">${new Date(n.ts).toLocaleString(isEn()?"en-GB":"ar-EG",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</span>
-          ${canWrite()?`<button class="tl-del" onclick="delNote('${l.id}','${n.id}',${n.kind==='voice'})">حذف</button><button class="tl-del" style="color:var(--clay);border-color:var(--clay)" onclick="editNote('${l.id}','${n.id}')">تعديل</button>`:''}</div></div>
+          ${canWrite()?`<button class="tl-del" onclick="delNote('${l.id}','${n.id}',${n.kind==='voice'})">${t("del")}</button><button class="tl-del" style="color:var(--clay);border-color:var(--clay)" onclick="editNote('${l.id}','${n.id}')">${t("editBtn").replace("✎ ","")}</button>`:''}</div></div>
           ${n.text?`<div class="tl-text">${esc(n.text)}</div>`:""}${n.kind==="voice"?`<audio controls data-voice="${n.id}"></audio>`:""}</div>`;}).join("")+`</div>`
         :`<p class="muted" style="padding:14px 0;text-align:center">${t("noContactYet")}</p>`;
       $$('#detailPane audio[data-voice]').forEach(async a=>{const b=await getVoice(a.dataset.voice);if(b)a.src=b;else a.insertAdjacentHTML("afterend",'<span class="muted" style="font-size:12px">⚠ التسجيل غير متاح</span>');});
@@ -2029,15 +2062,46 @@
   window.addJob=async function(lid){
     if(!canWrite())return;
     const l=leads.find(x=>x.id===lid); if(!l)return;
-    const titleEl=document.getElementById("newJobTitle"), valueEl=document.getElementById("newJobValue"), dateEl=document.getElementById("newJobDate");
-    const title=titleEl?titleEl.value.trim():"", value=valueEl?Number(valueEl.value):0, date=dateEl?dateEl.value:todayStr();
+    const titleEl=document.getElementById("newJobTitle"), valueEl=document.getElementById("newJobValue"),
+      dateEl=document.getElementById("newJobDate"), currEl=document.getElementById("newJobCurrency"),
+      editIdEl=document.getElementById("editJobId");
+    const title=titleEl?titleEl.value.trim():"", value=valueEl?Number(valueEl.value):0,
+      date=dateEl?dateEl.value:todayStr(), currency=currEl?currEl.value:(l.currency||"EGP");
     if(!title||!value){toast(isEn()?"Enter a job title and value":"اكتب عنوان الـ Job والقيمة");return;}
     l.jobs=jobsOf(l).slice();
-    l.jobs.push({id:uid(),title,value,currency:l.currency||"EGP",date,addedBy:currentUserName||"—",ts:Date.now()});
+    const editId=editIdEl?editIdEl.value:"";
+    if(editId){
+      const idx=l.jobs.findIndex(j=>j.id===editId);
+      if(idx>=0){
+        l.jobs[idx]={...l.jobs[idx],title,value,currency,date,editedBy:currentUserName||"—",editedAt:Date.now()};
+        await putLead(l);
+        logAudit(t("auditEditJob"),l.id,l.name,title+" — "+fmt(value)+" "+currency);
+        renderDetail();renderLeadsAndDash();
+        toast(t("jobUpdated"));
+        return;
+      }
+    }
+    l.jobs.push({id:uid(),title,value,currency,date,addedBy:currentUserName||"—",ts:Date.now()});
     await putLead(l);
-    logAudit(isEn()?"Added job":"إضافة Job",l.id,l.name,title+" — "+fmt(value)+" "+(l.currency||"EGP"));
+    logAudit(t("auditAddJob"),l.id,l.name,title+" — "+fmt(value)+" "+currency);
     renderDetail();renderLeadsAndDash();
     toast(t("jobAdded"));
+  };
+  window.editJob=function(lid,jid){
+    const l=leads.find(x=>x.id===lid); if(!l)return;
+    const j=jobsOf(l).find(x=>x.id===jid); if(!j)return;
+    const titleEl=document.getElementById("newJobTitle"), valueEl=document.getElementById("newJobValue"),
+      dateEl=document.getElementById("newJobDate"), currEl=document.getElementById("newJobCurrency"),
+      editIdEl=document.getElementById("editJobId"), hdrEl=document.getElementById("addJobHdr-"+lid),
+      btnEl=document.getElementById("addJobBtn-"+lid);
+    if(titleEl)titleEl.value=j.title;
+    if(valueEl)valueEl.value=j.value;
+    if(dateEl)dateEl.value=j.date||todayStr();
+    if(currEl)currEl.value=j.currency||"EGP";
+    if(editIdEl)editIdEl.value=jid;
+    if(hdrEl)hdrEl.textContent=t("editJobTitle");
+    if(btnEl)btnEl.textContent=t("save");
+    titleEl&&titleEl.scrollIntoView&&titleEl.scrollIntoView({behavior:"smooth",block:"center"});
   };
   window.deleteJob=async function(lid,jid){
     if(!canDelete())return;
@@ -2045,7 +2109,7 @@
     const l=leads.find(x=>x.id===lid); if(!l)return;
     l.jobs=jobsOf(l).filter(j=>j.id!==jid);
     await putLead(l);
-    logAudit(isEn()?"Deleted job":"حذف Job",l.id,l.name,"");
+    logAudit(t("auditDeleteJob"),l.id,l.name,"");
     renderDetail();renderLeadsAndDash();
     toast(t("jobDeleted"));
   };
@@ -2178,23 +2242,23 @@
         ${avgDays!==null?`<div class="kpi"><div class="lbl">${t("avgPriceDuration")}</div><div class="val num">${avgDays}<small> ${t("day")}</small></div></div>`:""}
       </div>
       ${canSeeValue()?`<div class="report-block"><h3>${t("bizValue")}</h3><table class="perf"><tbody>
-        <tr><td>${t("activePipeline2")}</td><td class="num" style="text-align:left;font-weight:600">${totals(l=>isActive(l))}</td></tr>
-        <tr><td>${t("won2")}</td><td class="num" style="text-align:left;font-weight:600;color:var(--sage)">${totals(l=>l.status==='won')}</td></tr>
-        <tr><td>${t("quotedNego")}</td><td class="num" style="text-align:left;font-weight:600">${totals(l=>l.status==='quoted'||l.status==='negotiation')}</td></tr>
-        <tr><td style="font-weight:700;color:var(--clay)">${t("jobsGrandTotal")}</td><td class="num" style="text-align:left;font-weight:700;color:var(--clay)">${jobsTotalsScoped()}</td></tr></tbody></table></div>`:""}
+        <tr><td>${t("activePipeline2")}</td><td class="num" style="text-align:end;font-weight:600">${totals(l=>isActive(l))}</td></tr>
+        <tr><td>${t("won2")}</td><td class="num" style="text-align:end;font-weight:600;color:var(--sage)">${totals(l=>l.status==='won')}</td></tr>
+        <tr><td>${t("quotedNego")}</td><td class="num" style="text-align:end;font-weight:600">${totals(l=>l.status==='quoted'||l.status==='negotiation')}</td></tr>
+        <tr><td style="font-weight:700;color:var(--clay)">${t("jobsGrandTotal")}</td><td class="num" style="text-align:end;font-weight:700;color:var(--clay)">${jobsTotalsScoped()}</td></tr></tbody></table></div>`:""}
       <div class="report-block"><h3>${t("byStatus")}</h3><table class="perf"><thead><tr><th>${t("status")}</th><th>${t("count")}</th>${canSeeValue()?`<th>${t("value")}</th>`:""}</tr></thead><tbody>
         ${STATUSES.map(s=>{const c=scope.filter(l=>l.status===s.k).length;return c?`<tr style="cursor:pointer" onclick="goFilterStatus('${s.k}')" title="${t("clickToFilter")}"><td><span class="chip" style="background:${s.c}1A;color:${s.c}">${L(s)}</span></td><td class="num">${c} ›</td>${canSeeValue()?`<td class="num" style="font-size:12px">${totals(l=>l.status===s.k)}</td>`:""}</tr>`:"";}).join("")}</tbody></table><div style="font-size:11.5px;color:var(--ink-soft);margin-top:6px">${t("clickStatusHint")}</div></div>
-      ${Object.keys(qualMap).length?`<div class="report-block"><h3>${t("leadQuality")}</h3><table class="perf"><tbody>${Object.entries(qualMap).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:left;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
-      ${Object.keys(lostMap).length?`<div class="report-block"><h3>${t("lostReasons")}</h3><table class="perf"><tbody>${Object.entries(lostMap).sort((a,b)=>b[1]-a[1]).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:left;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
-      ${Object.keys(cancelMap).length?`<div class="report-block"><h3>${t("cancelReasons")}</h3><table class="perf"><tbody>${Object.entries(cancelMap).sort((a,b)=>b[1]-a[1]).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:left;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
+      ${Object.keys(qualMap).length?`<div class="report-block"><h3>${t("leadQuality")}</h3><table class="perf"><tbody>${Object.entries(qualMap).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:end;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
+      ${Object.keys(lostMap).length?`<div class="report-block"><h3>${t("lostReasons")}</h3><table class="perf"><tbody>${Object.entries(lostMap).sort((a,b)=>b[1]-a[1]).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:end;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
+      ${Object.keys(cancelMap).length?`<div class="report-block"><h3>${t("cancelReasons")}</h3><table class="perf"><tbody>${Object.entries(cancelMap).sort((a,b)=>b[1]-a[1]).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:end;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
       ${pricedLeads.length?`<div class="report-block"><h3>${t("pricingDuration")}</h3><table class="perf"><thead><tr><th>${t("client")}</th><th>${t("start")}</th><th>${t("submit")}</th><th>${t("duration")}</th><th>${t("status")}</th></tr></thead><tbody>
         ${pricedLeads.map(l=>{const d=Math.max(0,Math.round((new Date(l.quoteSubmitDate)-new Date(l.quoteStartDate))/86400000));return`<tr><td style="font-weight:600">${esc(l.name)}</td><td class="num">${l.quoteStartDate}</td><td class="num">${l.quoteSubmitDate}</td><td class="num">${d} ${t("day")}</td><td><span class="chip" style="background:${stById(l.status).c}1A;color:${stById(l.status).c}">${L(stById(l.status))}</span></td></tr>`;}).join("")}</tbody></table></div>`:""}
       <div class="report-block"><h3>${t("leadSources")}</h3><div class="src-bars">
         ${srcArr.map(([n,c])=>`<div class="src-bar"><div class="sname">${esc(n)}</div><div class="strack"><div class="sfill" style="width:${Math.round(c/maxSrc*100)}%"></div></div><div class="scount num">${c}</div></div>`).join("")}</div></div>
       ${campRows.length?`<div class="report-block"><h3>${t("campaignPerf")}</h3><table class="perf"><thead><tr><th>${t("campaign")}</th><th>${t("platform")}</th><th>${t("clients")}</th><th>${t("won2")}</th></tr></thead><tbody>
         ${campRows.map(x=>`<tr><td style="font-weight:600">#${esc(x.c.id)} ${esc(x.c.name||"")}</td><td>${x.c.platform}</td><td class="num">${x.n}</td><td class="num" style="color:var(--sage)">${x.w}</td></tr>`).join("")}</tbody></table></div>`:""}
-      ${svcArr.length?`<div class="report-block"><h3>${t("servicesRequested")}</h3><table class="perf"><tbody>${svcArr.map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:left;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
-      ${Object.keys(catMap).length?`<div class="report-block"><h3>${t("projectClassification")}</h3><table class="perf"><tbody>${Object.entries(catMap).sort((a,b)=>b[1]-a[1]).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:left;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
+      ${svcArr.length?`<div class="report-block"><h3>${t("servicesRequested")}</h3><table class="perf"><tbody>${svcArr.map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:end;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
+      ${Object.keys(catMap).length?`<div class="report-block"><h3>${t("projectClassification")}</h3><table class="perf"><tbody>${Object.entries(catMap).sort((a,b)=>b[1]-a[1]).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:end;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
       ${owners.length?`<div class="report-block"><h3>${t("teamPerf")}</h3><table class="perf"><thead><tr><th>${t("responsible")}</th><th>${t("clients")}</th><th>${t("won2")}</th><th>${t("cancelCol")}</th><th>${t("conv2")}</th></tr></thead><tbody>
         ${owners.map(o=>{const m=scope.filter(l=>l.owner===o),w=m.filter(l=>l.status==="won").length,cn=m.filter(l=>l.status==="cancelled").length,cl=w+m.filter(l=>l.status==="lost").length;return `<tr><td style="font-weight:600">${esc(ownerLabel(o))}</td><td class="num">${m.length}</td><td class="num" style="color:var(--sage)">${w}</td><td class="num" style="color:var(--ink-soft)">${cn}</td><td class="num">${cl?Math.round(w/cl*100):0}%</td></tr>`;}).join("")}</tbody></table></div>`:""}`;
   }
@@ -2524,7 +2588,7 @@
       const aSnap=await db.collection("audit").orderBy("ts","desc").limit(50).get();
       const rows=aSnap.docs.map(d=>d.data());
       $("#auditLog").innerHTML=rows.length?`<table class="perf"><thead><tr><th>${t("userCol")}</th><th>${t("actionCol")}</th><th>${t("client")}</th><th>${t("timeCol")}</th></tr></thead><tbody>`+
-        rows.map(r=>`<tr><td style="font-weight:600">${esc(r.userName||"")}</td><td>${esc(r.action)}</td><td style="font-size:12.5px">${esc(r.leadName||r.detail||"")}</td><td class="muted" style="font-size:11.5px">${new Date(r.ts).toLocaleString(isEn()?"en-GB":"ar-EG",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</td></tr>`).join("")+`</tbody></table>`
+        rows.map(r=>`<tr><td style="font-weight:600">${esc(r.userName||"")}</td><td>${esc(auditActionLabel(r.action))}</td><td style="font-size:12.5px">${esc(r.leadName||r.detail||"")}</td><td class="muted" style="font-size:11.5px">${new Date(r.ts).toLocaleString(isEn()?"en-GB":"ar-EG",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</td></tr>`).join("")+`</tbody></table>`
       :`<p class="muted" style="padding:12px 0">${t("auditEmpty")}</p>`;
     }catch(e){$("#usersList").innerHTML=`<p class="muted">${t("usersLoadErr")}</p>`;}
   }
@@ -2640,6 +2704,8 @@
       set('#fl-cancelreason',t("flCancelreason"));set('#fl-lostreason',t("flLostreason"));
       set('#fl-quotestart',t("flQuotestart"));set('#fl-quotesubmit',t("flQuotesubmit"));
       set('#fh-notes',t("fhNotes"));set('#fl-drive',t("flDrive"));set('#fl-pain',t("flPain"));set('#fl-plus',t("flPlus"));
+      const phMap={"f-job":"phJob","f-residence":"phResidence","f-pain":"phPain","f-plus":"phPlus"};
+      Object.entries(phMap).forEach(([id,key])=>{const el=document.getElementById(id);if(el)el.placeholder=t(key);});
       set('#saveLeadBtn',t("save"));set('#deleteLeadBtn',t("del"));set('#ncAddBtn',isEn()?"Add Campaign":"إضافة الكامبين");
       // وحدات المساحة: القيمة المحفوظة عربي ثابت (توافق مع بيانات قديمة)، العرض بس بيتترجم
       const auEl=document.getElementById("f-area-unit");
