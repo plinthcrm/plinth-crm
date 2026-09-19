@@ -1008,8 +1008,24 @@
     {k:"مفيش رد بعد إرسال العرض",e:"No response after sending the proposal"},
     {k:"أخرى — مذكورة في الملاحظات",e:"Other — see notes"}];
   const reasonLabel=r=>isEn()?(r.e||r.k):r.k;
-  const cancelReasonDisplay=v=>{if(!v)return"";const f=CANCEL_REASONS.find(r=>r.k===v);return f?reasonLabel(f):v;};
-  const lostReasonDisplay=v=>{if(!v)return"";const f=LOST_REASONS.find(r=>r.k===v);return f?reasonLabel(f):v;};
+  // ── ربط الأسباب القديمة (من نسخ سابقة) بأقرب سبب في القائمة الحالية — عشان التقرير يجمّعهم صح ──
+  const LEGACY_CANCEL_REASON={
+    "متابعة طويلة دون رد":"مفيش رد بعد محاولات متكررة",
+    "مذكور في الملاحظات":"أخرى — مذكورة في الملاحظات",
+    "الموقع الجغرافي غير مناسب":"الموقع الجغرافي بعيد / غير مجدي",
+    "المشروع غير مناسب للشركة":"نطاق العمل مش من تخصصنا",
+    "الميزانية غير مناسبة":"الميزانية أقل من نطاق أسعارنا",
+    "أخرى":"أخرى — مذكورة في الملاحظات"};
+  const LEGACY_LOST_REASON={
+    "السعر أعلى من التوقعات":"السعر أعلى من ميزانية العميل",
+    "العميل لم يرد نهائيًا":"مفيش رد بعد إرسال العرض",
+    "اختار منافس آخر":"منافس قدّم سعر أفضل",
+    "العميل أجّل القرار":"العميل أجّل القرار لأجل غير مسمى",
+    "تغيّر متطلبات العميل":"مدة التنفيذ أطول من المطلوب",
+    "بطء في الرد من جانبنا":"بطء في الرد من جانبنا",
+    "أخرى":"أخرى — مذكورة في الملاحظات"};
+  const cancelReasonDisplay=v=>{if(!v)return"";const norm=LEGACY_CANCEL_REASON[v]||v;const f=CANCEL_REASONS.find(r=>r.k===norm||r.e===norm);return f?reasonLabel(f):v;};
+  const lostReasonDisplay=v=>{if(!v)return"";const norm=LEGACY_LOST_REASON[v]||v;const f=LOST_REASONS.find(r=>r.k===norm||r.e===norm);return f?reasonLabel(f):v;};
   // ── مستوى الميزانية (لتقرير التسويق) ──
   const BUDGET_FIT=[
     {k:"above",t:"فوق البدجت",e:"Above budget",c:"#5C7355"},
@@ -1426,7 +1442,7 @@
       ${staleCount?`<div class="kpi" style="cursor:pointer" onclick="applyQuick('stale')"><div class="lbl">${t("noContact7")}</div><div class="val num" style="color:var(--gold)">${staleCount}</div><div class="sub muted">${t("needsFollowup")}</div></div>`:""}
       ${overdueStage?`<div class="kpi" style="cursor:pointer;border-color:var(--gold)" onclick="applyQuick('overdue_stage')"><div class="lbl">${t("overdueStage")}</div><div class="val num" style="color:#8A6D3B">${overdueStage}</div><div class="sub muted">${t("exceededSla")}</div></div>`:""}
       ${weightedTxt?`<div class="kpi" style="border-color:var(--sage)"><div class="lbl">${t("weighted")}</div><div class="val num" style="color:var(--sage);font-size:12px">${weightedTxt}</div><div class="sub muted">${t("weightedSub")}</div></div>`:""}
-      ${jobsGrandTxt?`<div class="kpi accent" style="border-color:var(--clay)"><div class="lbl">${t("jobsGrandTotal")}</div><div class="val num" style="color:var(--clay)">${jobsGrandTxt}</div><div class="sub muted">${t("jobsTitle").replace("💼 ","")}</div></div>`:""}`;
+      ${jobsGrandTxt?`<div class="kpi accent" style="border-color:var(--clay)"><div class="lbl">${t("jobsGrandTotal")}</div><div class="val num" style="color:var(--clay);font-size:12px">${jobsGrandTxt}</div><div class="sub muted">${t("jobsTitle").replace("💼 ","")}</div></div>`:""}`;
 
     // priority (all, scrollable)
     const scored=leads.map(l=>({l,p:priority(l)})).filter(x=>x.p&&x.p.sc>0).sort((a,b)=>b.p.sc-a.p.sc);
@@ -1723,8 +1739,8 @@
     const bfEl=$("#f-budgetFit");if(bfEl)bfEl.value=l.budgetFit||"unknown";
     const jbEl=$("#f-job");if(jbEl)jbEl.value=l.job||"";
     const rsEl=$("#f-residence");if(rsEl)rsEl.value=l.residence||"";
-    const crEl=$("#f-cancelReason");if(crEl)crEl.value=l.cancelReason||"";
-    const lrEl=$("#f-lostReason");if(lrEl)lrEl.value=l.lostReason||"";
+    const crEl=$("#f-cancelReason");if(crEl)crEl.value=LEGACY_CANCEL_REASON[l.cancelReason]||l.cancelReason||"";
+    const lrEl=$("#f-lostReason");if(lrEl)lrEl.value=LEGACY_LOST_REASON[l.lostReason]||l.lostReason||"";
     onSourceChange(); if(ed&&l.campaignId)renderCampaignSel(l.campaignId);
     $("#deleteLeadBtn").style.display=ed?"inline-flex":"none";
     $("#formOverlay").classList.add("show");$(".modal-b").scrollTop=0;
