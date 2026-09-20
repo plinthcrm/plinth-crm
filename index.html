@@ -447,6 +447,7 @@
         <input type="checkbox" id="kbShowClosed" style="width:auto;margin:0"> <span id="kbShowClosedLbl">إظهار المغلقة</span>
       </label>
       <select class="filter" id="kbOwner" style="min-width:130px"></select>
+      <select class="filter" id="kbPriority" style="min-width:110px"></select>
       <span class="muted" style="font-size:11.5px" id="kbHint">اسحب الكارت لمرحلة تانية</span>
     </div>
     <div class="kb-wrap"><div class="kb" id="kbBoard"></div></div>
@@ -478,6 +479,10 @@
     <div class="row"><div class="section-title" id="usersMgmtTitle">إدارة المستخدمين</div>
       <button class="btn btn-primary btn-sm" onclick="openAddUser()" id="newUserBtn">＋ مستخدم جديد</button></div>
     <div class="card"><div class="card-b" id="usersList" style="padding-top:8px"></div></div>
+    <div class="card" style="margin-top:18px">
+      <div class="card-h" id="autoBackupTitle" style="color:var(--sage)">💾 النسخ الاحتياطي التلقائي</div>
+      <div class="card-b" id="autoBackupStatus" style="padding-top:8px"></div>
+    </div>
     <div class="card" style="margin-top:18px" id="pendingTransfersCard">
       <div class="card-h" id="pendingTransfersTitle" style="color:var(--gold)">⏳ طلبات نقل المسؤولية المعلّقة</div>
       <div class="card-b" id="pendingTransfersList" style="padding-top:8px"></div>
@@ -695,7 +700,7 @@
     ar:{
       dash:"لوحة المتابعة", pipeline:"الـ Pipeline", leads:"العملاء", report:"التقرير", users:"👤 المستخدمون",
       search:"ابحث بالاسم، التليفون، أو الكمباوند…",
-      allStatuses:"كل الحالات", allQuality:"كل الجودة", allOwners:"كل المسؤولين", allSources:"كل المصادر",
+      allStatuses:"كل الحالات", allQuality:"كل الجودة", allOwners:"كل المسؤولين", allSources:"كل المصادر", allPriorities:"كل الأولويات",
       hideTerminal:"إخفاء الإلغاء والخسارة", lookalike:"🎯 المهتمين والمحتملين (Look-alike)",
       newLead:"＋ عميل جديد", edit:"✎ تعديل", del:"حذف", save:"حفظ", cancel:"إلغاء", close:"×",
       totalLeads:"إجمالي العملاء", activePipeline:"Pipeline النشطة ›", won:"مكسوب ›", convRate:"نسبة التحويل",
@@ -745,6 +750,15 @@
       jobDate:"التاريخ", jobsTotal:"إجمالي العقود", noJobs:"لسه مفيش Jobs مُسجّلة.",
       jobDeleteConfirm:"تحذف الـ Job ده؟", jobAdded:"تم إضافة Job", jobDeleted:"تم حذف Job",
       jobCurrency:"العملة", editJobTitle:"تعديل Job", jobUpdated:"تم تحديث Job", auditEditJob:"تعديل Job",
+      auditValueChange:"⚠ تعديل القيمة المالية",
+      jobApproved:"معتمد", jobPending:"غير معتمد", approvedQuotation:"Approved Quotation",
+      jobStatusLbl:"حالة الـ Job", jobProbLbl:"نسبة احتمال التوقيع %",
+      jobsApprovedTotal:"إجمالي المعتمد", jobsWonTotal:"إجمالي تعاقدات مكسوبة فعلياً",
+      jobsPendingWonTotal:"عقود متوقعة من عملاء مكسوبين", jobsFullForecast:"إجمالي الـ Forecast",
+      jobsFullForecastSub:"يشمل عملاء won + عملاء الـ Pipeline النشطة", jobTransitionTitle:"معدل تحويل Job إلى Job تاني",
+      jobTransitionEmpty:"لسه مفيش بيانات كافية — تحتاج عملاء عندهم أكتر من Job واحد",
+      jobTransitionRow:"من {from} إلى {to}",
+      lastAutoBackup:"آخر نسخة تلقائية", byUser:"بواسطة", noAutoBackupYet:"لسه مفيش نسخة تلقائية اتاخدت — هتحصل تلقائياً أول ما أي Admin يفتح التطبيق",
       jobTitlePlaceholder:"مثلاً: تصميم داخلي، تنفيذ Core & Shell…", jobsGrandTotal:"إجمالي قيمة العقود",
       importExcel:"⬆ إكسيل", backupBtn:"💾 نسخة", restoreBtnLbl:"📂 استرجاع", exportCsv:"⬇ CSV", logout:"خروج",
       auditEditData:"تعديل بيانات", auditNewLead:"إضافة عميل جديد",
@@ -779,6 +793,8 @@
       starsHint:"⭐ الأولوية — دوس على النجوم لتحديد مدى إلحاح المتابعة (1-3). العملاء بأولوية أعلى بيظهروا الأول في العمود.",
       loginNamedFor:"يوجد لكل مستخدم", cannotChangeSelf:"مينفعش تغيّر صلاحيتك بنفسك", cannotChangeSuperAdmin:"مينفعش حد يغيّر الـ Super Admin",
       cannotChangeSame:"مينفعش تغيّر مستخدم في نفس رتبتك أو أعلى منك",
+      loginLocked:"محاولات كتير غلط — حاول تاني بعد {s}", wrongCreds:"البريد أو كلمة المرور غلط",
+      attemptsLeft:"محاولات متبقية", minutesWord:"دقيقة", secondsWord:"ثانية",
       fhBasic:"البيانات الأساسية", flName:"الاسم / الجهة *", flPhone:"التليفون الأساسي",
       flVerified:"الرقم متأكد منه (Verified) ✓", flPhone2:"تليفون ثانوي (اختياري)", flEmail:"الإيميل (إن وُجد)",
       flOwner:"المسؤول عن المتابعة", flRdate:"تاريخ إرسال العميل", flRtime:"وقت الإرسال",
@@ -805,7 +821,7 @@
     en:{
       dash:"Dashboard", pipeline:"Pipeline", leads:"Leads", report:"Report", users:"👤 Users",
       search:"Search by name, phone, or compound…",
-      allStatuses:"All stages", allQuality:"All quality", allOwners:"All owners", allSources:"All sources",
+      allStatuses:"All stages", allQuality:"All quality", allOwners:"All owners", allSources:"All sources", allPriorities:"All priorities",
       hideTerminal:"Hide cancelled & lost", lookalike:"🎯 Interested & potential (Look-alike)",
       newLead:"＋ New Lead", edit:"✎ Edit", del:"Delete", save:"Save", cancel:"Cancel", close:"×",
       totalLeads:"Total Leads", activePipeline:"Active Pipeline ›", won:"Won ›", convRate:"Conversion Rate",
@@ -855,6 +871,15 @@
       jobDate:"Date", jobsTotal:"Total Contracts", noJobs:"No jobs recorded yet.",
       jobDeleteConfirm:"Delete this job?", jobAdded:"Job added", jobDeleted:"Job deleted",
       jobCurrency:"Currency", editJobTitle:"Edit Job", jobUpdated:"Job updated", auditEditJob:"Edited job",
+      auditValueChange:"⚠ Financial value changed",
+      jobApproved:"Approved", jobPending:"Pending", approvedQuotation:"Approved Quotation",
+      jobStatusLbl:"Job Status", jobProbLbl:"Probability of signing %",
+      jobsApprovedTotal:"Total Approved", jobsWonTotal:"Total Actually Won Contracts",
+      jobsPendingWonTotal:"Expected Contracts from Won Clients", jobsFullForecast:"Total Forecast",
+      jobsFullForecastSub:"Includes won clients + active pipeline", jobTransitionTitle:"Job-to-Job Conversion Rate",
+      jobTransitionEmpty:"Not enough data yet — needs clients with more than one Job",
+      jobTransitionRow:"From {from} to {to}",
+      lastAutoBackup:"Last auto-backup", byUser:"by", noAutoBackupYet:"No auto-backup taken yet — it'll happen automatically next time an Admin opens the app",
       jobTitlePlaceholder:"e.g. Interior Design, Core & Shell Execution…", jobsGrandTotal:"Total Contract Value",
       importExcel:"⬆ Excel", backupBtn:"💾 Backup", restoreBtnLbl:"📂 Restore", exportCsv:"⬇ CSV", logout:"Logout",
       auditEditData:"Edited data", auditNewLead:"Added new lead",
@@ -889,6 +914,8 @@
       starsHint:"⭐ Priority — click the stars to set follow-up urgency (1-3). Higher-priority leads show first in the column.",
       loginNamedFor:"Each user has", cannotChangeSelf:"You cannot change your own role", cannotChangeSuperAdmin:"No one can change the Super Admin",
       cannotChangeSame:"You cannot change a user at your rank or above",
+      loginLocked:"Too many failed attempts — try again in {s}", wrongCreds:"Wrong email or password",
+      attemptsLeft:"attempts left", minutesWord:"min", secondsWord:"sec",
       fhBasic:"Basic Information", flName:"Name / Company *", flPhone:"Primary Phone",
       flVerified:"Number verified ✓", flPhone2:"Secondary Phone (optional)", flEmail:"Email (if available)",
       flOwner:"Assigned To", flRdate:"Lead Submission Date", flRtime:"Submission Time",
@@ -957,6 +984,10 @@
   const isActive=l=>!TERMINAL.includes(l.status);
   // ── Jobs: بنود العقود المالية تحت العميل (تصميم/تنفيذ/صيانة...) — منفصلة عن حالة الـ pipeline ──
   const jobsOf=l=>Array.isArray(l.jobs)?l.jobs:[];
+  // حالة الـ Job: القديمة (بدون status) تُعتبر approved تلقائياً — توافق مع البيانات السابقة
+  const jobStatus=j=>j.status||"approved";
+  const isApprovedJob=j=>jobStatus(j)==="approved";
+  const jobProbability=j=>isApprovedJob(j)?100:(Number(j.probability)>=0?Number(j.probability):50);
   function jobsTotalsByCurrency(l){
     const t={};
     jobsOf(l).forEach(j=>{const c=j.currency||"EGP";t[c]=(t[c]||0)+(Number(j.value)||0);});
@@ -976,6 +1007,65 @@
   function allJobsTotalsText(predicate){
     const t=allJobsTotalsByCurrency(predicate);
     return Object.entries(t).filter(([,v])=>v>0).map(([c,v])=>fmt(v)+" "+c).join(" · ")||"—";
+  }
+  // ── الأرقام المالية الجديدة، مبنية على حالة الـ Job نفسها بدل القيمة التقديرية ──
+  // 1) إجمالي تعاقدات مكسوبة فعلياً = كل الـ Jobs المعتمدة (Approved)، بغض النظر عن حالة العميل
+  function approvedJobsTotals(predicate){
+    const t={EGP:0,SAR:0,USD:0};
+    leads.filter(predicate||(()=>true)).forEach(l=>{
+      jobsOf(l).filter(isApprovedJob).forEach(j=>{const c=j.currency||"EGP";t[c]=(t[c]||0)+(Number(j.value)||0);});
+    });
+    return t;
+  }
+  // 2) عقود متوقعة من عملاء مكسوبين = Jobs غير معتمدة (Pending) × نسبتها، بس لعملاء حالتهم won
+  function pendingJobsFromWonTotals(){
+    const t={EGP:0,SAR:0,USD:0};
+    leads.filter(l=>l.status==="won").forEach(l=>{
+      jobsOf(l).filter(j=>!isApprovedJob(j)).forEach(j=>{
+        const c=j.currency||"EGP"; t[c]=(t[c]||0)+(Number(j.value)||0)*(jobProbability(j)/100);
+      });
+    });
+    return t;
+  }
+  // 3) إجمالي الـ Forecast = (Jobs غير معتمدة لعملاء won × نسبتها) + (القيمة التقديرية لعملاء الـ Pipeline النشطة × احتمالية مرحلتهم)
+  function fullForecastTotals(){
+    const t={EGP:0,SAR:0,USD:0};
+    leads.forEach(l=>{
+      if(l.status==="won"){
+        jobsOf(l).filter(j=>!isApprovedJob(j)).forEach(j=>{
+          const c=j.currency||"EGP"; t[c]=(t[c]||0)+(Number(j.value)||0)*(jobProbability(j)/100);
+        });
+      } else if(isActive(l)&&l.value&&Number(l.value)>0){
+        const st=stById(l.status), pr=(st.prob||0)/100, c=l.currency||"EGP";
+        t[c]=(t[c]||0)+(Number(l.value)||0)*pr;
+      }
+    });
+    return t;
+  }
+  function totalsTextFrom(totalsObj){
+    return Object.entries(totalsObj).filter(([,v])=>v>0).map(([c,v])=>fmt(Math.round(v))+" "+c).join(" · ")||"—";
+  }
+  // ── إحصائية: معدل تحويل نوع Job لنوع تاني (حقيقي، بيتحدث تلقائياً مع أي تعديل) ──
+  // بيحسب: من كل العملاء اللي عندهم Job بعنوان معيّن (مصدر)، كام واحد فيهم عنده كمان Job بعنوان مختلف (هدف)
+  function jobTransitionStats(){
+    const withJobs=leads.filter(l=>jobsOf(l).length>0);
+    const titleCount={}; // كام عميل عنده كل عنوان Job
+    const pairCount={}; // كام عميل عنده عنوانين (from→to) مع بعض
+    withJobs.forEach(l=>{
+      const titles=[...new Set(jobsOf(l).map(j=>(j.title||"").trim()).filter(Boolean))];
+      titles.forEach(t=>titleCount[t]=(titleCount[t]||0)+1);
+      for(let i=0;i<titles.length;i++)for(let j=0;j<titles.length;j++){
+        if(i===j)continue;
+        const key=titles[i]+"→"+titles[j];
+        pairCount[key]=(pairCount[key]||0)+1;
+      }
+    });
+    const rows=Object.entries(pairCount).map(([key,count])=>{
+      const [from,to]=key.split("→");
+      const base=titleCount[from]||1;
+      return {from,to,count,base,pct:Math.round(count/base*100)};
+    }).sort((a,b)=>b.count-a.count);
+    return rows;
   }
   // خريطة تحويل الحالات القديمة للجديدة (backward compatibility)
   const LEGACY_STATUS={contacted_ans:"contacted",contacted_no:"no_answer"};
@@ -1134,6 +1224,29 @@
   const isAdmin=()=>currentRole==="super_admin"||currentRole==="admin";
   const isSuperAdmin=()=>currentRole==="super_admin";
 
+  // ---- Rate limiting لمحاولات الدخول الفاشلة (حماية من Brute-force) ----
+  const LOGIN_LOCK_KEY="crm:loginAttempts";
+  function getLoginAttempts(){try{return JSON.parse(localStorage.getItem(LOGIN_LOCK_KEY)||"{}");}catch(e){return{};}}
+  function saveLoginAttempts(d){try{localStorage.setItem(LOGIN_LOCK_KEY,JSON.stringify(d));}catch(e){}}
+  function checkLoginLock(email){
+    const all=getLoginAttempts(), rec=all[email];
+    if(!rec)return null;
+    if(rec.lockedUntil&&Date.now()<rec.lockedUntil)return Math.ceil((rec.lockedUntil-Date.now())/1000);
+    return null;
+  }
+  function recordFailedLogin(email){
+    const all=getLoginAttempts();
+    const rec=all[email]||{count:0};
+    rec.count=(rec.count||0)+1;
+    // تصاعدي: 3 محاولات = 30 ثانية، 5 = دقيقتين، 7+ = 10 دقايق
+    if(rec.count>=7) rec.lockedUntil=Date.now()+10*60*1000;
+    else if(rec.count>=5) rec.lockedUntil=Date.now()+2*60*1000;
+    else if(rec.count>=3) rec.lockedUntil=Date.now()+30*1000;
+    all[email]=rec; saveLoginAttempts(all);
+    return rec;
+  }
+  function clearLoginAttempts(email){const all=getLoginAttempts();delete all[email];saveLoginAttempts(all);}
+
   // ---- cloud storage ----
   function initCloud(){
     if(typeof firebase==="undefined"||!window.FIREBASE_CONFIG)throw new Error("no-firebase");
@@ -1144,9 +1257,27 @@
     if(loginBtn) loginBtn.onclick=async()=>{
       const email=$("#loginEmail").value.trim(), pass=$("#loginPass").value;
       const errEl=$("#loginErr"); errEl.style.display="none";
+      const lockedSecs=checkLoginLock(email);
+      if(lockedSecs){
+        errEl.textContent=t("loginLocked").replace("{s}",lockedSecs>60?Math.ceil(lockedSecs/60)+" "+t("minutesWord"):lockedSecs+" "+t("secondsWord"));
+        errEl.style.display="block";
+        return;
+      }
       loginBtn.textContent="جاري الدخول…"; loginBtn.disabled=true;
-      try{ await auth.signInWithEmailAndPassword(email,pass); }
-      catch(e){ errEl.textContent=e.code==="auth/invalid-credential"||e.code==="auth/wrong-password"||e.code==="auth/user-not-found"?"البريد أو كلمة المرور غلط":"خطأ: "+e.message; errEl.style.display="block"; loginBtn.textContent="دخول"; loginBtn.disabled=false; }
+      try{ await auth.signInWithEmailAndPassword(email,pass); clearLoginAttempts(email); }
+      catch(e){
+        const isBadCred=e.code==="auth/invalid-credential"||e.code==="auth/wrong-password"||e.code==="auth/user-not-found";
+        if(isBadCred){
+          const rec=recordFailedLogin(email);
+          if(rec.lockedUntil){
+            const secs=Math.ceil((rec.lockedUntil-Date.now())/1000);
+            errEl.textContent=t("loginLocked").replace("{s}",secs>60?Math.ceil(secs/60)+" "+t("minutesWord"):secs+" "+t("secondsWord"));
+          } else {
+            errEl.textContent=t("wrongCreds")+" ("+(5-rec.count)+" "+t("attemptsLeft")+")";
+          }
+        } else { errEl.textContent="خطأ: "+e.message; }
+        errEl.style.display="block"; loginBtn.textContent="دخول"; loginBtn.disabled=false;
+      }
     };
     // allow login on Enter
     ["loginEmail","loginPass"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("keydown",e=>{if(e.key==="Enter")loginBtn&&loginBtn.click();});});
@@ -1260,6 +1391,7 @@
     // (no longer redirect to report-only)
   }
   window.doLogout=async function(){ try{await auth.signOut();}catch(e){} };
+  let autoBackupChecked=false;
   function startListeners(){
     db.collection("leads").onSnapshot(snap=>{
       leads=snap.docs.map(d=>d.data());
@@ -1268,6 +1400,7 @@
       ready=true; $("#loadingState").style.display="none";
       renderAll();
       if($("#detailOverlay").classList.contains("show")&&currentDetailId)renderDetail();
+      if(!autoBackupChecked){autoBackupChecked=true;runAutoBackupIfDue();}
     },err=>{$("#loadingState").innerHTML='<div style="padding:30px">⚠ تعذّر الاتصال — تأكد من صلاحيات Firestore.</div>';});
     db.collection("campaigns").onSnapshot(snap=>{campaigns=snap.docs.map(d=>d.data());},()=>{});
     if(isAdmin()) loadUsersTab();
@@ -1323,13 +1456,23 @@
 
   async function putLead(l){
     l.updatedAt=Date.now();
+    const i=leads.findIndex(x=>x.id===l.id);
+    // نستخدم نسخة نظيفة من قبل التعديل لو متوفرة (زي الفورم اللي بيعمل Object.assign في مكانه)، وإلا نعتمد على الحالة الحالية في المصفوفة
+    const prev=l.__prevSnapshot||(i>=0?leads[i]:null);
+    delete l.__prevSnapshot;
     // ترحيل تلقائي: عميل مكسوب وعنده قيمة تقديرية بس مفيش Jobs مسجّلة → نعمل Job أول تلقائي بنفس القيمة
     if(l.status==="won"&&l.value&&Number(l.value)>0&&!jobsOf(l).length){
       l.jobs=[{id:uid(),title:t("originalWonValue"),value:Number(l.value),currency:l.currency||"EGP",date:l.updatedAt?new Date(l.updatedAt).toISOString().slice(0,10):todayStr(),addedBy:t("autoMigrated"),ts:Date.now(),auto:true}];
     }
-    const i=leads.findIndex(x=>x.id===l.id); if(i>=0)leads[i]=l; else leads.unshift(l);
+    if(i>=0)leads[i]=l; else leads.unshift(l);
     try{
       await db.collection("leads").doc(l.id).set(JSON.parse(JSON.stringify(l)));
+      // تسجيل تفصيلي لو القيمة المالية اتغيّرت — مهم لمراجعة أي تعديل على عقود بملايين الجنيهات
+      if(prev&&canSeeValue()&&(Number(prev.value||0)!==Number(l.value||0)||prev.currency!==l.currency)){
+        const oldTxt=(prev.value?fmt(prev.value):"0")+" "+(prev.currency||"EGP");
+        const newTxt=(l.value?fmt(l.value):"0")+" "+(l.currency||"EGP");
+        logAudit(t("auditValueChange"),l.id,l.name,oldTxt+" ← "+newTxt);
+      }
       logAudit(i>=0?t("auditEditData"):t("auditNewLead"), l.id, l.name, t("auditStatusLbl")+": "+L(stById(l.status)));
     }catch(e){toast("تعذّر الحفظ على السحابة");}
   }
@@ -1351,6 +1494,31 @@
     const data=JSON.stringify({app:"plinth-leads",v:2,exportedAt:new Date().toISOString(),leads,campaigns});
     const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([data],{type:"application/json"}));
     a.download="plinth-leads-backup-"+todayStr()+".json";a.click();toast("تم تنزيل النسخة الاحتياطية");
+  }
+  // ── Backup تلقائي يومي: بيتحفظ في Firestore بصمت، بدون تدخل بشري ──
+  // يشتغل مرة كل 24 ساعة، بواسطة أي Admin/Super Admin بيفتح التطبيق (أول واحد يفتحه بعد مرور اليوم)
+  const AUTO_BACKUP_KEEP=14; // الاحتفاظ بآخر 14 نسخة بس، لتفادي تضخم القاعدة
+  async function runAutoBackupIfDue(){
+    if(!isAdmin())return;
+    try{
+      const metaRef=db.collection("backups").doc("_meta");
+      const metaSnap=await metaRef.get();
+      const lastAt=metaSnap.exists?(metaSnap.data().lastAutoBackupAt||0):0;
+      if(Date.now()-lastAt<24*60*60*1000)return; // لسه ما فاتش يوم كامل
+      const stamp=new Date().toISOString().slice(0,10);
+      const payload={app:"plinth-leads",v:2,auto:true,exportedAt:new Date().toISOString(),by:currentUserName||"—",leads:JSON.parse(JSON.stringify(leads)),campaigns:JSON.parse(JSON.stringify(campaigns))};
+      await db.collection("backups").doc("auto-"+stamp).set(payload);
+      await metaRef.set({lastAutoBackupAt:Date.now(),lastAutoBackupBy:currentUserName||"—"},{merge:true});
+      // تنظيف النسخ الأقدم من AUTO_BACKUP_KEEP يوم — تفادي تضخم القاعدة مع الوقت
+      const cutoff=new Date(Date.now()-AUTO_BACKUP_KEEP*24*60*60*1000).toISOString().slice(0,10);
+      const oldSnap=await db.collection("backups").get();
+      oldSnap.forEach(doc=>{
+        if(doc.id.startsWith("auto-")){
+          const dateStr=doc.id.replace("auto-","");
+          if(dateStr<cutoff)doc.ref.delete().catch(()=>{});
+        }
+      });
+    }catch(e){/* الفشل هنا صامت — النسخ التلقائي إضافي، مش لازم يعطّل التطبيق */}
   }
   async function restore(file){
     try{const txt=await file.text();const o=JSON.parse(txt);
@@ -1439,17 +1607,10 @@
     const staleCount=leads.filter(l=>{if(!isActive(l))return false;const lt=lastTs(l)||l.createdAt;return Math.floor((Date.now()-lt)/864e5)>7;}).length;
     const overdueStage=leads.filter(l=>stageOverdue(l)).length;
     // التوقع المرجّح: القيمة × احتمالية المرحلة (زي Odoo)
-    let weighted={};
-    if(canSeeValue()){
-      convLeads.filter(l=>isActive(l)).forEach(l=>{
-        const st=stById(l.status), pr=(st.prob||0)/100, v=Number(l.value)||0;
-        if(!v||!pr)return; const c=l.currency||"EGP";
-        weighted[c]=(weighted[c]||0)+v*pr;
-      });
-    }
-    const weightedTxt=Object.entries(weighted).filter(([,v])=>v>0).map(([c,v])=>fmt(Math.round(v))+" "+c).join(" · ");
-    // إجمالي قيمة العقود (Jobs) — Admin+ بس
-    const jobsGrandTxt=canSeeValue()?allJobsTotalsText(l=>true):"";
+    // ── النظام الجديد: 3 أرقام مبنية على حالة الـ Job نفسها، مش القيمة التقديرية ──
+    const jobsWonTxt=canSeeValue()?totalsTextFrom(approvedJobsTotals()):"";
+    const jobsPendingWonTxt=canSeeValue()?totalsTextFrom(pendingJobsFromWonTotals()):"";
+    const fullForecastTxt=canSeeValue()?totalsTextFrom(fullForecastTotals()):"";
     $("#kpiGrid").innerHTML=`
       <div class="kpi accent" style="cursor:pointer" onclick="applyQuick(null)"><div class="lbl">${t("totalLeads")}</div><div class="val num">${leads.length}</div><div class="sub muted">${active.length} ${t("active")}</div></div>
       <div class="kpi" style="cursor:pointer" onclick="applyQuick('active')"><div class="lbl">${t("activePipeline")}</div><div class="val num">${active.length}</div><div class="sub muted">${canSeeValue()?totalsByCurrency(l=>isActive(l)):""}</div></div>
@@ -1460,8 +1621,9 @@
       ${thisMonthLost?`<div class="kpi" style="cursor:pointer" onclick="applyQuick('lost_month')"><div class="lbl">${t("lostMonth")}</div><div class="val num" style="color:var(--rose)">${thisMonthLost}</div><div class="sub muted">${now.toLocaleString(isEn()?'en-GB':'ar-EG',{month:'long'})}</div></div>`:""}
       ${staleCount?`<div class="kpi" style="cursor:pointer" onclick="applyQuick('stale')"><div class="lbl">${t("noContact7")}</div><div class="val num" style="color:var(--gold)">${staleCount}</div><div class="sub muted">${t("needsFollowup")}</div></div>`:""}
       ${overdueStage?`<div class="kpi" style="cursor:pointer;border-color:var(--gold)" onclick="applyQuick('overdue_stage')"><div class="lbl">${t("overdueStage")}</div><div class="val num" style="color:#8A6D3B">${overdueStage}</div><div class="sub muted">${t("exceededSla")}</div></div>`:""}
-      ${weightedTxt?`<div class="kpi" style="border-color:var(--sage)"><div class="lbl">${t("weighted")}</div><div class="val num" style="color:var(--sage);font-size:12px">${weightedTxt}</div><div class="sub muted">${t("weightedSub")}</div></div>`:""}
-      ${jobsGrandTxt?`<div class="kpi accent" style="border-color:var(--clay)"><div class="lbl">${t("jobsGrandTotal")}</div><div class="val num" style="color:var(--clay);font-size:12px">${jobsGrandTxt}</div><div class="sub muted">${t("jobsTitle").replace("💼 ","")}</div></div>`:""}`;
+      ${jobsWonTxt&&jobsWonTxt!=='—'?`<div class="kpi accent" style="border-color:var(--sage)"><div class="lbl">${t("jobsWonTotal")}</div><div class="val num" style="color:var(--sage);font-size:12px">${jobsWonTxt}</div><div class="sub muted">${t("jobApproved")} Jobs</div></div>`:""}
+      ${jobsPendingWonTxt&&jobsPendingWonTxt!=='—'?`<div class="kpi" style="border-color:var(--clay)"><div class="lbl">${t("jobsPendingWonTotal")}</div><div class="val num" style="color:var(--clay);font-size:12px">${jobsPendingWonTxt}</div><div class="sub muted">${t("jobPending")} Jobs</div></div>`:""}
+      ${fullForecastTxt&&fullForecastTxt!=='—'?`<div class="kpi" style="border-color:var(--gold)"><div class="lbl">${t("jobsFullForecast")}</div><div class="val num" style="color:#8A6D3B;font-size:12px">${fullForecastTxt}</div><div class="sub muted">${t("jobsFullForecastSub")}</div></div>`:""}`;
 
     // priority (all, scrollable)
     const scored=leads.map(l=>({l,p:priority(l)})).filter(x=>x.p&&x.p.sc>0).sort((a,b)=>b.p.sc-a.p.sc);
@@ -1570,9 +1732,10 @@
     const board=document.getElementById("kbBoard"); if(!board)return;
     const showClosed=document.getElementById("kbShowClosed")?.checked;
     const ownerF=document.getElementById("kbOwner")?.value||"";
+    const priorityF=document.getElementById("kbPriority")?.value||"";
     const folded=kbFolded();
     const cols=STATUSES.filter(st=>showClosed?true:!st.fold);
-    const pool=leads.filter(l=>!ownerF||l.owner===ownerF);
+    const pool=leads.filter(l=>(!ownerF||l.owner===ownerF)&&(!priorityF||(l.priority||0)===Number(priorityF)));
 
     board.innerHTML=cols.map(st=>{
       const items=pool.filter(l=>normStatus(l.status)===st.k)
@@ -1799,7 +1962,12 @@
      if(!prev||normStatus(prev.status)!==normStatus(data.status))data.stageChangedAt=Date.now();
      else data.stageChangedAt=prev.stageChangedAt||prev.updatedAt||Date.now();}
     let target;
-    if(id){target=Object.assign(leads.find(x=>x.id===id),data);}
+    if(id){
+      const existing=leads.find(x=>x.id===id);
+      const prevSnapshot=existing?JSON.parse(JSON.stringify(existing)):null; // نسخة منفصلة قبل التعديل، عشان putLead تقدر تقارن القديم بالجديد صح
+      target=Object.assign(existing,data);
+      target.__prevSnapshot=prevSnapshot;
+    }
     else{const note=$("#f-note").value.trim();target={id:uid(),createdAt:Date.now(),notes:note?[{id:uid(),ts:Date.now(),kind:"note",text:note}]:[],...data};}
     await putLead(target);
     $("#formOverlay").classList.remove("show"); // close edit form only
@@ -1905,16 +2073,21 @@
 
       ${canSeeValue()?acc("jobs",t("jobsTitle"),jobsOf(l).length||"",(function(){
         const jobs=jobsOf(l);
-        const rows=jobs.map(j=>`<div class="info-box" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px">
-          <div><div style="font-weight:600;font-size:13.5px">${esc(j.title)}</div><div class="muted" style="font-size:11.5px;margin-top:2px">${esc(j.date||"")}</div></div>
+        const rows=jobs.map(j=>{
+          const approved=isApprovedJob(j);
+          const badge=approved
+            ? `<span class="chip" style="background:var(--sage-soft);color:var(--sage);font-size:10px;font-weight:700">${t("jobApproved")}</span>`
+            : `<span class="chip" style="background:#FCF3E8;color:#8A6D3B;font-size:10px;font-weight:700">${t("jobPending")} ${jobProbability(j)}%</span>`;
+          return `<div class="info-box" style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px">
+          <div><div style="font-weight:600;font-size:13.5px;display:flex;align-items:center;gap:7px">${esc(j.title)}${badge}</div><div class="muted" style="font-size:11.5px;margin-top:2px">${esc(j.date||"")}</div></div>
           <div style="display:flex;align-items:center;gap:10px">
             <div class="num" style="font-weight:700;color:var(--clay)">${fmt(j.value)} ${esc(j.currency||"EGP")}</div>
             ${canWrite()?`<button class="tl-del" style="color:var(--clay);border-color:var(--clay)" onclick="editJob('${l.id}','${j.id}')">${t("editBtn").replace("✎ ","")}</button>`:""}
             ${canDelete()?`<button class="tl-del" onclick="deleteJob('${l.id}','${j.id}')">${t("del")}</button>`:""}
-          </div></div>`).join("");
-        const totalTxt=jobsTotalsText(l);
+          </div></div>`;}).join("");
+        const approvedTxt=totalsTextFrom(approvedJobsTotals(x=>x.id===l.id));
         return `${rows||`<div class="muted" style="font-size:12.5px;padding:6px 0 12px">${t("noJobs")}</div>`}
-          ${totalTxt?`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--sage-soft);border-radius:11px;margin-bottom:12px"><span style="font-weight:700;font-size:13px;color:var(--sage)">${t("jobsTotal")}</span><span class="num" style="font-weight:700;color:var(--sage)">${totalTxt}</span></div>`:""}
+          ${approvedTxt!=="—"?`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--sage-soft);border-radius:11px;margin-bottom:12px"><span style="font-weight:700;font-size:13px;color:var(--sage)">${t("jobsApprovedTotal")}</span><span class="num" style="font-weight:700;color:var(--sage)">${approvedTxt}</span></div>`:""}
           ${canWrite()?`<div class="add-job-card">
             <div class="add-job-hdr" id="addJobHdr-${l.id}">${t("addJob")}</div>
             <input type="hidden" id="editJobId">
@@ -1924,6 +2097,18 @@
               <div class="field" style="margin:0"><label style="font-size:11.5px">${t("jobCurrency")}</label><select id="newJobCurrency"><option>EGP</option><option>SAR</option><option>USD</option></select></div>
               <div class="field" style="margin:0"><label style="font-size:11.5px">${t("jobDate")}</label><input id="newJobDate" type="date" value="${todayStr()}"></div>
               <button class="btn btn-primary btn-sm add-job-btn" id="addJobBtn-${l.id}" onclick="addJob('${l.id}')">${t("addJob")}</button>
+            </div>
+            <div class="add-job-grid" style="margin-top:10px;grid-template-columns:1fr 1fr">
+              <div class="field" style="margin:0"><label style="font-size:11.5px">${t("jobStatusLbl")}</label>
+                <select id="newJobStatus" onchange="document.getElementById('jobProbWrap').style.display=this.value==='pending'?'block':'none'">
+                  <option value="approved">${t("jobApproved")} = ${t("approvedQuotation")}</option>
+                  <option value="pending">${t("jobPending")}</option>
+                </select>
+              </div>
+              <div class="field" id="jobProbWrap" style="margin:0;display:none">
+                <label style="font-size:11.5px">${t("jobProbLbl")}</label>
+                <input id="newJobProb" type="number" min="0" max="100" placeholder="90" value="50">
+              </div>
             </div>
           </div>`:""}`;
       })(),true):""}
@@ -2099,26 +2284,34 @@
     const l=leads.find(x=>x.id===lid); if(!l)return;
     const titleEl=document.getElementById("newJobTitle"), valueEl=document.getElementById("newJobValue"),
       dateEl=document.getElementById("newJobDate"), currEl=document.getElementById("newJobCurrency"),
+      statusEl=document.getElementById("newJobStatus"), probEl=document.getElementById("newJobProb"),
       editIdEl=document.getElementById("editJobId");
     const title=titleEl?titleEl.value.trim():"", value=valueEl?Number(valueEl.value):0,
-      date=dateEl?dateEl.value:todayStr(), currency=currEl?currEl.value:(l.currency||"EGP");
+      date=dateEl?dateEl.value:todayStr(), currency=currEl?currEl.value:(l.currency||"EGP"),
+      status=statusEl?statusEl.value:"approved",
+      probability=status==="pending"?Math.max(0,Math.min(100,Number(probEl?.value)||50)):100;
     if(!title||!value){toast(isEn()?"Enter a job title and value":"اكتب عنوان الـ Job والقيمة");return;}
     l.jobs=jobsOf(l).slice();
     const editId=editIdEl?editIdEl.value:"";
     if(editId){
       const idx=l.jobs.findIndex(j=>j.id===editId);
       if(idx>=0){
-        l.jobs[idx]={...l.jobs[idx],title,value,currency,date,editedBy:currentUserName||"—",editedAt:Date.now()};
+        const oldJob=l.jobs[idx];
+        const oldTxt=fmt(oldJob.value)+" "+(oldJob.currency||"EGP"), newTxt=fmt(value)+" "+currency;
+        const statusChanged=jobStatus(oldJob)!==status;
+        l.jobs[idx]={...oldJob,title,value,currency,date,status,probability,editedBy:currentUserName||"—",editedAt:Date.now()};
         await putLead(l);
-        logAudit(t("auditEditJob"),l.id,l.name,title+" — "+fmt(value)+" "+currency);
+        let detail=title+": "+oldTxt+" ← "+newTxt;
+        if(statusChanged)detail+=" · "+t("jobStatusLbl")+": "+(status==="approved"?t("jobApproved"):t("jobPending")+" "+probability+"%");
+        logAudit(t("auditEditJob"),l.id,l.name,detail);
         renderDetail();renderLeadsAndDash();
         toast(t("jobUpdated"));
         return;
       }
     }
-    l.jobs.push({id:uid(),title,value,currency,date,addedBy:currentUserName||"—",ts:Date.now()});
+    l.jobs.push({id:uid(),title,value,currency,date,status,probability,addedBy:currentUserName||"—",ts:Date.now()});
     await putLead(l);
-    logAudit(t("auditAddJob"),l.id,l.name,title+" — "+fmt(value)+" "+currency);
+    logAudit(t("auditAddJob"),l.id,l.name,title+" — "+fmt(value)+" "+currency+" ("+(status==="approved"?t("jobApproved"):t("jobPending")+" "+probability+"%")+")");
     renderDetail();renderLeadsAndDash();
     toast(t("jobAdded"));
   };
@@ -2127,12 +2320,16 @@
     const j=jobsOf(l).find(x=>x.id===jid); if(!j)return;
     const titleEl=document.getElementById("newJobTitle"), valueEl=document.getElementById("newJobValue"),
       dateEl=document.getElementById("newJobDate"), currEl=document.getElementById("newJobCurrency"),
+      statusEl=document.getElementById("newJobStatus"), probEl=document.getElementById("newJobProb"), probWrapEl=document.getElementById("jobProbWrap"),
       editIdEl=document.getElementById("editJobId"), hdrEl=document.getElementById("addJobHdr-"+lid),
       btnEl=document.getElementById("addJobBtn-"+lid);
     if(titleEl)titleEl.value=j.title;
     if(valueEl)valueEl.value=j.value;
     if(dateEl)dateEl.value=j.date||todayStr();
     if(currEl)currEl.value=j.currency||"EGP";
+    if(statusEl)statusEl.value=jobStatus(j);
+    if(probEl)probEl.value=jobProbability(j);
+    if(probWrapEl)probWrapEl.style.display=jobStatus(j)==="pending"?"block":"none";
     if(editIdEl)editIdEl.value=jid;
     if(hdrEl)hdrEl.textContent=t("editJobTitle");
     if(btnEl)btnEl.textContent=t("save");
@@ -2250,6 +2447,25 @@
       scope.forEach(l=>jobsOf(l).forEach(j=>{const c=j.currency||"EGP";t[c]=(t[c]||0)+(Number(j.value)||0);}));
       return Object.entries(t).filter(([,v])=>v>0).map(([c,v])=>fmt(v)+" "+c).join(" · ")||"—";
     }
+    // ── الأرقام المالية الجديدة، ضمن نفس فترة التقرير المختارة ──
+    function scopedApprovedJobsTxt(){
+      const t={EGP:0,SAR:0,USD:0};
+      scope.forEach(l=>jobsOf(l).filter(isApprovedJob).forEach(j=>{const c=j.currency||"EGP";t[c]=(t[c]||0)+(Number(j.value)||0);}));
+      return totalsTextFrom(t);
+    }
+    function scopedPendingWonJobsTxt(){
+      const t={EGP:0,SAR:0,USD:0};
+      scope.filter(l=>l.status==="won").forEach(l=>jobsOf(l).filter(j=>!isApprovedJob(j)).forEach(j=>{const c=j.currency||"EGP";t[c]=(t[c]||0)+(Number(j.value)||0)*(jobProbability(j)/100);}));
+      return totalsTextFrom(t);
+    }
+    function scopedFullForecastTxt(){
+      const t={EGP:0,SAR:0,USD:0};
+      scope.forEach(l=>{
+        if(l.status==="won"){jobsOf(l).filter(j=>!isApprovedJob(j)).forEach(j=>{const c=j.currency||"EGP";t[c]=(t[c]||0)+(Number(j.value)||0)*(jobProbability(j)/100);});}
+        else if(isActive(l)&&l.value&&Number(l.value)>0){const st=stById(l.status),pr=(st.prob||0)/100,c=l.currency||"EGP";t[c]=(t[c]||0)+(Number(l.value)||0)*pr;}
+      });
+      return totalsTextFrom(t);
+    }
     // sources
     const srcMap={};scope.forEach(l=>{const tx=srcById(l.source)?L(srcById(l.source)):(isEn()?"Unspecified":"غير محدد");srcMap[tx]=(srcMap[tx]||0)+1;});
     const srcArr=Object.entries(srcMap).sort((a,b)=>b[1]-a[1]),maxSrc=Math.max(1,...srcArr.map(s=>s[1]));
@@ -2280,7 +2496,16 @@
         <tr><td>${t("activePipeline2")}</td><td class="num" style="text-align:end;font-weight:600">${totals(l=>isActive(l))}</td></tr>
         <tr><td>${t("won2")}</td><td class="num" style="text-align:end;font-weight:600;color:var(--sage)">${totals(l=>l.status==='won')}</td></tr>
         <tr><td>${t("quotedNego")}</td><td class="num" style="text-align:end;font-weight:600">${totals(l=>l.status==='quoted'||l.status==='negotiation')}</td></tr>
-        <tr><td style="font-weight:700;color:var(--clay)">${t("jobsGrandTotal")}</td><td class="num" style="text-align:end;font-weight:700;color:var(--clay)">${jobsTotalsScoped()}</td></tr></tbody></table></div>`:""}
+        <tr><td style="font-weight:700;color:var(--sage)">${t("jobsWonTotal")}</td><td class="num" style="text-align:end;font-weight:700;color:var(--sage)">${scopedApprovedJobsTxt()}</td></tr>
+        <tr><td style="font-weight:700;color:var(--clay)">${t("jobsPendingWonTotal")}</td><td class="num" style="text-align:end;font-weight:700;color:var(--clay)">${scopedPendingWonJobsTxt()}</td></tr>
+        <tr><td style="font-weight:700;color:#8A6D3B">${t("jobsFullForecast")}</td><td class="num" style="text-align:end;font-weight:700;color:#8A6D3B">${scopedFullForecastTxt()}</td></tr></tbody></table></div>`:""}
+      ${canSeeValue()?(function(){
+        const rows=jobTransitionStats();
+        if(!rows.length)return"";
+        return `<div class="report-block"><h3>${t("jobTransitionTitle")}</h3><table class="perf"><tbody>
+          ${rows.slice(0,10).map(r=>`<tr><td>${t("jobTransitionRow").replace("{from}",esc(r.from)).replace("{to}",esc(r.to))}</td><td class="num" style="text-align:end;font-weight:600">${r.pct}% (${r.count}/${r.base})</td></tr>`).join("")}
+        </tbody></table></div>`;
+      })():""}
       <div class="report-block"><h3>${t("byStatus")}</h3><table class="perf"><thead><tr><th>${t("status")}</th><th>${t("count")}</th>${canSeeValue()?`<th>${t("value")}</th>`:""}</tr></thead><tbody>
         ${STATUSES.map(s=>{const c=scope.filter(l=>l.status===s.k).length;return c?`<tr style="cursor:pointer" onclick="goFilterStatus('${s.k}')" title="${t("clickToFilter")}"><td><span class="chip" style="background:${s.c}1A;color:${s.c}">${L(s)}</span></td><td class="num">${c} ›</td>${canSeeValue()?`<td class="num" style="font-size:12px">${totals(l=>l.status===s.k)}</td>`:""}</tr>`:"";}).join("")}</tbody></table><div style="font-size:11.5px;color:var(--ink-soft);margin-top:6px">${t("clickStatusHint")}</div></div>
       ${Object.keys(qualMap).length?`<div class="report-block"><h3>${t("leadQuality")}</h3><table class="perf"><tbody>${Object.entries(qualMap).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:end;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
@@ -2567,12 +2792,30 @@
   const kbOwnerEl=document.getElementById("kbOwner");
   if(kbOwnerEl) kbOwnerEl.innerHTML='<option value="">'+t("allOwners")+'</option>'+OWNERS.map(o=>`<option value="${esc(o)}">${esc(ownerLabel(o))}</option>`).join("");
   kbOwnerEl&&kbOwnerEl.addEventListener("change",renderKanban);
+  const kbPriorityEl=document.getElementById("kbPriority");
+  if(kbPriorityEl) kbPriorityEl.innerHTML=`<option value="">${t("allPriorities")}</option><option value="3">★★★</option><option value="2">★★</option><option value="1">★</option>`;
+  kbPriorityEl&&kbPriorityEl.addEventListener("change",renderKanban);
   document.getElementById("kbShowClosed")?.addEventListener("change",renderKanban);
   $("#sourceFilter").innerHTML='<option value="">'+t("allSources")+'</option>'+SOURCES.map(s=>`<option value="${s.k}">${L(s)}</option>`).join("");
 
   // ---- user management (admin only) ----
   async function loadUsersTab(){
     if(!isAdmin())return;
+    // عرض حالة النسخ الاحتياطي التلقائي
+    (async()=>{
+      const el=document.getElementById("autoBackupStatus");
+      if(!el)return;
+      try{
+        const metaSnap=await db.collection("backups").doc("_meta").get();
+        if(metaSnap.exists){
+          const d=metaSnap.data();
+          const dt=new Date(d.lastAutoBackupAt).toLocaleString(isEn()?"en-GB":"ar-EG",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+          el.innerHTML=`<div class="muted" style="font-size:12.5px">${t("lastAutoBackup")}: <b style="color:var(--ink)">${dt}</b> · ${t("byUser")} ${esc(d.lastAutoBackupBy||"—")}</div>`;
+        } else {
+          el.innerHTML=`<div class="muted" style="font-size:12.5px">${t("noAutoBackupYet")}</div>`;
+        }
+      }catch(e){ el.innerHTML=`<div class="muted" style="font-size:12.5px">${t("noAutoBackupYet")}</div>`; }
+    })();
     try{
       const snap=await db.collection("users").get();
       const users=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
@@ -2714,6 +2957,7 @@
       set('#addUserModalTitle',t("newUser"));
       set('#auditLogTitle',t("auditLogTitle"));
       set('#pendingTransfersTitle',"⏳ "+t("pendingTransfers"));
+      set('#autoBackupTitle',"💾 "+t("lastAutoBackup"));
       set('#importBtn',t("importExcel"));
       set('#backupBtn',t("backupBtn"));
       set('#restoreBtn',t("restoreBtnLbl"));
