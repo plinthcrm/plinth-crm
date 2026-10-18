@@ -2811,7 +2811,7 @@
     const iso=ts=>ts?new Date(ts).toISOString().slice(0,16).replace("T"," "):"";
     const campOf=id=>campaigns.find(x=>x.id===id);
     const callStats=l=>{const cs=(l.notes||[]).filter(n=>n.kind==="call");return{calls:cs.length,ans:cs.filter(n=>n.outcome==="answered").length};};
-    const mkt=l=>{const c=callStats(l),camp=campOf(l.campaignId);return{
+    const mkt=l=>{const camp=campOf(l.campaignId);return{
       [H("الاسم","Name")]:l.name||"",
       [H("التليفون","Phone")]:l.phone||"",
       [H("تليفون ثانوي","Phone 2")]:l.phone2||"",
@@ -2836,14 +2836,14 @@
       [H("الخدمات","Services")]:(l.services||[]).map(svcDisplayByKey).join(", "),
       [H("وظيفة العميل","Client job")]:l.job||"",
       [H("منطقة سكن العميل","Client residence")]:l.residence||"",
-      [H("احتياجات العميل / Pain Points","Pain points")]:l.painPoints||"",
       [H("سبب الإلغاء","Cancel reason")]:cancelReasonDisplay(l.cancelReason),
-      [H("سبب الخسارة","Lost reason")]:lostReasonDisplay(l.lostReason),
-      [H("عدد المكالمات","Calls")]:c.calls,
-      [H("مكالمات تم الرد عليها","Answered calls")]:c.ans,
       [H("تاريخ التسجيل","Created")]:iso(l.createdAt).slice(0,10)
     };};
-    const fullRow=l=>Object.assign({},mkt(l),{[H("المسؤول","Owner")]:l.owner?ownerLabel(l.owner):"",
+    const fullRow=l=>Object.assign({},mkt(l),{
+      [H("احتياجات العميل / Pain Points","Pain points")]:l.painPoints||"",
+      [H("سبب الخسارة","Lost reason")]:lostReasonDisplay(l.lostReason),
+      [H("عدد المكالمات","Calls")]:callStats(l).calls,
+      [H("مكالمات تم الرد عليها","Answered calls")]:callStats(l).ans,[H("المسؤول","Owner")]:l.owner?ownerLabel(l.owner):"",
       [H("الأولوية","Priority")]:l.priority||0,
       [H("القيمة","Value")]:l.value||"",[H("العملة","Currency")]:l.currency||"",
       [H("الأفضلية عندنا","Our edge")]:l.ourPlus||"",[H("لينك Drive","Drive link")]:l.driveLink||"",
