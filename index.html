@@ -177,6 +177,9 @@
   .kb-head{padding:10px 12px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:6px;cursor:pointer;user-select:none}
   .kb-ttl{font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:6px;min-width:0}
   .kb-dot{width:8px;height:8px;border-radius:50%;flex:0 0 8px}
+  .kb-dl{border:1px solid var(--line);background:var(--paper);color:var(--ink-soft);border-radius:7px;font-size:11px;line-height:1;padding:3px 6px;cursor:pointer;font-family:inherit}
+  .kb-dl:hover{border-color:var(--gold);color:var(--ink)}
+  .kb-col.folded .kb-dl{display:none}
   .kb-cnt{font-size:11px;color:var(--ink-soft);background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:1px 7px;font-weight:600}
   .kb-rot{font-size:10.5px;background:var(--rose);color:#fff;border-radius:20px;padding:2px 8px;font-weight:700;box-shadow:0 2px 6px -1px rgba(154,75,75,.5);letter-spacing:.2px}
   [data-theme="dark"] .kb-rot{color:#2A1414}
@@ -188,6 +191,13 @@
   [data-theme="dark"] .gold-box{background:#332A18}
   .won-box{background:#EFF7EF;border:1px solid #B8D9B8}
   [data-theme="dark"] .won-box{background:#26301F;border-color:#3D5233}
+  .rpt-widget-chk{display:flex;align-items:center;gap:6px;font-size:12.5px;background:var(--ivory);border:1px solid var(--line);border-radius:20px;padding:6px 12px;cursor:pointer;user-select:none}
+  .rpt-widget-chk input{width:auto;margin:0}
+  .rpt-widget-chk.off{opacity:.5}
+  .pie-wrap{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .pie-legend{display:flex;flex-direction:column;gap:6px;font-size:12px}
+  .pie-legend-item{display:flex;align-items:center;gap:7px}
+  .pie-legend-dot{width:10px;height:10px;border-radius:3px;flex:none}
   .kb-sum{padding:5px 12px;font-size:11px;color:var(--ink-soft);border-bottom:1px solid var(--line-soft);display:flex;justify-content:space-between;gap:6px}
   .kb-body{padding:9px;overflow-y:auto;flex:1;min-height:70px}
   .kb-card{background:var(--paper);border:1px solid var(--line);border-inline-start:3px solid var(--line);border-radius:11px;padding:10px 11px;margin-bottom:8px;cursor:grab;box-shadow:var(--shadow-sm);transition:box-shadow .15s,transform .15s}
@@ -448,6 +458,7 @@
       </label>
       <select class="filter" id="kbOwner" style="min-width:130px"></select>
       <select class="filter" id="kbPriority" style="min-width:110px"></select>
+      <button class="btn btn-ghost btn-sm" id="kbDlAll" onclick="kbDownload('all')">⬇ تحميل كل المراحل</button>
       <span class="muted" style="font-size:11.5px" id="kbHint">اسحب الكارت لمرحلة تانية</span>
     </div>
     <div class="kb-wrap"><div class="kb" id="kbBoard"></div></div>
@@ -497,6 +508,7 @@
     <div class="row no-print">
       <div class="section-title" id="perfReportTitle">تقرير الأداء</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" id="rptCustomizeBtn">⚙ <span id="rptCustomizeLbl">تخصيص التقرير</span></button>
         <button class="btn btn-ghost btn-sm" id="mktExportBtn" style="color:var(--sage);border-color:#B8D9B8">📊 تقرير التسويق (Excel)</button>
         <button class="btn btn-ghost btn-sm" id="printBtn">🖨 طباعة / PDF</button>
       </div>
@@ -510,10 +522,27 @@
             <label id="rptMonthLbl" style="font-size:12px;font-weight:600">أو اختار شهر</label>
             <select class="filter" id="rptMonth" style="width:100%"></select>
           </div>
+          <div class="field" style="margin:0"><label id="rptOwnerLbl" style="font-size:12px;font-weight:600">المسؤول</label><select class="filter" id="rptOwner" style="width:100%"></select></div>
+          <div class="field" style="margin:0"><label id="rptSourceLbl" style="font-size:12px;font-weight:600">المصدر</label><select class="filter" id="rptSource" style="width:100%"></select></div>
           <button class="btn btn-primary btn-sm" id="rptApply">تطبيق</button>
           <button class="btn btn-ghost btn-sm" id="rptClear">كل الفترات</button>
         </div>
         <div id="rptLabel" class="muted" style="font-size:12.5px;margin-top:10px"></div>
+      </div>
+    </div>
+    <div class="card no-print" id="rptCustomizePanel" style="display:none;margin-bottom:18px">
+      <div class="card-b" style="padding-top:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <select class="filter" id="rptTemplateSelect" style="min-width:180px"></select>
+            <button class="btn btn-ghost btn-sm" id="rptTemplateApplyBtn"><span id="rptApplyTemplateLbl">تطبيق</span></button>
+          </div>
+          <div id="rptSaveTemplateWrap" style="display:none;gap:8px;align-items:center">
+            <input id="rptTemplateName" placeholder="اسم الـ Template" style="min-width:150px">
+            <button class="btn btn-primary btn-sm" id="rptTemplateSaveBtn"><span id="rptSaveTemplateLbl">حفظ كـ Template</span></button>
+          </div>
+        </div>
+        <div id="rptWidgetPicker" style="display:flex;flex-wrap:wrap;gap:10px"></div>
       </div>
     </div>
     <div id="reportBody"></div>
@@ -750,7 +779,7 @@
       jobDate:"التاريخ", jobsTotal:"إجمالي العقود", noJobs:"لسه مفيش Jobs مُسجّلة.",
       jobDeleteConfirm:"تحذف الـ Job ده؟", jobAdded:"تم إضافة Job", jobDeleted:"تم حذف Job",
       jobCurrency:"العملة", editJobTitle:"تعديل Job", jobUpdated:"تم تحديث Job", auditEditJob:"تعديل Job",
-      auditValueChange:"⚠ تعديل القيمة المالية",
+      auditValueChange:"⚠ تعديل القيمة المالية", auditExport:"تحميل Pipeline", kbDlStage:"تحميل المرحلة (Excel)", kbDlAllLbl:"⬇ تحميل كل المراحل", kbDlEmpty:"مفيش ليدز في المرحلة دي للتحميل", kbDlDone:"تم التحميل ✓",
       jobApproved:"معتمد", jobPending:"غير معتمد", approvedQuotation:"Approved Quotation",
       jobStatusLbl:"حالة الـ Job", jobProbLbl:"نسبة احتمال التوقيع %",
       jobsApprovedTotal:"إجمالي المعتمد", jobsWonTotal:"إجمالي تعاقدات مكسوبة فعلياً",
@@ -758,6 +787,9 @@
       jobsFullForecastSub:"يشمل عملاء won + عملاء الـ Pipeline النشطة", jobTransitionTitle:"معدل تحويل Job إلى Job تاني",
       jobTransitionEmpty:"لسه مفيش بيانات كافية — تحتاج عملاء عندهم أكتر من Job واحد",
       jobTransitionRow:"من {from} إلى {to}",
+      customizeReport:"تخصيص التقرير", kpisWidget:"أرقام سريعة (KPIs)", reasonsWidget:"جودة/أسباب الخسارة والإلغاء",
+      socialMediaOnly:"سوشيال ميديا بس", allWidgetsTemplate:"— القطع كلها —", saveAsTemplate:"حفظ كـ Template",
+      templateNamePh:"مثلاً: تقرير سوشيال ميديا", templateSaved:"تم حفظ الـ Template",
       lastAutoBackup:"آخر نسخة تلقائية", byUser:"بواسطة", noAutoBackupYet:"لسه مفيش نسخة تلقائية اتاخدت — هتحصل تلقائياً أول ما أي Admin يفتح التطبيق",
       jobTitlePlaceholder:"مثلاً: تصميم داخلي، تنفيذ Core & Shell…", jobsGrandTotal:"إجمالي قيمة العقود",
       importExcel:"⬆ إكسيل", backupBtn:"💾 نسخة", restoreBtnLbl:"📂 استرجاع", exportCsv:"⬇ CSV", logout:"خروج",
@@ -871,7 +903,7 @@
       jobDate:"Date", jobsTotal:"Total Contracts", noJobs:"No jobs recorded yet.",
       jobDeleteConfirm:"Delete this job?", jobAdded:"Job added", jobDeleted:"Job deleted",
       jobCurrency:"Currency", editJobTitle:"Edit Job", jobUpdated:"Job updated", auditEditJob:"Edited job",
-      auditValueChange:"⚠ Financial value changed",
+      auditValueChange:"⚠ Financial value changed", auditExport:"Pipeline download", kbDlStage:"Download stage (Excel)", kbDlAllLbl:"⬇ Download all stages", kbDlEmpty:"No leads in this stage to download", kbDlDone:"Downloaded ✓",
       jobApproved:"Approved", jobPending:"Pending", approvedQuotation:"Approved Quotation",
       jobStatusLbl:"Job Status", jobProbLbl:"Probability of signing %",
       jobsApprovedTotal:"Total Approved", jobsWonTotal:"Total Actually Won Contracts",
@@ -879,6 +911,9 @@
       jobsFullForecastSub:"Includes won clients + active pipeline", jobTransitionTitle:"Job-to-Job Conversion Rate",
       jobTransitionEmpty:"Not enough data yet — needs clients with more than one Job",
       jobTransitionRow:"From {from} to {to}",
+      customizeReport:"Customize Report", kpisWidget:"Quick KPIs", reasonsWidget:"Quality / Loss & Cancellation Reasons",
+      socialMediaOnly:"Social media only", allWidgetsTemplate:"— All widgets —", saveAsTemplate:"Save as Template",
+      templateNamePh:"e.g. Social Media Report", templateSaved:"Template saved",
       lastAutoBackup:"Last auto-backup", byUser:"by", noAutoBackupYet:"No auto-backup taken yet — it'll happen automatically next time an Admin opens the app",
       jobTitlePlaceholder:"e.g. Interior Design, Core & Shell Execution…", jobsGrandTotal:"Total Contract Value",
       importExcel:"⬆ Excel", backupBtn:"💾 Backup", restoreBtnLbl:"📂 Restore", exportCsv:"⬇ CSV", logout:"Logout",
@@ -1066,6 +1101,32 @@
       return {from,to,count,base,pct:Math.round(count/base*100)};
     }).sort((a,b)=>b.count-a.count);
     return rows;
+  }
+  // ── Pie chart بـ SVG خام، بدون مكتبة خارجية ──
+  const PIE_PALETTE=["#8F4023","#3E6F73","#B08838","#6B8F5A","#7C6BA8","#C97A7A","#4A6076","#B08838","#5A8F7C","#A85A7C"];
+  function svgPieChart(data,size){
+    size=size||130;
+    const total=data.reduce((s,d)=>s+d.value,0);
+    if(!total)return "";
+    const r=size/2, cx=r, cy=r;
+    let angle=-90; // نبدأ من أعلى
+    const slices=data.map((d,i)=>{
+      const frac=d.value/total, sweep=frac*360;
+      const x1=cx+r*Math.cos(angle*Math.PI/180), y1=cy+r*Math.sin(angle*Math.PI/180);
+      angle+=sweep;
+      const x2=cx+r*Math.cos(angle*Math.PI/180), y2=cy+r*Math.sin(angle*Math.PI/180);
+      const large=sweep>180?1:0;
+      const color=PIE_PALETTE[i%PIE_PALETTE.length];
+      if(data.length===1) return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}"/>`;
+      return `<path d="M${cx},${cy} L${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${large} 1 ${x2.toFixed(2)},${y2.toFixed(2)} Z" fill="${color}"/>`;
+    }).join("");
+    return `<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">${slices}</svg>`;
+  }
+  function pieWithLegend(data,size){
+    const total=data.reduce((s,d)=>s+d.value,0);
+    if(!total)return "";
+    const legend=data.map((d,i)=>`<div class="pie-legend-item"><span class="pie-legend-dot" style="background:${d.color||PIE_PALETTE[i%PIE_PALETTE.length]}"></span><span>${esc(d.label)}</span><span class="muted num" style="margin-inline-start:auto">${d.value} (${Math.round(d.value/total*100)}%)</span></div>`).join("");
+    return `<div class="pie-wrap">${svgPieChart(data)}<div class="pie-legend">${legend}</div></div>`;
   }
   // خريطة تحويل الحالات القديمة للجديدة (backward compatibility)
   const LEGACY_STATUS={contacted_ans:"contacted",contacted_no:"no_answer"};
@@ -1404,6 +1465,7 @@
     },err=>{$("#loadingState").innerHTML='<div style="padding:30px">⚠ تعذّر الاتصال — تأكد من صلاحيات Firestore.</div>';});
     db.collection("campaigns").onSnapshot(snap=>{campaigns=snap.docs.map(d=>d.data());},()=>{});
     if(isAdmin()) loadUsersTab();
+    loadReportTemplates();
   }
 
   // ---- audit log ----
@@ -1412,7 +1474,7 @@
     "تعديل بيانات":"auditEditData","إضافة عميل جديد":"auditNewLead","تغيير مرحلة":"auditStageChange","تغيير مرحلة (تجاوز)":"auditStageForced",
     "حذف عميل":"auditDeleteLead","إضافة Job":"auditAddJob","حذف Job":"auditDeleteJob","طلب نقل مسؤولية":"auditTransferReq",
     "موافقة نقل مسؤولية":"auditTransferApp","رفض نقل مسؤولية":"auditTransferRej","تغيير دور مستخدم":"roleChangeAction",
-    "حذف مستخدم":"auditDeleteUser","إضافة مستخدم":"auditAddUser"};
+    "حذف مستخدم":"auditDeleteUser","إضافة مستخدم":"auditAddUser","تحميل Pipeline":"auditExport"};
   function auditActionLabel(action){ const k=AUDIT_ACTION_MAP[action]; return k?t(k):action; }
   async function logAudit(action, leadId, leadName, detail=""){
     if(!db||!currentUser)return;
@@ -1782,6 +1844,7 @@
           <div class="kb-ttl"><span class="kb-dot" style="background:${stageColor(st.k)}"></span>${esc(L(st))}</div>
           <div style="display:flex;gap:5px;align-items:center;flex:0 0 auto">
             ${rot?`<span class="kb-rot">${rot} ${t("rotting")}</span>`:""}
+            <button class="kb-dl" title="${t("kbDlStage")}" onclick="event.stopPropagation();kbDownload('${st.k}')">⬇</button>
             <span class="kb-cnt">${items.length}</span>
           </div>
         </div>
@@ -2424,7 +2487,17 @@
   };
 
   // ---- report ----
-  let rptFrom=null,rptTo=null;
+  let rptFrom=null,rptTo=null,rptOwnerF="",rptSourceF="";
+  // ── نظام قطع التقرير القابلة للتخصيص ──
+  const RPT_WIDGETS=["kpis","bizvalue","pie_status","pie_source","campaigns","reasons","services","categories","team","pricing","jobtransition"];
+  const RPT_WIDGET_LABELS={
+    kpis:"kpisWidget", bizvalue:"bizValue", pie_status:"byStatus", pie_source:"leadSources",
+    campaigns:"campaignPerf", reasons:"reasonsWidget", services:"servicesRequested",
+    categories:"projectClassification", team:"teamPerf", pricing:"pricingDuration", jobtransition:"jobTransitionTitle"
+  };
+  let rptActiveWidgets=new Set(RPT_WIDGETS); // الكل مفعّل افتراضياً
+  let rptTemplates=[]; // من Firestore، متاحة لكل الفريق
+  let rptCurrentTemplateId="";
   function filterByDate(l){
     if(!rptFrom&&!rptTo)return true;
     const d=l.receivedDate||new Date(l.createdAt).toISOString().slice(0,10);
@@ -2432,9 +2505,17 @@
     if(rptTo&&d>rptTo)return false;
     return true;
   }
+  const SOCIAL_SOURCES=["facebook","instagram_dm","campaign"]; // مصادر "سوشيال ميديا" لاختيار الفلتر السريع
+  function filterByReportScope(l){
+    if(!filterByDate(l))return false;
+    if(rptOwnerF&&l.owner!==rptOwnerF)return false;
+    if(rptSourceF==="__social__"){ if(!SOCIAL_SOURCES.includes(l.source))return false; }
+    else if(rptSourceF&&l.source!==rptSourceF)return false;
+    return true;
+  }
   function renderReport(){
     const allVisible=canSeeReferral()?leads:leads.filter(l=>l.source!=="referral");
-    const scope=allVisible.filter(filterByDate);
+    const scope=allVisible.filter(filterByReportScope);
     const label=rptFrom||rptTo?`${t("period")}: ${rptFrom||"…"} → ${rptTo||"…"} · ${scope.length} ${t("client")}`:t("allPeriods")+" · "+allVisible.length+" "+t("client");
     const rptLbl=$("#rptLabel");if(rptLbl)rptLbl.textContent=label;
     const now=new Date().toLocaleDateString(isEn()?"en-GB":"ar-EG",{day:"numeric",month:"long",year:"numeric"});
@@ -2483,43 +2564,51 @@
     const pricedLeads=scope.filter(l=>l.quoteStartDate&&l.quoteSubmitDate);
     const avgDays=pricedLeads.length?Math.round(pricedLeads.reduce((s,l)=>{const diff=(new Date(l.quoteSubmitDate)-new Date(l.quoteStartDate))/86400000;return s+Math.max(0,diff);},0)/pricedLeads.length):null;
     const owners=[...new Set(scope.map(l=>l.owner).filter(Boolean))];
+    const W=k=>rptActiveWidgets.has(k);
+    // بيانات الـ Pie Charts
+    const statusPieData=STATUSES.map(s=>({label:L(s),value:scope.filter(l=>l.status===s.k).length,color:s.c})).filter(d=>d.value>0);
+    const sourcePieData=srcArr.map(([n,c],i)=>({label:n,value:c}));
     $("#reportBody").innerHTML=`
       <div style="text-align:center;margin-bottom:22px"><div style="font-size:20px;font-weight:700">${t("rptTitle")}</div><div class="muted" style="font-size:13px">PLINTH + PARTNERS · ${now}${rptFrom||rptTo?" · "+label:""}</div></div>
-      <div class="kpi-grid">
+      ${W("kpis")?`<div class="kpi-grid">
         <div class="kpi accent"><div class="lbl">${t("periodTotal")}</div><div class="val num">${scope.length}</div></div>
         <div class="kpi"><div class="lbl">${t("active2")}</div><div class="val num">${active.length}</div></div>
         <div class="kpi"><div class="lbl">${t("won2")}</div><div class="val num" style="color:var(--sage)">${won.length}</div></div>
         <div class="kpi"><div class="lbl">${t("conv2")}</div><div class="val num">${cr}%</div></div>
         ${avgDays!==null?`<div class="kpi"><div class="lbl">${t("avgPriceDuration")}</div><div class="val num">${avgDays}<small> ${t("day")}</small></div></div>`:""}
-      </div>
-      ${canSeeValue()?`<div class="report-block"><h3>${t("bizValue")}</h3><table class="perf"><tbody>
+      </div>`:""}
+      ${W("bizvalue")&&canSeeValue()?`<div class="report-block"><h3>${t("bizValue")}</h3><table class="perf"><tbody>
         <tr><td>${t("activePipeline2")}</td><td class="num" style="text-align:end;font-weight:600">${totals(l=>isActive(l))}</td></tr>
         <tr><td>${t("won2")}</td><td class="num" style="text-align:end;font-weight:600;color:var(--sage)">${totals(l=>l.status==='won')}</td></tr>
         <tr><td>${t("quotedNego")}</td><td class="num" style="text-align:end;font-weight:600">${totals(l=>l.status==='quoted'||l.status==='negotiation')}</td></tr>
         <tr><td style="font-weight:700;color:var(--sage)">${t("jobsWonTotal")}</td><td class="num" style="text-align:end;font-weight:700;color:var(--sage)">${scopedApprovedJobsTxt()}</td></tr>
         <tr><td style="font-weight:700;color:var(--clay)">${t("jobsPendingWonTotal")}</td><td class="num" style="text-align:end;font-weight:700;color:var(--clay)">${scopedPendingWonJobsTxt()}</td></tr>
         <tr><td style="font-weight:700;color:#8A6D3B">${t("jobsFullForecast")}</td><td class="num" style="text-align:end;font-weight:700;color:#8A6D3B">${scopedFullForecastTxt()}</td></tr></tbody></table></div>`:""}
-      ${canSeeValue()?(function(){
+      ${W("jobtransition")&&canSeeValue()?(function(){
         const rows=jobTransitionStats();
         if(!rows.length)return"";
         return `<div class="report-block"><h3>${t("jobTransitionTitle")}</h3><table class="perf"><tbody>
           ${rows.slice(0,10).map(r=>`<tr><td>${t("jobTransitionRow").replace("{from}",esc(r.from)).replace("{to}",esc(r.to))}</td><td class="num" style="text-align:end;font-weight:600">${r.pct}% (${r.count}/${r.base})</td></tr>`).join("")}
         </tbody></table></div>`;
       })():""}
-      <div class="report-block"><h3>${t("byStatus")}</h3><table class="perf"><thead><tr><th>${t("status")}</th><th>${t("count")}</th>${canSeeValue()?`<th>${t("value")}</th>`:""}</tr></thead><tbody>
-        ${STATUSES.map(s=>{const c=scope.filter(l=>l.status===s.k).length;return c?`<tr style="cursor:pointer" onclick="goFilterStatus('${s.k}')" title="${t("clickToFilter")}"><td><span class="chip" style="background:${s.c}1A;color:${s.c}">${L(s)}</span></td><td class="num">${c} ›</td>${canSeeValue()?`<td class="num" style="font-size:12px">${totals(l=>l.status===s.k)}</td>`:""}</tr>`:"";}).join("")}</tbody></table><div style="font-size:11.5px;color:var(--ink-soft);margin-top:6px">${t("clickStatusHint")}</div></div>
-      ${Object.keys(qualMap).length?`<div class="report-block"><h3>${t("leadQuality")}</h3><table class="perf"><tbody>${Object.entries(qualMap).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:end;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
-      ${Object.keys(lostMap).length?`<div class="report-block"><h3>${t("lostReasons")}</h3><table class="perf"><tbody>${Object.entries(lostMap).sort((a,b)=>b[1]-a[1]).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:end;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
-      ${Object.keys(cancelMap).length?`<div class="report-block"><h3>${t("cancelReasons")}</h3><table class="perf"><tbody>${Object.entries(cancelMap).sort((a,b)=>b[1]-a[1]).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:end;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
-      ${pricedLeads.length?`<div class="report-block"><h3>${t("pricingDuration")}</h3><table class="perf"><thead><tr><th>${t("client")}</th><th>${t("start")}</th><th>${t("submit")}</th><th>${t("duration")}</th><th>${t("status")}</th></tr></thead><tbody>
+      ${W("pie_status")?`<div class="report-block"><h3>${t("byStatus")}</h3>
+        ${pieWithLegend(statusPieData)}
+        <table class="perf" style="margin-top:14px"><thead><tr><th>${t("status")}</th><th>${t("count")}</th>${canSeeValue()?`<th>${t("value")}</th>`:""}</tr></thead><tbody>
+        ${STATUSES.map(s=>{const c=scope.filter(l=>l.status===s.k).length;return c?`<tr style="cursor:pointer" onclick="goFilterStatus('${s.k}')" title="${t("clickToFilter")}"><td><span class="chip" style="background:${s.c}1A;color:${s.c}">${L(s)}</span></td><td class="num">${c} ›</td>${canSeeValue()?`<td class="num" style="font-size:12px">${totals(l=>l.status===s.k)}</td>`:""}</tr>`:"";}).join("")}</tbody></table><div style="font-size:11.5px;color:var(--ink-soft);margin-top:6px">${t("clickStatusHint")}</div></div>`:""}
+      ${W("reasons")&&Object.keys(qualMap).length?`<div class="report-block"><h3>${t("leadQuality")}</h3><table class="perf"><tbody>${Object.entries(qualMap).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:end;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
+      ${W("reasons")&&Object.keys(lostMap).length?`<div class="report-block"><h3>${t("lostReasons")}</h3><table class="perf"><tbody>${Object.entries(lostMap).sort((a,b)=>b[1]-a[1]).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:end;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
+      ${W("reasons")&&Object.keys(cancelMap).length?`<div class="report-block"><h3>${t("cancelReasons")}</h3><table class="perf"><tbody>${Object.entries(cancelMap).sort((a,b)=>b[1]-a[1]).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:end;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
+      ${W("pricing")&&pricedLeads.length?`<div class="report-block"><h3>${t("pricingDuration")}</h3><table class="perf"><thead><tr><th>${t("client")}</th><th>${t("start")}</th><th>${t("submit")}</th><th>${t("duration")}</th><th>${t("status")}</th></tr></thead><tbody>
         ${pricedLeads.map(l=>{const d=Math.max(0,Math.round((new Date(l.quoteSubmitDate)-new Date(l.quoteStartDate))/86400000));return`<tr><td style="font-weight:600">${esc(l.name)}</td><td class="num">${l.quoteStartDate}</td><td class="num">${l.quoteSubmitDate}</td><td class="num">${d} ${t("day")}</td><td><span class="chip" style="background:${stById(l.status).c}1A;color:${stById(l.status).c}">${L(stById(l.status))}</span></td></tr>`;}).join("")}</tbody></table></div>`:""}
-      <div class="report-block"><h3>${t("leadSources")}</h3><div class="src-bars">
-        ${srcArr.map(([n,c])=>`<div class="src-bar"><div class="sname">${esc(n)}</div><div class="strack"><div class="sfill" style="width:${Math.round(c/maxSrc*100)}%"></div></div><div class="scount num">${c}</div></div>`).join("")}</div></div>
-      ${campRows.length?`<div class="report-block"><h3>${t("campaignPerf")}</h3><table class="perf"><thead><tr><th>${t("campaign")}</th><th>${t("platform")}</th><th>${t("clients")}</th><th>${t("won2")}</th></tr></thead><tbody>
+      ${W("pie_source")?`<div class="report-block"><h3>${t("leadSources")}</h3>
+        ${pieWithLegend(sourcePieData)}
+        <div class="src-bars" style="margin-top:14px">
+        ${srcArr.map(([n,c])=>`<div class="src-bar"><div class="sname">${esc(n)}</div><div class="strack"><div class="sfill" style="width:${Math.round(c/maxSrc*100)}%"></div></div><div class="scount num">${c}</div></div>`).join("")}</div></div>`:""}
+      ${W("campaigns")&&campRows.length?`<div class="report-block"><h3>${t("campaignPerf")}</h3><table class="perf"><thead><tr><th>${t("campaign")}</th><th>${t("platform")}</th><th>${t("clients")}</th><th>${t("won2")}</th></tr></thead><tbody>
         ${campRows.map(x=>`<tr><td style="font-weight:600">#${esc(x.c.id)} ${esc(x.c.name||"")}</td><td>${x.c.platform}</td><td class="num">${x.n}</td><td class="num" style="color:var(--sage)">${x.w}</td></tr>`).join("")}</tbody></table></div>`:""}
-      ${svcArr.length?`<div class="report-block"><h3>${t("servicesRequested")}</h3><table class="perf"><tbody>${svcArr.map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:end;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
-      ${Object.keys(catMap).length?`<div class="report-block"><h3>${t("projectClassification")}</h3><table class="perf"><tbody>${Object.entries(catMap).sort((a,b)=>b[1]-a[1]).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:end;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
-      ${owners.length?`<div class="report-block"><h3>${t("teamPerf")}</h3><table class="perf"><thead><tr><th>${t("responsible")}</th><th>${t("clients")}</th><th>${t("won2")}</th><th>${t("cancelCol")}</th><th>${t("conv2")}</th></tr></thead><tbody>
+      ${W("services")&&svcArr.length?`<div class="report-block"><h3>${t("servicesRequested")}</h3><table class="perf"><tbody>${svcArr.map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:end;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
+      ${W("categories")&&Object.keys(catMap).length?`<div class="report-block"><h3>${t("projectClassification")}</h3><table class="perf"><tbody>${Object.entries(catMap).sort((a,b)=>b[1]-a[1]).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:end;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
+      ${W("team")&&owners.length?`<div class="report-block"><h3>${t("teamPerf")}</h3><table class="perf"><thead><tr><th>${t("responsible")}</th><th>${t("clients")}</th><th>${t("won2")}</th><th>${t("cancelCol")}</th><th>${t("conv2")}</th></tr></thead><tbody>
         ${owners.map(o=>{const m=scope.filter(l=>l.owner===o),w=m.filter(l=>l.status==="won").length,cn=m.filter(l=>l.status==="cancelled").length,cl=w+m.filter(l=>l.status==="lost").length;return `<tr><td style="font-weight:600">${esc(ownerLabel(o))}</td><td class="num">${m.length}</td><td class="num" style="color:var(--sage)">${w}</td><td class="num" style="color:var(--ink-soft)">${cn}</td><td class="num">${cl?Math.round(w/cl*100):0}%</td></tr>`;}).join("")}</tbody></table></div>`:""}`;
   }
 
@@ -2701,14 +2790,166 @@
     const rows=leads.map(l=>[l.name,l.phone,l.phoneVerified?"نعم":"لا",l.email||"",l.receivedDate||"",l.receivedTime||"",srcById(l.source)?L(srcById(l.source)):"",l.platform||"",l.campaignId?campLabel(l.campaignId):"",l.adName||"",l.adsetName||"",(l.services||[]).join(" / "),CATS[l.projectCategory]?.t||"",l.projectSubtype||"",l.area||"",l.location||"",l.district||"",l.compound||"",l.value||"",l.currency||"",l.owner||"",L(stById(l.status)),l.driveLink||"",l.painPoints||"",l.ourPlus||"",l.nextFollowUp||"",(l.notes||[]).length,new Date(l.createdAt).toLocaleDateString("en-GB")]);
     const csv="\uFEFF"+[hdr,...rows].map(r=>r.map(c=>`"${String(c==null?"":c).replace(/"/g,'""')}"`).join(",")).join("\n");
     const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download="plinth-leads-"+todayStr()+".csv";a.click();toast("تم التصدير");};
+
+  // ===== تحميل الـ Pipeline (Excel) =====
+  // Super Admin: كل حاجة عن كل ليد (+ سجل المكالمات والملاحظات + Jobs)
+  // باقي المستخدمين: اسم + تليفون + بيانات الإعلان/الكامبين كاملة وكل اللي يفيد التسويق — بدون مالية أو ملاحظات داخلية
+  function kbSheetName(label,used){
+    let n=String(label||"Sheet").replace(/[\\\/\?\*\[\]:]/g,"-").slice(0,28)||"Sheet",k=n,i=2;
+    while(used.has(k.toLowerCase())){k=n.slice(0,26)+"-"+i++;}
+    used.add(k.toLowerCase());return k;
+  }
+  function kbFullAccess(){return actualRole==="super_admin"&&currentRole==="super_admin";}
+  window.kbDownload=function(stage){
+    if(typeof XLSX==="undefined"){toast(isEn()?"Excel library not loaded":"مكتبة الإكسيل لم تُحمّل — تأكد من الاتصال");return;}
+    const full=kbFullAccess(), en=isEn();
+    const H=(a,e)=>en?e:a;
+    const ownerF=document.getElementById("kbOwner")?.value||"";
+    const priorityF=document.getElementById("kbPriority")?.value||"";
+    const pool=leads.filter(l=>(canSeeReferral()||l.source!=="referral")&&(!ownerF||l.owner===ownerF)&&(!priorityF||(l.priority||0)===Number(priorityF)));
+    const stages=stage==="all"?STATUSES:[stById(stage)];
+    const iso=ts=>ts?new Date(ts).toISOString().slice(0,16).replace("T"," "):"";
+    const campOf=id=>campaigns.find(x=>x.id===id);
+    const callStats=l=>{const cs=(l.notes||[]).filter(n=>n.kind==="call");return{calls:cs.length,ans:cs.filter(n=>n.outcome==="answered").length};};
+    const mkt=l=>{const c=callStats(l),camp=campOf(l.campaignId);return{
+      [H("الاسم","Name")]:l.name||"",
+      [H("التليفون","Phone")]:l.phone||"",
+      [H("تليفون ثانوي","Phone 2")]:l.phone2||"",
+      [H("الإيميل","Email")]:l.email||"",
+      [H("رقم مؤكد","Verified")]:l.phoneVerified?(en?"Yes":"نعم"):(en?"No":"لا"),
+      [H("المصدر","Source")]:srcById(l.source)?L(srcById(l.source)):"",
+      [H("المنصة","Platform")]:l.platform||(camp&&camp.platform)||"",
+      [H("اسم الكامبين","Campaign name")]:camp?(camp.name||""):"",
+      [H("رقم الكامبين","Campaign ID")]:l.campaignId||"",
+      [H("اسم الإعلان","Ad name")]:l.adName||"",
+      [H("المجموعة الإعلانية","Ad set")]:l.adsetName||"",
+      [H("رقم الليد (Meta)","Meta lead ID")]:l.extId||"",
+      [H("تاريخ الاستلام","Received date")]:l.receivedDate||"",
+      [H("وقت الاستلام","Received time")]:l.receivedTime||"",
+      [H("المرحلة","Stage")]:L(stById(l.status)),
+      [H("التقييم","Quality")]:qById(l.quality)?L(qById(l.quality)):"",
+      [H("مستوى الميزانية","Budget fit")]:bfById(l.budgetFit)?L(bfById(l.budgetFit)):"",
+      [H("نوع المشروع","Project type")]:[CATS[l.projectCategory]?L(CATS[l.projectCategory]):"",l.projectSubtype].filter(Boolean).join(" · "),
+      [H("المساحة","Area")]:l.area?(l.area+" "+(l.areaUnit||"")):"",
+      [H("موقع المشروع","Project location")]:[l.location,l.district].filter(Boolean).join(" / "),
+      [H("الكمباوند","Compound")]:l.compound||"",
+      [H("الخدمات","Services")]:(l.services||[]).map(svcDisplayByKey).join(", "),
+      [H("وظيفة العميل","Client job")]:l.job||"",
+      [H("منطقة سكن العميل","Client residence")]:l.residence||"",
+      [H("احتياجات العميل / Pain Points","Pain points")]:l.painPoints||"",
+      [H("سبب الإلغاء","Cancel reason")]:cancelReasonDisplay(l.cancelReason),
+      [H("سبب الخسارة","Lost reason")]:lostReasonDisplay(l.lostReason),
+      [H("عدد المكالمات","Calls")]:c.calls,
+      [H("مكالمات تم الرد عليها","Answered calls")]:c.ans,
+      [H("تاريخ التسجيل","Created")]:iso(l.createdAt).slice(0,10)
+    };};
+    const fullRow=l=>Object.assign({},mkt(l),{[H("المسؤول","Owner")]:l.owner?ownerLabel(l.owner):"",
+      [H("الأولوية","Priority")]:l.priority||0,
+      [H("القيمة","Value")]:l.value||"",[H("العملة","Currency")]:l.currency||"",
+      [H("الأفضلية عندنا","Our edge")]:l.ourPlus||"",[H("لينك Drive","Drive link")]:l.driveLink||"",
+      [H("المتابعة القادمة","Next follow-up")]:l.nextFollowUp||"",
+      [H("بداية التسعير","Quote start")]:l.quoteStartDate||"",[H("تسليم العرض","Quote submitted")]:l.quoteSubmitDate||"",
+      [H("دخول المرحلة","Stage since")]:iso(l.stageChangedAt),[H("آخر تعديل","Updated")]:iso(l.updatedAt),
+      ID:l.id});
+    const rowFn=full?fullRow:mkt;
+    const wb=XLSX.utils.book_new(),used=new Set();
+    let total=0;const picked=[];
+    stages.forEach(st=>{
+      const items=pool.filter(l=>normStatus(l.status)===st.k).sort((a,b)=>(b.priority||0)-(a.priority||0)||(b.updatedAt||0)-(a.updatedAt||0));
+      if(!items.length)return;
+      total+=items.length;picked.push(...items);
+      const rows=items.map(rowFn);
+      const ws=XLSX.utils.json_to_sheet(rows);
+      ws["!cols"]=Object.keys(rows[0]).map(k=>({wch:Math.max(12,Math.min(30,String(k).length+8))}));
+      XLSX.utils.book_append_sheet(wb,ws,kbSheetName(L(st),used));
+    });
+    if(!total){toast(t("kbDlEmpty"));return;}
+    if(full){
+      const logRows=[],jobRows=[];
+      picked.forEach(l=>{
+        (l.notes||[]).slice().sort((a,b)=>(a.ts||0)-(b.ts||0)).forEach(n=>logRows.push({
+          [H("العميل","Client")]:l.name||"",[H("التليفون","Phone")]:l.phone||"",[H("المرحلة","Stage")]:L(stById(l.status)),
+          [H("التاريخ","Date")]:iso(n.ts),[H("النوع","Type")]:n.kind||"",[H("نتيجة المكالمة","Call outcome")]:n.outcome||"",[H("النص","Text")]:n.text||"",[H("بواسطة","By")]:n.by||n.user||""}));
+        (l.jobs||[]).forEach(j=>jobRows.push({
+          [H("العميل","Client")]:l.name||"",[H("المرحلة","Stage")]:L(stById(l.status)),[H("العنوان","Title")]:j.title||"",
+          [H("القيمة","Value")]:j.value||"",[H("العملة","Currency")]:j.currency||"",[H("الحالة","Status")]:j.status||"approved",
+          [H("الاحتمالية %","Probability %")]:j.probability!=null?j.probability:"",[H("التاريخ","Date")]:j.date||""}));
+      });
+      if(logRows.length){const w=XLSX.utils.json_to_sheet(logRows);w["!cols"]=[24,16,14,16,10,14,60,14].map(x=>({wch:x}));XLSX.utils.book_append_sheet(wb,w,kbSheetName(H("سجل المكالمات والملاحظات","Call log & notes"),used));}
+      if(jobRows.length){const w=XLSX.utils.json_to_sheet(jobRows);w["!cols"]=[24,14,26,14,8,10,12,12].map(x=>({wch:x}));XLSX.utils.book_append_sheet(wb,w,kbSheetName("Jobs",used));}
+    }
+    if(en===false&&wb.Workbook===undefined)wb.Workbook={Views:[{RTL:true}]};
+    const nm=stage==="all"?(en?"all-stages":"كل-المراحل"):L(stById(stage)).replace(/[^\w؀-ۿ]+/g,"-");
+    XLSX.writeFile(wb,`plinth-pipeline-${nm}-${todayStr()}${full?"":"-marketing"}.xlsx`);
+    logAudit("تحميل Pipeline","","",(stage==="all"?"all":stage)+" · "+total+" leads · "+(full?"full":"marketing"));
+    toast(t("kbDlDone")+" ("+total+")");
+  };
   $("#printBtn").onclick=()=>window.print();
   $("#backupBtn").onclick=backup;
   $("#restoreBtn").onclick=()=>{if(!canBackup()){toast("الاسترجاع للـ Admin بس");return;}$("#restoreInput").click();};
   $("#restoreInput").onchange=e=>{if(!canBackup()){toast("الاسترجاع للـ Admin بس");return;}if(e.target.files[0]){restore(e.target.files[0]);e.target.value="";}};
   // sales/marketing can only import via Excel (import button already visible via writeOnly)  // report date range controls
-  $("#rptApply").onclick=()=>{rptFrom=$("#rptFrom").value||null;rptTo=$("#rptTo").value||null;renderReport();};
-  $("#rptClear").onclick=()=>{rptFrom=null;rptTo=null;$("#rptFrom").value="";$("#rptTo").value="";$("#rptMonth").value="";renderReport();};
+  $("#rptApply").onclick=()=>{rptFrom=$("#rptFrom").value||null;rptTo=$("#rptTo").value||null;rptOwnerF=$("#rptOwner").value||"";rptSourceF=$("#rptSource").value||"";renderReport();};
+  $("#rptClear").onclick=()=>{rptFrom=null;rptTo=null;rptOwnerF="";rptSourceF="";$("#rptFrom").value="";$("#rptTo").value="";$("#rptMonth").value="";$("#rptOwner").value="";$("#rptSource").value="";renderReport();};
   $("#rptMonth").onchange=function(){const v=this.value;if(!v){rptFrom=null;rptTo=null;}else{rptFrom=v+"-01";const[y,m]=v.split("-").map(Number);rptTo=new Date(y,m,0).toISOString().slice(0,10);}renderReport();};
+  $("#rptCustomizeBtn").onclick=()=>{
+    const panel=$("#rptCustomizePanel");
+    panel.style.display=panel.style.display==="none"?"block":"none";
+    if(panel.style.display==="block")renderWidgetPicker();
+  };
+  function renderWidgetPicker(){
+    const wrap=$("#rptWidgetPicker"); if(!wrap)return;
+    wrap.innerHTML=RPT_WIDGETS.map(k=>{
+      const on=rptActiveWidgets.has(k);
+      return `<label class="rpt-widget-chk ${on?"":"off"}"><input type="checkbox" data-w="${k}" ${on?"checked":""}> ${t(RPT_WIDGET_LABELS[k])}</label>`;
+    }).join("");
+    wrap.querySelectorAll("input[data-w]").forEach(cb=>cb.onchange=()=>{
+      const k=cb.dataset.w;
+      if(cb.checked)rptActiveWidgets.add(k); else rptActiveWidgets.delete(k);
+      cb.closest("label").classList.toggle("off",!cb.checked);
+      renderReport();
+    });
+    // إظهار خانة حفظ Template للـ Admin+ بس
+    const saveWrap=$("#rptSaveTemplateWrap");
+    if(saveWrap)saveWrap.style.display=isAdmin()?"flex":"none";
+  }
+  $("#rptTemplateSaveBtn")&&($("#rptTemplateSaveBtn").onclick=async()=>{
+    if(!isAdmin())return;
+    const name=$("#rptTemplateName").value.trim();
+    if(!name){toast(isEn()?"Enter a template name":"اكتب اسم الـ Template");return;}
+    try{
+      const id=uid();
+      await db.collection("reportTemplates").doc(id).set({
+        id,name,widgets:[...rptActiveWidgets],ownerFilter:rptOwnerF,sourceFilter:rptSourceF,
+        createdBy:currentUserName||"—",createdAt:Date.now()
+      });
+      $("#rptTemplateName").value="";
+      toast(t("templateSaved"));
+      loadReportTemplates();
+    }catch(e){toast(isEn()?"Couldn't save template":"تعذّر حفظ الـ Template");}
+  });
+  $("#rptTemplateApplyBtn")&&($("#rptTemplateApplyBtn").onclick=()=>{
+    const id=$("#rptTemplateSelect").value;
+    if(!id){ // "الكل" (بدون template) — رجّع كل القطع
+      rptActiveWidgets=new Set(RPT_WIDGETS); rptCurrentTemplateId="";
+      renderWidgetPicker(); renderReport(); return;
+    }
+    const tpl=rptTemplates.find(x=>x.id===id);
+    if(!tpl)return;
+    rptActiveWidgets=new Set(tpl.widgets||RPT_WIDGETS);
+    rptOwnerF=tpl.ownerFilter||""; rptSourceF=tpl.sourceFilter||"";
+    $("#rptOwner").value=rptOwnerF; $("#rptSource").value=rptSourceF;
+    rptCurrentTemplateId=id;
+    renderWidgetPicker(); renderReport();
+  });
+  async function loadReportTemplates(){
+    try{
+      const snap=await db.collection("reportTemplates").get();
+      rptTemplates=snap.docs.map(d=>d.data());
+      const sel=$("#rptTemplateSelect");
+      if(sel)sel.innerHTML=`<option value="">${t("allWidgetsTemplate")}</option>`+rptTemplates.map(tp=>`<option value="${esc(tp.id)}">${esc(tp.name)}</option>`).join("");
+    }catch(e){/* صامت — Templates ميزة إضافية */}
+  }
   // merge overlay close
   $$('[data-close-merge]').forEach(b=>b.onclick=()=>$("#mergeOverlay").classList.remove("show"));
   $("#resetBtn").onclick=async function(){if(!leads.length){toast("مفيش بيانات");return;}if(!confirm("مسح كل العملاء نهائيًا من السحابة؟"))return;
@@ -2923,7 +3164,7 @@
       set('#langBtn', isEn()?"EN":"AR");
       set('#kbTitle',t("pipeline"));
       set('#kbShowClosedLbl',t("showClosed"));
-      set('#kbHint',t("dragHint"));
+      set('#kbHint',t("dragHint"));set('#kbDlAll',t("kbDlAllLbl"));
       // العنوانين دول فيهم <span> عداد جوه — نحدّث النص بس ونسيب الـ span
       const setPrefix=(sel,val,span)=>{const el=document.querySelector(sel);if(el){const s=el.querySelector(span);el.textContent=val+" ";if(s)el.appendChild(s);}};
       setPrefix('#prioTitleEl',t("prioTitle"),'#prioCount');
@@ -2950,6 +3191,17 @@
         }
         rptMonthSel.innerHTML=opts;
       }
+      set('#rptOwnerLbl',t("flOwner"));
+      set('#rptSourceLbl',t("flSource"));
+      const rptOwnerSel=document.getElementById("rptOwner");
+      if(rptOwnerSel){const cur=rptOwnerSel.value;rptOwnerSel.innerHTML=`<option value="">${t("allOwners")}</option>`+OWNERS.map(o=>`<option value="${esc(o)}">${esc(ownerLabel(o))}</option>`).join("");rptOwnerSel.value=cur;}
+      const rptSourceSel=document.getElementById("rptSource");
+      if(rptSourceSel){const cur=rptSourceSel.value;rptSourceSel.innerHTML=`<option value="">${t("allSources")}</option><option value="__social__">${t("socialMediaOnly")}</option>`+SOURCES.map(s=>`<option value="${esc(s.k)}">${esc(L(s))}</option>`).join("");rptSourceSel.value=cur;}
+      set('#rptCustomizeLbl',t("customizeReport"));
+      set('#rptApplyTemplateLbl',t("apply"));
+      set('#rptSaveTemplateLbl',t("saveAsTemplate"));
+      const rptTplName=document.getElementById("rptTemplateName"); if(rptTplName)rptTplName.placeholder=t("templateNamePh");
+      if(document.getElementById("rptWidgetPicker")&&document.getElementById("rptWidgetPicker").innerHTML)renderWidgetPicker();
       set('#hideTerminalLbl',t("hideTerminal"));
       set('#lookalikeLbl',t("lookalike"));
       set('#usersMgmtTitle',t("users").replace(/^👤\s*/,""));
