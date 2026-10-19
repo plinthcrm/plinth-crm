@@ -718,6 +718,13 @@
   </div>
 </div>
 
+<div class="overlay" id="obReplyOverlay">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-h"><h2>↩ رد العميل</h2><button class="x-btn" onclick="document.getElementById('obReplyOverlay').classList.remove('show')">×</button></div>
+    <div class="modal-b" id="obRepBody"></div>
+  </div>
+</div>
+
 <!-- ADD USER MODAL -->
 <div class="overlay" id="addUserOverlay">
   <div class="modal">
@@ -2175,7 +2182,7 @@
   try{const x=JSON.parse(localStorage.getItem("crm:materials")||"null");if(x&&Array.isArray(x.items))MATS=x;}catch(e){}
   async function saveMats(){try{localStorage.setItem("crm:materials",JSON.stringify(MATS));}catch(e){}
     try{await db.collection("settings").doc("materials").set(MATS);}catch(e){toast(X("اتحفظ محلياً بس (راجع قواعد Firestore)","Saved locally only (check Firestore rules)"));}}
-  const ob={sel:new Set(),sent:new Set(),lang:"auto",tpl:"followup",stages:new Set(),basis:"touch",minD:"",maxD:"",owner:"",q:"",closed:false,hideSent:0,mats:new Set(),names:{},rowLang:{},file:null,cAr:"",cEn:""};
+  const ob={sel:new Set(),sent:new Set(),lang:"auto",tpl:"followup",stages:new Set(),basis:"touch",minD:"",maxD:"",owner:"",q:"",closed:false,hideSent:0,mats:new Set(),names:{},rowLang:{},file:null,cAr:"",cEn:"",followDays:5,oldDays:7};
   const obLang=l=>ob.rowLang[l.id]||(ob.lang==="auto"?(hasAr(l.name)?"ar":"en"):ob.lang);
   function obName(l,lang){
     const k=l.id+"|"+lang;
@@ -2259,6 +2266,17 @@
       <div style="margin-bottom:12px"><label style="font-size:12.5px;font-weight:600">${X("📎 ملف PDF/صورة للمشاركة المباشرة (موبايل بس)","📎 PDF/image for direct share (mobile only)")}</label>
         <input type="file" accept="application/pdf,image/*" onchange="obFile(this.files[0])" style="margin-top:4px">
         <div class="muted" style="font-size:11.5px;margin-top:3px">${X("بيفتح قائمة المشاركة في موبايلك → اختار واتساب والعميل. للإرسال الجماعي الأسهل: ارفع الـ PDF على Drive/موقعك وضيفه كخامة (لينك).","Opens your phone's share sheet → pick WhatsApp + client. For bulk, easiest is to host the PDF (Drive/website) and add it as a link material.")}</div></div>
+      <div class="info-box" style="margin-bottom:12px;font-size:12.5px">
+        <div style="font-weight:600;margin-bottom:6px">${X("بعد كل إرسال: بيتسجل في اللوج بالتوقيت + بيتحدد موعد متابعة","After each send: logged with exact time + a follow-up date is set")}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <span>${X("متابعة بعد","Follow-up in")}</span><select class="filter" onchange="obSet('followDays',+this.value)"><option>3</option><option selected>5</option><option>7</option><option>10</option><option>14</option></select><span>${X("يوم","days")}</span>
+          <span style="margin-inline-start:10px">${X("للعميل القديم (بدون تواصل +90 يوم): نقطة قرار بعد","Old client (90+ days no contact): decision point in")}</span><select class="filter" onchange="obSet('oldDays',+this.value)"><option>3</option><option selected>7</option><option>14</option><option>30</option></select><span>${X("يوم","days")}</span>
+        </div>
+        <div class="muted" style="margin-top:6px">${X("متخطي الجمعة والسبت. لو العميل رد: دوس ↩ وسجّل (متابعة بتاريخ / إلغاء / أرشفة).","Fri/Sat skipped. If the client replied: tap ↩ and log (follow-up date / cancel / archive).")}</div>
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <span>${X("بعتّ قبل كده من غير تسجيل؟ وقت الإرسال:","Already sent without logging? Sent at:")}</span><input type="datetime-local" id="obWhen" style="width:auto">
+          <button class="icon-btn" onclick="obBulk()">✓ ${X("سجّل المحدد كمُرسَل (بدون فتح واتساب)","Log selected as sent (no WhatsApp)")}</button></div>
+      </div>
       <div class="section-title" style="font-size:14px;margin:6px 0">3) ${X("معاينة","Preview")}</div>
       <div id="obPrev" class="info-box" style="white-space:pre-wrap;font-size:13px;margin-bottom:12px"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
@@ -2269,6 +2287,7 @@
       </div>
       <div class="prio" id="obList" style="max-height:46dvh;overflow-y:auto"></div>`;
     $("#outreachOverlay").classList.add("show");
+    const w=document.getElementById("obWhen");if(w){const n=new Date();n.setMinutes(n.getMinutes()-n.getTimezoneOffset());w.value=n.toISOString().slice(0,16);}
     obRefresh();};
   window.obSet=function(k,v){ob[k]=v;if(k==="tpl"){const c=document.getElementById("obCustom");if(c)c.style.display=v==="custom"?"":"none";}obRefresh();};
   window.obFile=function(f){ob.file=f||null;obRefresh();};
@@ -2279,10 +2298,76 @@
   window.obNm=function(id,v){const l=leads.find(x=>x.id===id);if(!l)return;ob.names[id+"|"+obLang(l)]=v.trim();obRefresh(true);};
   window.obRow=function(id){const l=leads.find(x=>x.id===id);if(!l)return;ob.rowLang[id]=obLang(l)==="ar"?"en":"ar";obRefresh();};
   window.obCopy=function(id){const l=leads.find(x=>x.id===id);if(!l)return;try{navigator.clipboard.writeText(obMsg(l));toast(X("اتنسخت","Copied"));}catch(e){toast(X("مش قادر ينسخ","Copy failed"));}};
+  const obYmd=(ts,days)=>{let d=new Date(ts+days*864e5);d.setHours(12,0,0,0);while(d.getDay()===5||d.getDay()===6)d=new Date(d.getTime()+864e5);return ymdLocal(d.getTime());};
+  // تسجيل رسالة في اللوج + تحديد موعد متابعة جديد (القديم أوي = نقطة قرار)
+  function obApply(l,ts){
+    const idle=daysSince(l),old=idle>90;
+    const fu=obYmd(Math.max(ts,Date.now()),old?ob.oldDays:ob.followDays);
+    const cur=l.nextFollowUp;
+    if(!(!old&&cur&&cur>ymdLocal(Date.now())&&cur<fu))l.nextFollowUp=fu;
+    const tn={followup:"متابعة",intro:"تعريف",reengage:"إعادة تواصل",custom:"مخصص"}[ob.tpl]||ob.tpl;
+    const mats=MATS.items.filter(m=>ob.mats.has(m.id)).map(m=>m.title);
+    l.notes=l.notes||[];
+    l.notes.push({id:uid(),ts,kind:"note",text:"📣 رسالة واتساب ("+tn+" · "+obLang(l).toUpperCase()+")"+(mats.length?" + "+mats.join("، "):"")+" — المتابعة الجاية: "+l.nextFollowUp+(old?" · نقطة قرار (بدون تواصل "+idle+" يوم): متابعة / إلغاء / أرشفة":"")});
+    l.outreach=(l.outreach||[]).concat([{ts,lang:obLang(l),tpl:ob.tpl,by:currentUserName||""}]).slice(-10);
+    l.lastOutreachAt=ts;}
   function obMark(l){
     ob.sent.add(l.id);
-    if(canWrite()){l.outreach=(l.outreach||[]).concat([{ts:Date.now(),lang:obLang(l),tpl:ob.tpl,by:currentUserName||""}]).slice(-10);l.lastOutreachAt=Date.now();putLead(l).catch(()=>{});}
+    if(canWrite()){obApply(l,Date.now());putLead(l).then(()=>renderLeadsAndDash()).catch(()=>{});}
     obRefresh(true);}
+  window.obBulk=async function(){
+    const el=document.getElementById("obWhen"),ts=el&&el.value?new Date(el.value).getTime():Date.now();
+    const list=obCands().filter(l=>ob.sel.has(l.id)&&!ob.sent.has(l.id));
+    if(!list.length){toast(X("حدد عملاء الأول","Select clients first"));return;}
+    if(!window.confirm(X("هسجّل رسالة + موعد متابعة لـ ","Log a message + follow-up for ")+list.length+X(" عميل بتوقيت "," clients at ")+new Date(ts).toLocaleString(isEn()?"en-GB":"ar-EG")+" ؟"))return;
+    list.forEach(l=>{obApply(l,ts);l.updatedAt=Date.now();ob.sent.add(l.id);});
+    try{let b=db.batch(),n=0;for(const l of list){b.set(db.collection("leads").doc(l.id),JSON.parse(JSON.stringify(l)));n++;if(n%450===0){await b.commit();b=db.batch();}}await b.commit();
+      toast(X("تم تسجيل ","Logged ")+list.length);}catch(e){toast(X("تعذّر الحفظ","Save failed"));}
+    obRefresh();renderLeadsAndDash();};
+  // ── تسجيل رد العميل: متابعة بتاريخ / إلغاء / أرشفة ──
+  window.obRepKind=function(k){["f","c","a"].forEach(x=>{const e=document.getElementById("obRep_"+x);if(e)e.style.display=x===k?"":"none";});};
+  window.obReply=function(id){
+    const l=leads.find(x=>x.id===id);if(!l||!canWrite())return;
+    const st=normStatus(l.status),canMove=st==="no_answer"||(st==="new"&&isAdmin());
+    document.getElementById("obRepBody").innerHTML=`
+      <input type="hidden" id="obRepId" value="${esc(id)}">
+      <div style="font-weight:700;margin-bottom:8px">${esc(l.name)} <span class="muted" style="font-weight:400;font-size:12px">${esc(L(stById(l.status)))}</span></div>
+      <div class="field"><label style="font-size:12px;font-weight:600">${X("ملخص رد العميل (إجباري)","Client reply summary (required)")}</label><textarea id="obRepTxt" rows="3"></textarea></div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px">
+        <label style="cursor:pointer;font-size:13.5px"><input type="radio" name="obRepK" value="f" checked style="width:auto;margin:0 6px" onchange="obRepKind('f')">${X("📅 متابعة بتاريخ","📅 Follow up on a date")}</label>
+        <div id="obRep_f" style="padding:0 22px"><input type="date" id="obRepDate" value="${obYmd(Date.now(),3)}">
+          ${canMove?`<label style="display:block;margin-top:6px;font-size:12.5px;cursor:pointer"><input type="checkbox" id="obRepMove" checked style="width:auto;margin:0 6px">${X("حرّكه لمرحلة «تم التعارف»","Move to “Contacted”")}</label>`:""}</div>
+        <label style="cursor:pointer;font-size:13.5px"><input type="radio" name="obRepK" value="c" style="width:auto;margin:0 6px" onchange="obRepKind('c')">${X("✕ إلغاء","✕ Cancel")}</label>
+        <div id="obRep_c" style="padding:0 22px;display:none"><select id="obRepReason" class="filter" style="width:100%"><option value="">${X("اختار السبب","Choose a reason")}</option>${CANCEL_REASONS.map(r=>`<option value="${esc(r.k)}">${esc(reasonLabel(r))}</option>`).join("")}</select></div>
+        <label style="cursor:pointer;font-size:13.5px"><input type="radio" name="obRepK" value="a" style="width:auto;margin:0 6px" onchange="obRepKind('a')">${X("🗄 أرشفة (مؤجّل مؤقتاً) + مراجعة لاحقاً","🗄 Archive (On Hold) + review later")}</label>
+        <div id="obRep_a" style="padding:0 22px;display:none"><select id="obRepDays" class="filter"><option value="30">${X("بعد 30 يوم","In 30 days")}</option><option value="60">${X("بعد 60 يوم","In 60 days")}</option><option value="90" selected>${X("بعد 90 يوم","In 90 days")}</option></select></div>
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="obRepSave()">${X("حفظ","Save")}</button>`;
+    document.getElementById("obReplyOverlay").classList.add("show");};
+  window.obRepSave=async function(){
+    const l=leads.find(x=>x.id===document.getElementById("obRepId").value);if(!l)return;
+    const kind=document.querySelector('input[name=obRepK]:checked').value,txt=document.getElementById("obRepTxt").value.trim(),ts=Date.now();
+    if(!txt){toast(X("اكتب ملخص الرد","Write the reply summary"));return;}
+    l.notes=l.notes||[];
+    if(kind==="f"){
+      const d=document.getElementById("obRepDate").value;if(!d){toast(X("اختار تاريخ","Pick a date"));return;}
+      const mv=document.getElementById("obRepMove");if(mv&&mv.checked&&transitionStage(l,"contacted")===null)return;
+      l.nextFollowUp=d;l.notes.push({id:uid(),ts,kind:"note",text:"↩ رد العميل: "+txt+" — متابعة "+d});
+    }else if(kind==="c"){
+      const rs=document.getElementById("obRepReason").value;if(!rs){toast(X("اختار سبب الإلغاء","Choose a cancel reason"));return;}
+      if(transitionStage(l,"cancelled")===null)return;
+      l.cancelReason=rs;l.nextFollowUp="";l.notes.push({id:uid(),ts,kind:"note",text:"[إلغاء] ↩ "+txt});
+    }else{
+      const dd=+document.getElementById("obRepDays").value;
+      if(transitionStage(l,"on_hold")===null)return;
+      l.nextFollowUp=obYmd(ts,dd);l.notes.push({id:uid(),ts,kind:"note",text:"[أرشفة / تأجيل] ↩ "+txt+" — مراجعة "+l.nextFollowUp});
+    }
+    l.lastReplyAt=ts;
+    await putLead(l);
+    document.getElementById("obReplyOverlay").classList.remove("show");
+    if(document.getElementById("obList"))obRefresh();
+    renderLeadsAndDash();if($("#detailOverlay").classList.contains("show")&&currentDetailId===l.id)renderDetail();
+    toast(X("تم الحفظ","Saved"));};
   window.obSend=function(id,share){
     const l=leads.find(x=>x.id===id);if(!l)return;const msg=obMsg(l);
     if(share&&ob.file){navigator.share({files:[ob.file],text:msg}).then(()=>obMark(l)).catch(()=>{});return;}
@@ -2311,11 +2396,12 @@
       return `<div class="prio-item" style="gap:8px;align-items:center;flex-wrap:wrap;cursor:default">
         <input type="checkbox" style="width:auto;margin:0" ${ob.sel.has(l.id)?"checked":""} onchange="obTog('${l.id}',this.checked)">
         <div class="prio-main" style="min-width:130px"><div class="prio-name">${esc(l.name)}</div>
-          <div class="prio-reason">${esc(L(stById(l.status)))} · ${obDays(l)}${X("ي","d")}${sent?" · ✓ "+X("اتبعت","sent"):lo!=null?" · "+X("آخر رسالة من ","last msg ")+lo+X("ي","d"):""}</div></div>
+          <div class="prio-reason">${esc(L(stById(l.status)))} · ${obDays(l)}${X("ي","d")}${sent?" · ✓ "+X("اتبعت","sent"):lo!=null?" · "+X("آخر رسالة من ","last msg ")+lo+X("ي","d"):""}${l.nextFollowUp?" · 📅 "+l.nextFollowUp:""}</div></div>
         <input type="text" value="${esc(nm.v)}" title="${nm.auto?X("ترجمة تقريبية — راجعها","Approximate transliteration — please check"):X("الاسم في الرسالة","Name used")}" onchange="obNm('${l.id}',this.value)" style="width:96px;padding:4px 6px;font-size:12px;${nm.auto?"border-color:var(--gold)":""}">
         <button class="icon-btn" onclick="obRow('${l.id}')">${lang==="ar"?"AR":"EN"}</button>
         <button class="icon-btn" style="color:var(--sage)" onclick="obSend('${l.id}')">💬</button>
         <button class="icon-btn" onclick="obCopy('${l.id}')">⧉</button>
+        <button class="icon-btn" title="${X("سجّل رد العميل","Log client reply")}" onclick="obReply('${l.id}')">↩</button>
         ${canShare?`<button class="icon-btn" onclick="obSend('${l.id}',true)">📎</button>`:""}</div>`;}).join("")||`<p class="muted" style="padding:10px 0">${X("مفيش عملاء","No clients")}</p>`;
   }
   window.obAddMat=async function(){
@@ -2550,6 +2636,7 @@
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
         ${di?`<span class="due-flag ${di.cls}">${t("nextFollowup")} ${di.txt}</span>`:`<span class="muted" style="font-size:13px">${t("noFollowup")}</span>`}
         ${l.driveLink?`<a href="${esc(l.driveLink)}" target="_blank" class="btn btn-ghost btn-sm">🔗 ملفات Drive</a>`:""}
+        ${canWrite()&&isActive(l)?`<button class="btn btn-ghost btn-sm" onclick="obReply('${l.id}')">↩ ${isEn()?"Log client reply":"سجّل رد العميل"}</button>`:""}
       </div>
       ${l.status==="cancelled"&&l.cancelReason?`<div class="info-box" style="margin-bottom:10px;border-color:var(--rose)"><div class="ib-l" style="color:var(--rose)">${t("cancelReasons")}</div><div class="ib-v">${esc(cancelReasonDisplay(l.cancelReason))}</div></div>`:""}
       ${l.status==="lost"&&l.lostReason?`<div class="info-box" style="margin-bottom:10px;border-color:var(--rose)"><div class="ib-l" style="color:var(--rose)">${t("lostReasons")}</div><div class="ib-v">${esc(lostReasonDisplay(l.lostReason))}</div></div>`:""}
