@@ -177,6 +177,17 @@
   .kb-head{padding:10px 12px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:6px;cursor:pointer;user-select:none}
   .kb-ttl{font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:6px;min-width:0}
   .kb-dot{width:8px;height:8px;border-radius:50%;flex:0 0 8px}
+  .rg-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .rg-row:last-child{border-bottom:0}
+  .rg-main{flex:1 1 220px;min-width:0}.rg-t{font-weight:600;font-size:13.5px}.rg-d{font-size:12px;color:var(--ink-soft);margin-top:2px}
+  .rg-n{font-size:20px;font-weight:700;min-width:44px;text-align:center}.rg-n small{display:block;font-size:10.5px;font-weight:500;color:var(--clay)}
+  .rg-acts{display:flex;gap:6px}
+  .drill-row{cursor:pointer}.drill-row:hover{background:var(--ivory)}
+  .collapsible .card-h{cursor:pointer;user-select:none;position:relative;padding-inline-end:34px}
+  .collapsible .card-h::after{content:"▾";position:absolute;inset-inline-end:14px;top:50%;transform:translateY(-50%);font-size:15px;color:var(--ink-soft);transition:transform .15s}
+  .collapsible.closed .card-h::after{transform:translateY(-50%) rotate(90deg)}
+  .collapsible.closed .card-b{display:none}
+  .kb-date{padding:10px 8px;border:1px solid var(--line);border-radius:11px;background:var(--paper);font-family:inherit;font-size:13px;color:var(--ink)}
   .kb-dl{border:1px solid var(--line);background:var(--paper);color:var(--ink-soft);border-radius:7px;font-size:11px;line-height:1;padding:3px 6px;cursor:pointer;font-family:inherit}
   .kb-dl:hover{border-color:var(--gold);color:var(--ink)}
   .kb-col.folded .kb-dl{display:none}
@@ -431,14 +442,19 @@
   <div class="loading" id="loadingState"><div class="spinner"></div>جاري تحميل البيانات…</div>
 
   <section class="view" id="tab-dash">
+    <div id="scopeBarDash"></div>
     <div class="kpi-grid" id="kpiGrid"></div>
-    <div class="card">
+    <div class="card collapsible" data-cid="prio">
       <div class="card-h" id="prioTitleEl">🔥 أولوية المتابعة — مين تتابعه دلوقتي <span class="muted num" id="prioCount" style="font-weight:400;font-size:12px"></span></div>
       <div class="card-b"><div class="prio" id="prioList" style="max-height:360px;overflow-y:auto"></div></div>
     </div>
-    <div class="card" id="staleCard" style="display:none;border-color:var(--gold)">
+    <div class="card collapsible" data-cid="stale" id="staleCard" style="display:none;border-color:var(--gold)">
       <div class="card-h" id="staleTitleEl" style="color:var(--gold)">⚠ بدون تواصل من أكتر من 7 أيام <span class="muted num" id="staleCountEl" style="font-weight:400;font-size:12px"></span></div>
       <div class="card-b"><div class="prio" id="staleList" style="max-height:240px;overflow-y:auto"></div></div>
+    </div>
+    <div class="card collapsible" data-cid="reeng" id="reengageCard" style="display:none">
+      <div class="card-h" id="reengTitleEl">📣 خطة إعادة التواصل</div>
+      <div class="card-b" id="reengBody"></div>
     </div>
     <div class="card">
       <div class="card-h" id="pipelineStagesTitle">مراحل العملاء (Pipeline)</div>
@@ -458,6 +474,12 @@
       </label>
       <select class="filter" id="kbOwner" style="min-width:130px"></select>
       <select class="filter" id="kbPriority" style="min-width:110px"></select>
+      <select class="filter" id="kbBudget" style="min-width:120px"></select>
+      <select class="filter" id="kbDateMode" style="min-width:150px" title=""></select>
+      <select class="filter" id="kbDatePreset" style="min-width:120px"></select>
+      <span id="kbDateCustom" style="display:none;align-items:center;gap:5px">
+        <input type="date" id="kbDateFrom" class="kb-date"> <span class="muted">→</span> <input type="date" id="kbDateTo" class="kb-date">
+      </span>
       <button class="btn btn-ghost btn-sm" id="kbDlAll" onclick="kbDownload('all')">⬇ تحميل كل المراحل</button>
       <span class="muted" style="font-size:11.5px" id="kbHint">اسحب الكارت لمرحلة تانية</span>
     </div>
@@ -469,6 +491,7 @@
       <div class="search"><input type="text" id="searchInput" placeholder="ابحث بالاسم، التليفون، أو الكمباوند…"></div>
       <select class="filter" id="statusFilter"></select>
       <select class="filter" id="qualityFilter"></select>
+      <select class="filter" id="budgetFilter"></select>
       <select class="filter" id="ownerFilter"></select>
       <select class="filter" id="sourceFilter"></select>
     </div>
@@ -505,6 +528,7 @@
   </section>
 
   <section class="view" id="tab-report">
+    <div id="scopeBarRpt"></div>
     <div class="row no-print">
       <div class="section-title" id="perfReportTitle">تقرير الأداء</div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -729,7 +753,7 @@
     ar:{
       dash:"لوحة المتابعة", pipeline:"الـ Pipeline", leads:"العملاء", report:"التقرير", users:"👤 المستخدمون",
       search:"ابحث بالاسم، التليفون، أو الكمباوند…",
-      allStatuses:"كل الحالات", allQuality:"كل الجودة", allOwners:"كل المسؤولين", allSources:"كل المصادر", allPriorities:"كل الأولويات",
+      allStatuses:"كل الحالات", allQuality:"كل الجودة", allBudgets:"كل الميزانيات", budgetReasonOpt:"💰 تحت الميزانية / سبب السعر", allOwners:"كل المسؤولين", allSources:"كل المصادر", allPriorities:"كل الأولويات",
       hideTerminal:"إخفاء الإلغاء والخسارة", lookalike:"🎯 المهتمين والمحتملين (Look-alike)",
       newLead:"＋ عميل جديد", edit:"✎ تعديل", del:"حذف", save:"حفظ", cancel:"إلغاء", close:"×",
       totalLeads:"إجمالي العملاء", activePipeline:"Pipeline النشطة ›", won:"مكسوب ›", convRate:"نسبة التحويل",
@@ -779,7 +803,7 @@
       jobDate:"التاريخ", jobsTotal:"إجمالي العقود", noJobs:"لسه مفيش Jobs مُسجّلة.",
       jobDeleteConfirm:"تحذف الـ Job ده؟", jobAdded:"تم إضافة Job", jobDeleted:"تم حذف Job",
       jobCurrency:"العملة", editJobTitle:"تعديل Job", jobUpdated:"تم تحديث Job", auditEditJob:"تعديل Job",
-      auditValueChange:"⚠ تعديل القيمة المالية", auditExport:"تحميل Pipeline", kbDlStage:"تحميل المرحلة (Excel)", kbDlAllLbl:"⬇ تحميل كل المراحل", kbDlEmpty:"مفيش ليدز في المرحلة دي للتحميل", kbDlDone:"تم التحميل ✓",
+      auditValueChange:"⚠ تعديل القيمة المالية", auditExport:"تحميل Pipeline", auditSlaReset:"إعادة ضبط SLA", auditReeng:"تحميل قائمة إعادة التواصل", kdStage:"📅 دخول المرحلة", kdUpdated:"📅 آخر تحديث", kdReceived:"📅 استلام الليد", kdAll:"كل التواريخ", kdToday:"اليوم", kdYesterday:"أمس", kd7:"آخر 7 أيام", kd30:"آخر 30 يوم", kdMonth:"الشهر الحالي", kdCustom:"فترة مخصصة…", kdHint:"الفلتر بيتطبق على أي تاريخ؟", kdFiltered:"فلتر التاريخ مفعّل", kbDlStage:"تحميل المرحلة (Excel)", kbDlAllLbl:"⬇ تحميل كل المراحل", kbDlEmpty:"مفيش ليدز في المرحلة دي للتحميل", kbDlDone:"تم التحميل ✓",
       jobApproved:"معتمد", jobPending:"غير معتمد", approvedQuotation:"Approved Quotation",
       jobStatusLbl:"حالة الـ Job", jobProbLbl:"نسبة احتمال التوقيع %",
       jobsApprovedTotal:"إجمالي المعتمد", jobsWonTotal:"إجمالي تعاقدات مكسوبة فعلياً",
@@ -853,7 +877,7 @@
     en:{
       dash:"Dashboard", pipeline:"Pipeline", leads:"Leads", report:"Report", users:"👤 Users",
       search:"Search by name, phone, or compound…",
-      allStatuses:"All stages", allQuality:"All quality", allOwners:"All owners", allSources:"All sources", allPriorities:"All priorities",
+      allStatuses:"All stages", allQuality:"All quality", allBudgets:"All budgets", budgetReasonOpt:"💰 Below budget / price reason", allOwners:"All owners", allSources:"All sources", allPriorities:"All priorities",
       hideTerminal:"Hide cancelled & lost", lookalike:"🎯 Interested & potential (Look-alike)",
       newLead:"＋ New Lead", edit:"✎ Edit", del:"Delete", save:"Save", cancel:"Cancel", close:"×",
       totalLeads:"Total Leads", activePipeline:"Active Pipeline ›", won:"Won ›", convRate:"Conversion Rate",
@@ -903,7 +927,7 @@
       jobDate:"Date", jobsTotal:"Total Contracts", noJobs:"No jobs recorded yet.",
       jobDeleteConfirm:"Delete this job?", jobAdded:"Job added", jobDeleted:"Job deleted",
       jobCurrency:"Currency", editJobTitle:"Edit Job", jobUpdated:"Job updated", auditEditJob:"Edited job",
-      auditValueChange:"⚠ Financial value changed", auditExport:"Pipeline download", kbDlStage:"Download stage (Excel)", kbDlAllLbl:"⬇ Download all stages", kbDlEmpty:"No leads in this stage to download", kbDlDone:"Downloaded ✓",
+      auditValueChange:"⚠ Financial value changed", auditExport:"Pipeline download", auditSlaReset:"SLA reset", auditReeng:"Re-engagement list download", kdStage:"📅 Entered stage", kdUpdated:"📅 Last updated", kdReceived:"📅 Lead received", kdAll:"All dates", kdToday:"Today", kdYesterday:"Yesterday", kd7:"Last 7 days", kd30:"Last 30 days", kdMonth:"This month", kdCustom:"Custom range…", kdHint:"Which date does the filter use?", kdFiltered:"Date filter active", kbDlStage:"Download stage (Excel)", kbDlAllLbl:"⬇ Download all stages", kbDlEmpty:"No leads in this stage to download", kbDlDone:"Downloaded ✓",
       jobApproved:"Approved", jobPending:"Pending", approvedQuotation:"Approved Quotation",
       jobStatusLbl:"Job Status", jobProbLbl:"Probability of signing %",
       jobsApprovedTotal:"Total Approved", jobsWonTotal:"Total Actually Won Contracts",
@@ -1210,9 +1234,18 @@
   const QUALITY=[
     {k:"interested",t:"مهتم",e:"Interested",c:"#5C7355"},
     {k:"potential",t:"محتمل",e:"Potential",c:"#B08838"},
+    {k:"opportunity",t:"فرصة",e:"Opportunity",c:"#2F7D8C"},
+    {k:"not_interested",t:"غير مهتم",e:"Not interested",c:"#7C7C8A"},
     {k:"unsuitable",t:"غير مناسب",e:"Not a fit",c:"#8A8079"},
     {k:"invalid",t:"خاطئ (بيانات غلط)",e:"Invalid data",c:"#9A4B4B"}];
   const qById=k=>QUALITY.find(q=>q.k===k);
+  // تصنيف الجودة بقى أوصاف متعددة (Tags): مهتم + محتمل + فرصة / غير مهتم / غير مناسب — منفصل تمامًا عن حالة الـ Pipeline
+  const POS_Q=["interested","potential","opportunity"], NEG_Q=["not_interested","unsuitable","invalid"];
+  const qTags=l=>Array.isArray(l.qualityTags)?l.qualityTags:(l.quality?[l.quality]:[]);
+  const qHas=(l,k)=>qTags(l).includes(k);
+  const qPositive=l=>qTags(l).some(k=>POS_Q.includes(k));
+  const qPrimary=tags=>["opportunity","potential","interested","not_interested","unsuitable","invalid"].find(k=>tags.includes(k))||null;
+  const qChips=(l,cls,fs)=>qTags(l).map(qById).filter(Boolean).map(q=>`<span class="${cls}" style="background:${q.c}1A;color:${q.c}${fs?";font-size:"+fs:""}">${esc(L(q))}</span>`).join("");
   const SOURCES=[
     {k:"campaign",t:"كامبين سوشيال ميديا",e:"Social Campaign",i:"📣",camp:true},
     {k:"whatsapp",t:"واتساب مباشر",e:"Direct WhatsApp",i:"💬"},
@@ -1464,6 +1497,7 @@
       if(!autoBackupChecked){autoBackupChecked=true;runAutoBackupIfDue();}
     },err=>{$("#loadingState").innerHTML='<div style="padding:30px">⚠ تعذّر الاتصال — تأكد من صلاحيات Firestore.</div>';});
     db.collection("campaigns").onSnapshot(snap=>{campaigns=snap.docs.map(d=>d.data());},()=>{});
+    try{db.collection("settings").doc("analysis").get().then(d=>{if(d&&d.exists&&d.data().from&&/^\d{4}-\d{2}-\d{2}$/.test(d.data().from)){analysisFrom=d.data().from;try{localStorage.setItem("crm:analysisFrom",analysisFrom);}catch(e){}if(ready)renderAll();}}).catch(()=>{});}catch(e){}
     if(isAdmin()) loadUsersTab();
     loadReportTemplates();
   }
@@ -1474,7 +1508,7 @@
     "تعديل بيانات":"auditEditData","إضافة عميل جديد":"auditNewLead","تغيير مرحلة":"auditStageChange","تغيير مرحلة (تجاوز)":"auditStageForced",
     "حذف عميل":"auditDeleteLead","إضافة Job":"auditAddJob","حذف Job":"auditDeleteJob","طلب نقل مسؤولية":"auditTransferReq",
     "موافقة نقل مسؤولية":"auditTransferApp","رفض نقل مسؤولية":"auditTransferRej","تغيير دور مستخدم":"roleChangeAction",
-    "حذف مستخدم":"auditDeleteUser","إضافة مستخدم":"auditAddUser","تحميل Pipeline":"auditExport"};
+    "حذف مستخدم":"auditDeleteUser","إضافة مستخدم":"auditAddUser","تحميل Pipeline":"auditExport","إعادة ضبط SLA":"auditSlaReset","تحميل قائمة إعادة التواصل":"auditReeng"};
   function auditActionLabel(action){ const k=AUDIT_ACTION_MAP[action]; return k?t(k):action; }
   async function logAudit(action, leadId, leadName, detail=""){
     if(!db||!currentUser)return;
@@ -1603,10 +1637,42 @@
     if(diff<=3)return{cls:"due-soon",txt:t("dueSoonPrefix")+diff+(isEn()?"d":"ي")};
     return{cls:"due-soon",txt:new Date(d).toLocaleDateString(isEn()?"en-GB":"ar-EG",{day:"numeric",month:"short"})};}
   function lastTs(l){const n=(l.notes||[]);return n.length?Math.max(...n.map(x=>x.ts)):0;}
+  const lastTouch=l=>Math.max(lastTs(l),l.slaResetAt||0); // آخر تواصل أو آخر إعادة ضبط SLA
   function firstTs(l){const n=(l.notes||[]);return n.length?Math.min(...n.map(x=>x.ts)):0;}
   function normVal(l){const v=Number(l.value)||0;return v*(l.currency==="USD"?50:l.currency==="SAR"?13:1);}
+  // ══════════ نطاق التحليل: من بداية استخدام الـ CRM أو الإجمالي ══════════
+  let analysisFrom=(function(){try{return localStorage.getItem("crm:analysisFrom")||"2026-06-12";}catch(e){return"2026-06-12";}})();
+  let analysisMode=(function(){try{return localStorage.getItem("crm:scopeMode")==="all"?"all":"crm";}catch(e){return"crm";}})();
+  const inScope=l=>analysisMode==="all"||(l.createdAt||0)>=new Date(analysisFrom+"T00:00:00").getTime();
+  const scoped=arr=>analysisMode==="all"?arr:arr.filter(inScope);
+  function scopeFromTxt(){return new Date(analysisFrom+"T00:00:00").toLocaleDateString(isEn()?"en-GB":"ar-EG",{day:"numeric",month:"long",year:"numeric"});}
+  function scopeBarHtml(){
+    const pool=canSeeReferral()?leads:leads.filter(l=>l.source!=="referral");
+    const inN=pool.filter(l=>(l.createdAt||0)>=new Date(analysisFrom+"T00:00:00").getTime()).length;
+    const en=isEn(), crm=analysisMode==="crm";
+    const b=(on)=>on?"background:var(--clay);color:#fff;border-color:var(--clay)":"";
+    const sa=(actualRole==="super_admin"&&currentRole==="super_admin")?`<button class="icon-btn" onclick="changeAnalysisFrom()" title="${en?"Change start date":"تغيير تاريخ البداية"}">⚙</button>`:"";
+    return `<div class="no-print" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px">
+      <button class="icon-btn" style="${b(crm)}" onclick="setScopeMode('crm')">📅 ${en?"Since CRM start":"من بداية الـ CRM"} (${scopeFromTxt()})</button>
+      <button class="icon-btn" style="${b(!crm)}" onclick="setScopeMode('all')">${en?"All leads (total)":"الإجمالي كله"}</button>
+      <span class="muted num" style="font-size:12px">${crm?inN+(en?" of ":" من ")+pool.length:pool.length}</span>${sa}</div>`;}
+  window.setScopeMode=function(m){analysisMode=m==="all"?"all":"crm";try{localStorage.setItem("crm:scopeMode",analysisMode);}catch(e){}renderAll();};
+  window.changeAnalysisFrom=async function(){
+    if(!(actualRole==="super_admin"&&currentRole==="super_admin"))return;
+    const pool=canSeeReferral()?leads:leads.filter(l=>l.source!=="referral");
+    const msg=isEn()?"Analysis start date (YYYY-MM-DD). Leads created before it are excluded from analysis/reports (current: "+analysisFrom+"):":"تاريخ بداية التحليل (YYYY-MM-DD). الليدز المسجلة قبله هتتشال من التحليل والتقارير (الحالي: "+analysisFrom+"):";
+    const v=window.prompt(msg,analysisFrom);
+    if(!v)return;
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(v)||isNaN(new Date(v+"T00:00:00").getTime())){toast(isEn()?"Invalid date":"تاريخ غير صحيح");return;}
+    const before=pool.filter(l=>(l.createdAt||0)<new Date(v+"T00:00:00").getTime()).length;
+    if(!window.confirm((isEn()?"Leads before ":"عدد الليدز قبل ")+v+": "+before+(isEn()?". Continue?":" . تكمل؟")))return;
+    const old=analysisFrom;analysisFrom=v;try{localStorage.setItem("crm:analysisFrom",v);}catch(e){}
+    try{await db.collection("settings").doc("analysis").set({from:v,by:currentUser.uid,ts:Date.now()});}catch(e){toast(isEn()?"Saved locally only (check Firestore rules)":"اتحفظ محلياً بس (راجع قواعد Firestore)");}
+    logAudit("analysis_start",null,"",old+" → "+v);
+    renderAll();
+  };
   function totalsByCurrency(fn){
-    const visibleLeads=canSeeReferral()?leads:leads.filter(l=>l.source!=="referral");
+    const visibleLeads=scoped(canSeeReferral()?leads:leads.filter(l=>l.source!=="referral"));
     const t={EGP:0,SAR:0,USD:0};
     visibleLeads.filter(fn).forEach(l=>t[l.currency]=(t[l.currency]||0)+(Number(l.value)||0));
     return Object.entries(t).filter(([,v])=>v>0).map(([c,v])=>fmt(v)+" "+c).join(" · ")||"—";}
@@ -1626,7 +1692,7 @@
     const nv=normVal(l);
     if(nv>=2e6){sc+=22;rs.push(t("rsHighValue"));}else if(nv>=5e5){sc+=11;}
     if(l.status==="new"){sc+=22;rs.push(t("rsNewLead"));}
-    const lt=lastTs(l), days=Math.floor((Date.now()-(lt||l.createdAt))/864e5);
+    const lt=lastTouch(l), days=Math.floor((Date.now()-(lt||l.createdAt))/864e5);
     if(l.status!=="new"&&days>=7){sc+=Math.min(18,days);rs.push(t("rsNoContactDays").replace("{n}",days));}
     return{sc,rs,days};
   }
@@ -1634,6 +1700,40 @@
   // ---- best contact time suggestion ----
   const SLOTS=[{k:0,tk:"slotMorning",lo:9,hi:12},{k:1,tk:"slotNoon",lo:12,hi:15},{k:2,tk:"slotAfternoon",lo:15,hi:18},{k:3,tk:"slotEvening",lo:18,hi:21}];
   function slotOf(h){for(const s of SLOTS)if(h>=s.lo&&h<s.hi)return s.k;return h<9?0:3;}
+  // الإجراء المقترح لو الليد واقف في مرحلته (حسب خطة الـ SLA)
+  function stallAdvice(l){
+    if(!isActive(l))return"";
+    const st=normStatus(l.status),en=isEn(),A=(a,e)=>en?e:a;
+    const since=Math.max(l.stageChangedAt||0,l.slaResetAt||0)||lastTs(l)||l.updatedAt||l.createdAt||0;
+    const d=Math.floor((Date.now()-since)/864e5),calls=(l.notes||[]).filter(n=>n.kind==="call").length,pos=qPositive(l);
+    if(st==="new"&&d>=1)return A("اتصل دلوقتي: 3 محاولات في أوقات مختلفة (2م / 6م / 9م)، وبعدها انقله لـ \"مردّش\".","Call now: 3 attempts at different times (2pm / 6pm / 9pm), then move to No Answer.");
+    if(st==="no_answer"){
+      if(calls<4)return A(`المحاولة ${calls+1} من 4: جرّب وقت مختلف وابعت رسالة واتساب.`,`Attempt ${calls+1} of 4: try a different time and send a WhatsApp message.`);
+      if(d>=14)return pos?A("4 محاولات وبدون رد: انقله لـ \"مؤجّل\" وحدد متابعة بعد 30 يوم (العميل مهتم).","4 attempts with no reply: move to On Hold with a follow-up in 30 days (interested client)."):A("4 محاولات و14 يوم بدون رد: الغِ بسبب \"مفيش رد بعد محاولات متكررة\".","4 attempts and 14 days with no reply: cancel as \"No response after repeated attempts\".");
+      return A("استنى لحد يوم 14 من آخر محاولة وبعدها قرر (مؤجّل أو إلغاء).","Wait until day 14 from the last attempt, then decide (On Hold or Cancel).");
+    }
+    if(st==="contacted"){
+      if(d>=21)return pos?A("3 أسابيع بدون تقدم: انقله لـ \"مؤجّل\" +30 يوم.","3 weeks without progress: move to On Hold, follow up in 30 days."):A("3 أسابيع بدون تقدم وغير مصنف مهتم: الغِ مع تسجيل السبب.","3 weeks without progress and not tagged interested: cancel with a reason.");
+      if(d>=14)return A("ابعت رسالة أخيرة تسأله لو لسه مهتم.","Send a final message asking if he is still interested.");
+      if(d>=7)return A("اتصل بيه مرة تانية واعرف احتياجه وميزانيته.","Call again and clarify his needs and budget.");
+      if(d>=3)return A("ابعت رسالة واتساب تفتح الكلام.","Send a WhatsApp message to reopen the conversation.");
+    }
+    if(st==="qualified"){
+      if(d>=14)return pos?A("رتّب معاينة أو انقله لـ \"مؤجّل\" +30 يوم.","Book a visit or move to On Hold for 30 days."):A("رتّب معاينة أو الغِ مع تسجيل السبب.","Book a visit or cancel with a reason.");
+      if(d>=5)return A("رتّب معاينة أو ابدأ التسعير.","Book a visit or start pricing.");
+    }
+    if(st==="site_visit"&&d>=3)return A("ابدأ التسعير بعد اللقاء.","Start pricing after the meeting.");
+    if(st==="pricing"&&d>=5)return A("خلّص العرض وابعته.","Finish the proposal and send it.");
+    if(st==="quoted"){
+      if(d>=60)return A("60 يوم بدون رد: سجّل \"خسارة — مفيش رد بعد العرض\".","60 days with no reply: mark Lost — no response after proposal.");
+      if(d>=21)return A("ابعت رسالة \"محتاجين قرارك\" وبعدها انقله لـ \"مؤجّل\" +30 يوم.","Send a \"we need your decision\" message, then move to On Hold for 30 days.");
+      if(d>=10)return A("اتصل واسأل عن العرض وأي اعتراض.","Call and ask about the proposal and any objection.");
+      if(d>=5)return A("ابعت واتساب تتأكد إن العرض وصل.","Send a WhatsApp to confirm the proposal arrived.");
+    }
+    if(st==="negotiation"&&d>=7)return d>=30?A("30 يوم في التفاوض: انقله لـ \"مؤجّل\" أو اقفل القرار.","30 days in negotiation: move to On Hold or force a decision."):A("تابع أسبوعيًا — اتصل النهارده.","Follow up weekly — call today.");
+    if(st==="on_hold"&&d>=30)return d>=90?A("90 يوم مؤجّل: قرر خسارة أو إلغاء.","90 days on hold: decide Lost or Cancelled."):A("راجعه دلوقتي (مراجعة شهرية).","Review now (monthly review).");
+    return"";
+  }
   function suggestContact(l){
     const calls=(l.notes||[]).filter(n=>n.kind==="call"&&n.outcome);
     if(!calls.length)return null;
@@ -1654,7 +1754,8 @@
   }
 
   // ---- dashboard ----
-  function renderDash(){
+  function renderDash(){const sb=document.getElementById("scopeBarDash");if(sb)sb.innerHTML=scopeBarHtml();renderDashB(scoped(leads));}
+  function renderDashB(leads){
     const active=leads.filter(l=>isActive(l));
     // exclude referral for limited roles in all counts
     const convLeads=canSeeReferral()?leads:leads.filter(l=>l.source!=="referral");
@@ -1666,7 +1767,7 @@
     const dueToday=leads.filter(l=>{const d=dueInfo(l.nextFollowUp);return d&&d.cls==="due-today";}).length;
     const now=new Date(), monthStart=new Date(now.getFullYear(),now.getMonth(),1).getTime();
     const thisMonthLost=leads.filter(l=>["cancelled","lost"].includes(l.status)&&(l.updatedAt||0)>=monthStart).length;
-    const staleCount=leads.filter(l=>{if(!isActive(l))return false;const lt=lastTs(l)||l.createdAt;return Math.floor((Date.now()-lt)/864e5)>7;}).length;
+    const staleCount=leads.filter(l=>{if(!isActive(l))return false;const lt=lastTouch(l)||l.createdAt;return Math.floor((Date.now()-lt)/864e5)>7;}).length;
     const overdueStage=leads.filter(l=>stageOverdue(l)).length;
     // التوقع المرجّح: القيمة × احتمالية المرحلة (زي Odoo)
     // ── النظام الجديد: 3 أرقام مبنية على حالة الـ Job نفسها، مش القيمة التقديرية ──
@@ -1674,7 +1775,7 @@
     const jobsPendingWonTxt=canSeeValue()?totalsTextFrom(pendingJobsFromWonTotals()):"";
     const fullForecastTxt=canSeeValue()?totalsTextFrom(fullForecastTotals()):"";
     $("#kpiGrid").innerHTML=`
-      <div class="kpi accent" style="cursor:pointer" onclick="applyQuick(null)"><div class="lbl">${t("totalLeads")}</div><div class="val num">${leads.length}</div><div class="sub muted">${active.length} ${t("active")}</div></div>
+      <div class="kpi accent" style="cursor:pointer" onclick="applyQuick(analysisMode==='all'?null:'scope')"><div class="lbl">${t("totalLeads")}</div><div class="val num">${leads.length}</div><div class="sub muted">${active.length} ${t("active")}</div></div>
       <div class="kpi" style="cursor:pointer" onclick="applyQuick('active')"><div class="lbl">${t("activePipeline")}</div><div class="val num">${active.length}</div><div class="sub muted">${canSeeValue()?totalsByCurrency(l=>isActive(l)):""}</div></div>
       <div class="kpi" style="cursor:pointer" onclick="applyQuick('won')"><div class="lbl">${t("won")}</div><div class="val num" style="color:var(--sage)">${won.length}</div><div class="sub muted">${canSeeValue()?totalsByCurrency(l=>l.status==='won'):""}</div></div>
       <div class="kpi"><div class="lbl">${t("convRate")}</div><div class="val num">${conv}<small>%</small></div><div class="sub muted">${won.length}/${closed.length}</div></div>
@@ -1706,9 +1807,9 @@
     // stale leads card
     const staleLeads=leads.filter(l=>{
       if(!isActive(l))return false;
-      const lt=lastTs(l)||l.createdAt;
+      const lt=lastTouch(l)||l.createdAt;
       return Math.floor((Date.now()-lt)/864e5)>7;
-    }).sort((a,b)=>(lastTs(a)||a.createdAt)-(lastTs(b)||b.createdAt));
+    }).sort((a,b)=>(lastTouch(a)||a.createdAt)-(lastTouch(b)||b.createdAt));
     const staleCardEl=document.getElementById("staleCard");
     if(staleCardEl){
       staleCardEl.style.display=staleLeads.length?"":"none";
@@ -1717,7 +1818,7 @@
       const staleListEl=document.getElementById("staleList");
       if(staleListEl){
         staleListEl.innerHTML=staleLeads.map(function(l){
-          const days=Math.floor((Date.now()-(lastTs(l)||l.createdAt))/864e5);
+          const days=Math.floor((Date.now()-(lastTouch(l)||l.createdAt))/864e5);
           const val=canSeeValue()&&l.value?(fmt(l.value)+" "+l.currency):"";
           return '<div class="prio-item" onclick="openDetail(\''+l.id+'\')">'
             +'<div class="prio-rank" style="background:var(--gold)">'+days+(isEn()?"d":"ي")+'</div>'
@@ -1728,6 +1829,7 @@
       }
     }
 
+    renderReengage();
     const owners=[...new Set(leads.map(l=>l.owner).filter(Boolean))];
     $("#ownerPerf").innerHTML=owners.length?`<table class="perf"><thead><tr><th>${t("responsible")}</th><th>${t("clients")}</th><th>${t("won2")}</th><th>${t("conv2")}</th>${canSeeValue()?`<th>${t("value")}</th>`:""}</tr></thead><tbody>`+
       owners.map(o=>{const m=leads.filter(l=>l.owner===o),w=m.filter(l=>l.status==="won").length,cl=m.filter(l=>l.status==="won"||l.status==="lost").length;
@@ -1737,6 +1839,126 @@
 
   // ---- leads list ----
   let quickFilter=null;
+  // فلتر الميزانية: budget_reason = تحت البدجت (تقييم) أو اتلغى/اتخسر بسبب الميزانية/السعر — للتحويل لخدمة/اتجاه تاني
+  function passBudget(l,v){
+    if(!v)return true;
+    if(v==="budget_reason")return l.budgetFit==="below"||/الميزانية|ميزانية|السعر أعلى/.test((l.cancelReason||"")+" "+(l.lostReason||""));
+    return (l.budgetFit||"unknown")===v;
+  }
+  const budgetOptsHtml=()=>`<option value="">${t("allBudgets")}</option>`+BUDGET_FIT.map(b=>`<option value="${b.k}">${L(b)}</option>`).join("")+`<option value="budget_reason">${t("budgetReasonOpt")}</option>`;
+  // ---- Drill-down من التقرير للعملاء ----
+  let drill=null;
+  const DRILL_FN={
+    cancel:(l,v)=>l.status==="cancelled"&&cancelReasonDisplay(l.cancelReason)===v,
+    lost:(l,v)=>l.status==="lost"&&lostReasonDisplay(l.lostReason)===v,
+    quality:(l,v)=>qHas(l,v),
+    cat:(l,v)=>!!l.projectCategory&&catLabel(l.projectCategory)===v,
+    svc:(l,v)=>(l.services||[]).some(x=>svcDisplayByKey(x)===v),
+    src:(l,v)=>(srcById(l.source)?L(srcById(l.source)):(isEn()?"Unspecified":"غير محدد"))===v,
+    camp:(l,v)=>l.campaignId===v,
+    owner:(l,v)=>l.owner===v};
+  const DRILL_TITLE={cancel:"cancelReasons",lost:"lostReasons",quality:"leadQuality",cat:"projectClassification",svc:"servicesRequested",src:"leadSources",camp:"campaign",owner:"responsible"};
+  function passDrill(l){return !drill||(DRILL_FN[drill.kind](l,drill.val)&&(drill.kind==='tier'||filterByReportScope(l)));}
+  window.goDrill=function(kind,val){
+    if(!DRILL_FN[kind])return;
+    const shown=kind==="tier"?(()=>{const z=TIERS.find(q=>q.k===val);return z?(isEn()?z.e:z.t):val;})():kind==="quality"?(qById(val)?L(qById(val)):val):kind==="camp"?campLabel(val):kind==="owner"?ownerLabel(val):val;
+    drill={kind,val,label:String(kind==="tier"?(isEn()?"Re-engagement":"إعادة التواصل"):(t(DRILL_TITLE[kind])||"")).replace(/\s*\(.*\)$/,"")+": "+shown};
+    quickFilter=null;
+    ["searchInput","statusFilter","ownerFilter","sourceFilter","qualityFilter","budgetFilter"].forEach(id=>{const e=document.getElementById(id);if(e)e.value="";});
+    const htc=document.getElementById("hideTerminalCheck");if(htc)htc.checked=false;
+    const lac=document.getElementById("lookalikeCheck");if(lac)lac.checked=false;
+    $$('nav.tabs button').forEach(x=>x.classList.remove("active"));document.querySelector('nav.tabs button[data-tab="leads"]')?.classList.add("active");
+    $$('.view').forEach(v=>v.classList.remove("active"));$("#tab-leads")?.classList.add("active");window.scrollTo(0,0);
+    renderLeads();
+  };
+  window.clearDrill=function(){drill=null;const htc=document.getElementById("hideTerminalCheck");if(htc)htc.checked=true;renderLeads();};
+  const NO_RESP_REASONS=["متابعة طويلة دون رد","مفيش رد بعد محاولات متكررة","مذكور في الملاحظات","أخرى","أخرى — مذكورة في الملاحظات"];
+  const isClosedLost=l=>["lost","cancelled"].includes(l.status);
+  const TIERS=[
+    {k:"A",ic:"🔥",t:"مراحل متقدمة",e:"Advanced stages",d:"مؤهل ← تفاوض / مؤجّل",de:"Qualified → negotiation / on hold",a:"مكالمة شخصية من المسؤول هذا الأسبوع",ae:"Personal call by the owner this week",live:true,
+      fn:l=>isActive(l)&&["qualified","site_visit","pricing","quoted","negotiation","on_hold"].includes(normStatus(l.status))},
+    {k:"B",ic:"💬",t:"تم التعارف",e:"Contacted",d:"اتعرفنا عليهم ومفيش تقدم",de:"Contacted, no progress",a:"رسالة واتساب ثم مكالمة",ae:"WhatsApp message, then a call",live:true,
+      fn:l=>isActive(l)&&normStatus(l.status)==="contacted"},
+    {k:"C",ic:"📞",t:"جديد / مردّش",e:"New / No answer",d:"محتاجين أول تواصل أو محاولات تانية",de:"Need first contact or retries",a:"واتساب + محاولتين في أفضل الأوقات",ae:"WhatsApp + 2 attempts at best times",live:true,
+      fn:l=>isActive(l)&&["new","no_answer"].includes(normStatus(l.status))},
+    {k:"D",ic:"♻",t:"إلغاء قابل للاسترجاع",e:"Recoverable cancelled",d:"اتلغوا بسبب عدم الرد وأقل من 3 محاولات",de:"Cancelled for no response, under 3 attempts",a:"رسالة إعادة تنشيط واحدة",ae:"One reactivation message",
+      fn:l=>l.status==="cancelled"&&(!l.cancelReason||NO_RESP_REASONS.includes(l.cancelReason)||LEGACY_CANCEL_REASON[l.cancelReason]&&NO_RESP_REASONS.includes(LEGACY_CANCEL_REASON[l.cancelReason]))&&(l.notes||[]).filter(n=>n.kind==="call").length<3},
+    {k:"E",ic:"💰",t:"ميزانية / سعر",e:"Budget / price",d:"اتلغوا أو خسروا بسبب الميزانية أو السعر",de:"Cancelled or lost over budget/price",a:"عرض خدمة أخف (3D / استشارة)",ae:"Offer a lighter service (3D / consultation)",
+      fn:l=>isClosedLost(l)&&passBudget(l,"budget_reason")},
+    {k:"F",ic:"🎯",t:"Look-alike (مهتم/محتمل ومقفول)",e:"Look-alike (interested/potential, closed)",d:"قاعدة Custom Audience على Meta",de:"Custom Audience base for Meta",a:"تنزيل وتحميل على Meta Ads",ae:"Download and upload to Meta Ads",
+      fn:l=>isClosedLost(l)&&qPositive(l)}];
+  DRILL_FN.tier=(l,v)=>{const t0=TIERS.find(x=>x.k===v);return !!t0&&t0.fn(l);};
+  DRILL_TITLE.tier="reengTitle";
+  const waNumber=p=>{let d=String(p||"").replace(/\D/g,"");if(/^01\d{9}$/.test(d))d="2"+d;return d;};
+  const daysSince=l=>Math.floor((Date.now()-(lastTouch(l)||l.createdAt||0))/864e5);
+  function renderReengage(){
+    const card=document.getElementById("reengageCard"),body=document.getElementById("reengBody");if(!card||!body)return;
+    if(!(actualRole==="super_admin"||actualRole==="admin")){card.style.display="none";return;}
+    card.style.display="";const en=isEn();
+    const ttl=document.getElementById("reengTitleEl");if(ttl)ttl.textContent=en?"📣 Re-engagement plan":"📣 خطة إعادة التواصل";
+    const rows=TIERS.map(x=>{const ls=leads.filter(x.fn),od=x.live?ls.filter(l=>daysSince(l)>7).length:0;
+      return `<div class="rg-row"><div class="rg-n num">${ls.length}${od?`<small>${od} ${en?"stale":"راكد"}</small>`:""}</div>
+        <div class="rg-main"><div class="rg-t">${x.ic} ${en?x.e:x.t}</div><div class="rg-d">${en?x.de:x.d} — <b>${en?x.ae:x.a}</b></div></div>
+        <div class="rg-acts"><button class="btn btn-ghost btn-sm" onclick="goDrill('tier','${x.k}')">${en?"View":"عرض"}</button>
+        <button class="btn btn-ghost btn-sm" onclick="tierDownload('${x.k}')">⬇ Excel</button></div></div>`;}).join("");
+    const canReset=actualRole==="super_admin"&&currentRole==="super_admin";
+    body.innerHTML=rows+(canReset?`<div style="margin-top:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button class="btn btn-primary btn-sm" onclick="slaReset()">${en?"⏱ Reset SLA + schedule follow-ups":"⏱ إعادة ضبط الـ SLA + جدولة المتابعات"}</button><span class="muted" style="font-size:12px">${en?"Tiers A–C that are stale or overdue":"الشرائح A–C الراكدة أو المتأخرة"}</span></div>`:"");
+  }
+  // تنزيل شريحة إعادة التواصل (اسم + تليفون + رابط واتساب + رسالة مقترحة) — للأدمن فقط
+  window.tierDownload=function(k){
+    if(!(actualRole==="super_admin"||actualRole==="admin")){toast(isEn()?"Admins only":"للأدمن بس");return;}
+    if(typeof XLSX==="undefined"){toast(isEn()?"Excel library not loaded":"مكتبة الإكسيل لم تُحمّل");return;}
+    const x=TIERS.find(z=>z.k===k);if(!x)return;const en=isEn(),H=(a,e)=>en?e:a;
+    const ls=leads.filter(x.fn).sort((a,b)=>(qPositive(b)?1:0)-(qPositive(a)?1:0)||daysSince(b)-daysSince(a));
+    if(!ls.length){toast(t("kbDlEmpty"));return;}
+    const camp=id=>campaigns.find(c=>c.id===id);
+    const rows=ls.map(l=>{const wn=waNumber(l.phone),msg=waText(l);return{
+      [H("الاسم","Name")]:l.name||"",[H("التليفون","Phone")]:l.phone||"",
+      [H("رابط واتساب","WhatsApp link")]:wn?"https://wa.me/"+wn+"?text="+encodeURIComponent(msg):"",
+      [H("الرسالة المقترحة","Suggested message")]:msg,
+      [H("المرحلة","Stage")]:L(stById(l.status)),
+      [H("التقييم","Quality")]:qTags(l).map(q=>qById(q)?L(qById(q)):q).join(" + "),
+      [H("المصدر","Source")]:srcById(l.source)?L(srcById(l.source)):"",
+      [H("اسم الكامبين","Campaign")]:(camp(l.campaignId)||{}).name||"",[H("اسم الإعلان","Ad")]:l.adName||"",
+      [H("تاريخ الاستلام","Received")]:l.receivedDate||"",
+      [H("أيام بدون تواصل","Days since contact")]:daysSince(l),
+      [H("عدد المكالمات","Calls")]:(l.notes||[]).filter(n=>n.kind==="call").length,
+      [H("المسؤول","Owner")]:l.owner?ownerLabel(l.owner):"",
+      [H("سبب الإلغاء","Cancel reason")]:cancelReasonDisplay(l.cancelReason),[H("سبب الخسارة","Lost reason")]:lostReasonDisplay(l.lostReason)};});
+    const ws=XLSX.utils.json_to_sheet(rows);ws["!cols"]=[24,16,30,60,16,18,14,22,20,12,12,10,12,24,24].map(w=>({wch:w}));
+    const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,x.k+" - "+(en?x.e:x.t).replace(/[\\\/\?\*\[\]:]/g,"-").slice(0,22));
+    if(!en)wb.Workbook={Views:[{RTL:true}]};
+    XLSX.writeFile(wb,`plinth-reengage-${x.k}-${todayStr()}.xlsx`);
+    logAudit("تحميل قائمة إعادة التواصل","","",x.k+" · "+ls.length+" leads");
+    toast(t("kbDlDone")+" ("+ls.length+")");
+  };
+  // إعادة ضبط ساعة المرحلة + توزيع المتابعات على أيام العمل (Super Admin فقط)
+  window.slaReset=async function(){
+    if(!(actualRole==="super_admin"&&currentRole==="super_admin")){toast(isEn()?"Super Admin only":"للسوبر أدمن بس");return;}
+    const en=isEn();
+    const targets=leads.filter(l=>["A","B","C"].some(k=>TIERS.find(z=>z.k===k).fn(l))&&(daysSince(l)>7||stageOverdue(l)));
+    if(!targets.length){toast(en?"Nothing stale or overdue":"مفيش ليدز راكدة أو متأخرة");return;}
+    const askDays=window.prompt(en?`Spread follow-ups for ${targets.length} leads over how many working days?`:`هتوزّع متابعات ${targets.length} ليد على كام يوم عمل؟`,"10");
+    if(askDays===null)return;
+    const days=Math.max(1,Math.min(30,parseInt(askDays,10)||10));
+    if(!window.confirm(en?`Reset the stage clock and schedule ${targets.length} leads over ${days} working days (Fri/Sat skipped)? Stage history is not changed.`:`هيتم إعادة ضبط ساعة المرحلة وجدولة ${targets.length} ليد على ${days} يوم عمل (من غير الجمعة والسبت). سجل المراحل مش هيتغير. تكمل؟`))return;
+    const rank=l=>["new","no_answer","contacted","qualified","site_visit","pricing","quoted","negotiation","on_hold"].indexOf(normStatus(l.status));
+    const pq=l=>qTags(l).includes("opportunity")?3:qTags(l).includes("potential")?2:qTags(l).includes("interested")?1:0;
+    targets.sort((a,b)=>pq(b)-pq(a)||rank(b)-rank(a)||(a.name||"").localeCompare(b.name||""));
+    const per=Math.ceil(targets.length/days),now=Date.now();
+    const slots=[];let d=new Date();d.setHours(12,0,0,0);
+    while(slots.length<days){const wd=d.getDay();if(wd!==5&&wd!==6)slots.push(ymdLocal(d.getTime()));d=new Date(d.getTime()+864e5);}
+    targets.forEach((l,i)=>{l.stageChangedAt=now;l.slaResetAt=now;l.updatedAt=now;l.nextFollowUp=slots[Math.min(slots.length-1,Math.floor(i/per))];});
+    try{
+      let batch=db.batch(),n=0;
+      for(const l of targets){batch.set(db.collection("leads").doc(l.id),JSON.parse(JSON.stringify(l)));n++;if(n%450===0){await batch.commit();batch=db.batch();}}
+      await batch.commit();
+      logAudit("إعادة ضبط SLA","","",targets.length+" leads · "+days+" days");
+      toast(en?`Done — ${targets.length} leads rescheduled`:`تم — اتجدول ${targets.length} ليد`);
+    }catch(e){toast(en?"Save failed":"تعذّر الحفظ");}
+    renderLeadsAndDash();
+  };
+  const dr=(kind,val,label,count)=>`<tr class="drill-row" data-v="${esc(val)}" title="${t("clickToFilter")}" onclick="goDrill('${kind}',this.dataset.v)"><td>${esc(label)}</td><td class="num" style="text-align:end;font-weight:600">${count} ›</td></tr>`;
   window.applyQuick=function(f){quickFilter=f;
     // jump to leads tab
     $$('nav.tabs button').forEach(x=>x.classList.remove("active"));document.querySelector('nav.tabs button[data-tab="leads"]').classList.add("active");
@@ -1759,6 +1981,7 @@
     renderLeads();
   };
   function quickLabel(f){
+    if(f==="scope")return isEn()?"Since CRM start":"من بداية الـ CRM";
     if(f==="active")return t("qfActive");if(f==="won")return t("qfWon");if(f==="due")return t("qfDue");
     if(f==="today")return t("qfToday");
     if(f==="lost_month")return t("qfLostMonth");
@@ -1767,12 +1990,14 @@
     if(f&&f.indexOf("st:")===0)return t("qfStatus")+": "+L(stById(f.slice(3)));return"";}
   function passQuick(l){
     if(!quickFilter)return true;
+    if(!inScope(l))return false;
+    if(quickFilter==="scope")return true;
     if(quickFilter==="active")return isActive(l);
     if(quickFilter==="won")return l.status==="won";
     if(quickFilter==="due"){const d=dueInfo(l.nextFollowUp);return d&&(d.cls==="due-over"||d.cls==="due-today");}
     if(quickFilter==="today"){const d=dueInfo(l.nextFollowUp);return d&&d.cls==="due-today";}
     if(quickFilter==="lost_month"){const now=new Date(),ms=new Date(now.getFullYear(),now.getMonth(),1).getTime();return["cancelled","lost"].includes(l.status)&&(l.updatedAt||0)>=ms;}
-    if(quickFilter==="stale"){if(!isActive(l))return false;const lt=lastTs(l)||l.createdAt;return Math.floor((Date.now()-lt)/864e5)>7;}
+    if(quickFilter==="stale"){if(!isActive(l))return false;const lt=lastTouch(l)||l.createdAt;return Math.floor((Date.now()-lt)/864e5)>7;}
     if(quickFilter==="overdue_stage")return !!stageOverdue(l);
     if(quickFilter.indexOf("st:")===0)return l.status===quickFilter.slice(3);
     return true;}
@@ -1790,6 +2015,32 @@
     putLead(l).then(()=>{renderKanban();renderLeads();});
   };
 
+  // ---- فلتر التاريخ في الـ Pipeline ----
+  const ymdLocal=ts=>{if(!ts)return"";const d=new Date(ts);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");};
+  function kbLeadDate(l,mode){
+    if(mode==="updated") return ymdLocal(l.updatedAt||l.createdAt);
+    if(mode==="received") return l.receivedDate||ymdLocal(l.createdAt);
+    return ymdLocal(l.stageChangedAt||lastTs(l)||l.updatedAt||l.createdAt); // دخول المرحلة (نفس منطق الـ SLA)
+  }
+  function kbDateRange(){
+    const pre=document.getElementById("kbDatePreset")?.value||"";
+    const now=new Date(), day=n=>ymdLocal(new Date(now.getFullYear(),now.getMonth(),now.getDate()-n).getTime());
+    if(pre==="today")return[day(0),day(0)];
+    if(pre==="yesterday")return[day(1),day(1)];
+    if(pre==="7")return[day(6),day(0)];
+    if(pre==="30")return[day(29),day(0)];
+    if(pre==="month")return[ymdLocal(new Date(now.getFullYear(),now.getMonth(),1).getTime()),day(0)];
+    if(pre==="custom")return[document.getElementById("kbDateFrom")?.value||"",document.getElementById("kbDateTo")?.value||""];
+    return["",""];
+  }
+  function kbPassDate(l){
+    const[from,to]=kbDateRange(); if(!from&&!to)return true;
+    const d=kbLeadDate(l,document.getElementById("kbDateMode")?.value||"stage");
+    if(!d)return false;
+    return(!from||d>=from)&&(!to||d<=to);
+  }
+  function kbDateFilterOn(){const[a,b]=kbDateRange();return !!(a||b);}
+
   function renderKanban(){
     const board=document.getElementById("kbBoard"); if(!board)return;
     const showClosed=document.getElementById("kbShowClosed")?.checked;
@@ -1797,7 +2048,7 @@
     const priorityF=document.getElementById("kbPriority")?.value||"";
     const folded=kbFolded();
     const cols=STATUSES.filter(st=>showClosed?true:!st.fold);
-    const pool=leads.filter(l=>(!ownerF||l.owner===ownerF)&&(!priorityF||(l.priority||0)===Number(priorityF)));
+    const pool=leads.filter(l=>(!ownerF||l.owner===ownerF)&&(!priorityF||(l.priority||0)===Number(priorityF))&&kbPassDate(l)&&passBudget(l,document.getElementById("kbBudget")?.value||""));
 
     board.innerHTML=cols.map(st=>{
       const items=pool.filter(l=>normStatus(l.status)===st.k)
@@ -1832,7 +2083,7 @@
             ${ov?`<span class="kb-badge kb-badge-overdue">⏳ ${ov.over}${isEn()?"d":"ي"}</span>`:""}
             ${di?`<span class="kb-badge ${di.cls}" style="background:transparent;border:1px solid currentColor">${esc(di.txt)}</span>`:""}
             ${(l.status==="site_visit"&&l.meetingType&&mtById(l.meetingType))?`<span class="kb-badge" style="background:#EAF1E5;color:#5C7355">${mtById(l.meetingType).i} ${esc(L(mtById(l.meetingType)))}</span>`:""}
-            ${ql?`<span class="kb-badge" style="background:${ql.c}1A;color:${ql.c}">${esc(L(ql))}</span>`:""}
+            ${qChips(l,"kb-badge")}
             ${l.owner?`<span class="kb-badge" style="background:var(--ivory);color:var(--ink-soft)">${esc(ownerLabel(l.owner))}</span>`:""}
           </div>
         </div>`;
@@ -1881,24 +2132,43 @@
     });
   }
 
+  // رسالة واتساب جاهزة حسب مرحلة الليد (تتعدل قبل الإرسال)
+  function waText(l){
+    const nm=(l.name||"").split(" ")[0]||"";
+    const st=normStatus(l.status), en=isEn();
+    const proj=l.projectSubtype?(en?" about your "+l.projectSubtype:" بخصوص "+l.projectSubtype):"";
+    if(en){
+      if(["quoted","negotiation","pricing"].includes(st))return `Hello ${nm}, this is Plinth & Partners. I wanted to check that our proposal${proj} reached you and answer any questions. Would a quick call today or tomorrow work?`;
+      if(["new","no_answer"].includes(st))return `Hello ${nm}, this is Plinth & Partners. We received your inquiry${proj}. When is a good time for a quick 5-minute call?`;
+      return `Hello ${nm}, this is Plinth & Partners. Following up on our earlier conversation${proj} — are you still planning to move forward? Happy to arrange the next step (site visit / proposal).`;
+    }
+    if(["quoted","negotiation","pricing"].includes(st))return `أهلاً ${nm}، معاك فريق Plinth & Partners. حبيت أتأكد إن عرض السعر${proj} وصلك وأجاوب على أي استفسار. تحب نتكلم مكالمة سريعة النهارده أو بكرة؟`;
+    if(["new","no_answer"].includes(st))return `أهلاً ${nm}، معاك فريق Plinth & Partners. وصلنا طلبك${proj}. إمتى يناسبك نتكلم ٥ دقايق نفهم احتياجك؟`;
+    return `أهلاً ${nm}، معاك فريق Plinth & Partners. كنا اتكلمنا قبل كده${proj} وحبيت أطمّن لو لسه مهتم نكمل. أرتّب لك الخطوة الجاية (معاينة / عرض سعر)؟`;
+  }
+
   function renderLeads(){
     const q=$("#searchInput").value.trim().toLowerCase();
-    const sf=$("#statusFilter").value, of=$("#ownerFilter").value, srcf=$("#sourceFilter").value, qf=$("#qualityFilter").value;
+    const sf=$("#statusFilter").value, of=$("#ownerFilter").value, srcf=$("#sourceFilter").value, qf=$("#qualityFilter").value, bf=$("#budgetFilter")?.value||"";
     const hideTerminal=document.getElementById("hideTerminalCheck")?.checked;
     const lookalike=document.getElementById("lookalikeCheck")?.checked;
     const LOOKALIKE_POOL=["contacted","qualified","site_visit","pricing","quoted","negotiation","won"]; // مراحل تدل على اهتمام حقيقي
     // chip
     const chip=$("#quickChip");
-    if(quickFilter){chip.style.display="block";chip.innerHTML=`<span class="chip" style="background:var(--clay);color:#fff;font-size:13px;padding:7px 12px;cursor:pointer" onclick="applyQuick(null)">✕ ${quickLabel(quickFilter)}</span>`;}
-    else chip.style.display="none";
+    const chipParts=[];
+    if(quickFilter)chipParts.push(`<span class="chip" style="background:var(--clay);color:#fff;font-size:13px;padding:7px 12px;cursor:pointer" onclick="applyQuick(null)">✕ ${quickLabel(quickFilter)}</span>`);
+    if(drill)chipParts.push(`<span class="chip" style="background:var(--sage);color:#fff;font-size:13px;padding:7px 12px;cursor:pointer" onclick="clearDrill()">✕ ${esc(drill.label)}</span>`);
+    chip.style.display=chipParts.length?"block":"none";chip.innerHTML=chipParts.join(" ");
     let list=leads.filter(l=>{
       if(!passQuick(l))return false;
+      if(!passDrill(l))return false;
+      if(bf&&!passBudget(l,bf))return false;
       // hide terminal (cancelled/lost) unless specifically filtered
-      if(hideTerminal&&!sf&&TERMINAL.includes(l.status)&&l.status!=="won")return false;
+      if(hideTerminal&&!sf&&!drill&&bf!=="budget_reason"&&TERMINAL.includes(l.status)&&l.status!=="won")return false;
       // lookalike pool
-      if(lookalike&&!(LOOKALIKE_POOL.includes(normStatus(l.status))||["interested","potential"].includes(l.quality)))return false;
+      if(lookalike&&!(LOOKALIKE_POOL.includes(normStatus(l.status))||qPositive(l)))return false;
       if(sf&&l.status!==sf)return false; if(of&&l.owner!==of)return false; if(srcf&&l.source!==srcf)return false;
-      if(qf&&(l.quality||"")!==qf)return false;
+      if(qf&&!qHas(l,qf))return false;
       if(q&&!((l.name||"").toLowerCase().includes(q)||(l.phone||"").includes(q)||(l.compound||"").toLowerCase().includes(q)))return false;
       return true;
     }).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
@@ -1914,7 +2184,7 @@
           <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end">
             <span class="chip" style="background:${s.c}1A;color:${s.c}">${L(s)}</span>
             ${ov?`<span class="chip chip-overdue" style="font-size:10.5px" title="${esc(ov.hint||"")}">⏳ ${t("rotting")} ${ov.over}${isEn()?"d":"ي"}</span>`:""}
-            ${ql?`<span class="chip" style="background:${ql.c}1A;color:${ql.c};font-size:10.5px">${L(ql)}</span>`:""}</div></div>
+            ${qChips(l,"chip","10.5px")}</div></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:9px">
           ${proj?`<span class="tag">${esc(proj)}</span>`:""}${l.area?`<span class="tag">${esc(l.area)} ${esc(l.areaUnit||"م²")}</span>`:""}
           ${(l.services||[]).slice(0,2).map(s=>`<span class="tag">${esc(svcDisplayByKey(s))}</span>`).join("")}${(l.services||[]).length>2?`<span class="tag">+${l.services.length-2}</span>`:""}</div>
@@ -1953,9 +2223,11 @@
   function setMeetingType(active){$("#f-meetingtype").value=active||"";
     $("#f-meetingtype-pills").innerHTML=MEETING_TYPES.map(m=>`<span class="pill ${m.k===active?"on":""}" style="${m.k===active?"background:#6B8E5A":""}" data-mt="${m.k}">${m.i} ${L(m)}</span>`).join("");
     $$("#f-meetingtype-pills .pill").forEach(p=>p.onclick=()=>setMeetingType(p.dataset.mt));}
-  function setQuality(active){$("#f-quality").value=active||"";
-    $("#f-quality-pills").innerHTML=QUALITY.map(q=>`<span class="pill ${q.k===active?"on":""}" style="${q.k===active?`background:${q.c}`:""}" data-q="${q.k}">${L(q)}</span>`).join("");
-    $$("#f-quality-pills .pill").forEach(p=>p.onclick=()=>setQuality(p.dataset.q===active?"":p.dataset.q));}
+  function setQuality(arr){arr=Array.isArray(arr)?arr:(arr?[arr]:[]);$("#f-quality").value=arr.join(",");
+    $("#f-quality-pills").innerHTML=QUALITY.map(q=>{const on=arr.includes(q.k);return `<span class="pill ${on?"on":""}" style="${on?`background:${q.c}`:""}" data-q="${q.k}">${L(q)}</span>`;}).join("");
+    $$("#f-quality-pills .pill").forEach(p=>p.onclick=()=>{const k=p.dataset.q;let n=arr.includes(k)?arr.filter(x=>x!==k):arr.concat(k);
+      if(!arr.includes(k)){ if(POS_Q.includes(k))n=n.filter(x=>!NEG_Q.includes(x)); else if(NEG_Q.includes(k))n=n.filter(x=>!POS_Q.includes(x)); }
+      setQuality(n);});}
 
   window.openForm=function(id){
     if(!canEdit()){toast("التعديل للـ Admin بس");return;}
@@ -1980,7 +2252,7 @@
     $("#f-drive").value=l.driveLink||"";$("#f-pain").value=l.painPoints||"";$("#f-plus").value=l.ourPlus||"";
     $("#f-adname").value=l.adName||"";$("#f-adset").value=l.adsetName||"";
     $("#f-note").value="";$("#firstNoteWrap").style.display=ed?"none":"block";
-    setStatus(l.status||"new");setQuality(l.quality||"");setMeetingType(l.meetingType||"");
+    setStatus(l.status||"new");setQuality(qTags(l));setMeetingType(l.meetingType||"");
     const bfEl=$("#f-budgetFit");if(bfEl)bfEl.value=l.budgetFit||"unknown";
     const jbEl=$("#f-job");if(jbEl)jbEl.value=l.job||"";
     const rsEl=$("#f-residence");if(rsEl)rsEl.value=l.residence||"";
@@ -2017,7 +2289,7 @@
       cancelReason:$("#f-status").value==="cancelled"?($("#f-cancelReason").value||null):null,
       lostReason:$("#f-status").value==="lost"?($("#f-lostReason").value||null):null,
       adName:$("#f-adname").value.trim(),adsetName:$("#f-adset").value.trim(),
-      quality:$("#f-quality").value||null,meetingType:$("#f-status").value==="site_visit"?($("#f-meetingtype").value||null):null,quoteStartDate:$("#f-quotestart").value||null,quoteSubmitDate:$("#f-quotesubmit").value||null,
+      quality:qPrimary(($("#f-quality").value||"").split(",").filter(Boolean)),qualityTags:($("#f-quality").value||"").split(",").filter(Boolean),meetingType:$("#f-status").value==="site_visit"?($("#f-meetingtype").value||null):null,quoteStartDate:$("#f-quotestart").value||null,quoteSubmitDate:$("#f-quotesubmit").value||null,
       budgetFit:$("#f-budgetFit")?.value||"unknown",job:$("#f-job")?.value.trim()||null,residence:$("#f-residence")?.value.trim()||null,
       updatedAt:Date.now()};
     // تتبع وقت دخول المرحلة (للـ SLA)
@@ -2081,14 +2353,15 @@
           <div class="detail-sub" style="margin-top:6px">${l.email?`<span>✉ ${esc(l.email)}</span>`:""}${srcById(l.source)?`<span>${srcById(l.source).i} ${esc(srcLabel(l))}</span>`:""}</div></div>
         <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-end">
           <span class="chip" style="background:${s.c}1A;color:${s.c}">${L(s)}${(l.status==="site_visit"&&l.meetingType&&mtById(l.meetingType))?" · "+mtById(l.meetingType).i+" "+L(mtById(l.meetingType)):""}</span>
-          ${ql?`<span class="chip" style="background:${ql.c}1A;color:${ql.c};font-size:10.5px">${L(ql)}</span>`:""}</div></div>
+          ${qChips(l,"chip","10.5px")}</div></div>
       ${l.phone?`<div style="display:flex;gap:8px;margin:12px 0;flex-wrap:wrap">
         <a href="tel:${esc(telNum)}" class="btn btn-primary btn-sm" style="flex:1;justify-content:center">${t("call")} ${esc(l.phone)}</a>
-        <a href="https://wa.me/${esc(waNum)}" target="_blank" class="btn btn-ghost btn-sm" style="justify-content:center;color:#1FA855;border-color:#9FD9B4">${t("whatsapp")}</a>
+        <a href="https://wa.me/${esc(waNum)}?text=${encodeURIComponent(waText(l))}" target="_blank" class="btn btn-ghost btn-sm" style="justify-content:center;color:#1FA855;border-color:#9FD9B4">${t("whatsapp")}</a>
         ${l.phone2?`<a href="tel:${esc((l.phone2||"").replace(/[^\d+]/g,""))}" class="btn btn-ghost btn-sm" style="justify-content:center">📞 ${esc(l.phone2)}</a>`:""}</div>`:""}
       ${(l.services||[]).length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">${l.services.map(x=>`<span class="tag" style="background:var(--surface2);border-color:var(--clay);color:var(--clay)">${esc(svcDisplayByKey(x))}</span>`).join("")}</div>`:""}
       ${sug?`<div class="info-box" style="margin-bottom:12px;border-color:${sug.good?'var(--sage)':'var(--gold)'};background:${sug.good?'var(--sage-soft)':'#FCF6EA'}"><div class="ib-l">${t("bestContactTime")}</div><div style="font-size:13.5px;font-weight:600">${esc(sug.txt)}</div></div>`:""}
-      ${ov?`<div class="sla-warn"><div class="sw-t">${t("overdueInStage").replace("{over}",ov.over)} "${ov.stage}"</div><div class="sw-s">${t("overdueDetail").replace("{days}",ov.days).replace("{sla}",ov.sla)} ${esc(ov.hint||"")}</div></div>`
+      ${(function(){const a=stallAdvice(l);return a?`<div class="info-box" style="margin-bottom:12px;border-color:var(--sage);background:var(--sage-soft)"><div class="ib-l">💡 ${isEn()?"Suggested action":"الإجراء المقترح"}</div><div style="font-size:13.5px;font-weight:600">${esc(a)}</div></div>`:"";})()}
+       ${ov?`<div class="sla-warn"><div class="sw-t">${t("overdueInStage").replace("{over}",ov.over)} "${ov.stage}"</div><div class="sw-s">${t("overdueDetail").replace("{days}",ov.days).replace("{sla}",ov.sla)} ${esc(ov.hint||"")}</div></div>`
         :(isActive(l)?`<div class="stage-ok">✓ ${t("onTime")} "${L(stById(l.status))}"${stById(l.status).sla?` (${t("slaOf")} ${stById(l.status).sla} ${t("days")})`:""}</div>`:"")}
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
         ${di?`<span class="due-flag ${di.cls}">${t("nextFollowup")} ${di.txt}</span>`:`<span class="muted" style="font-size:13px">${t("noFollowup")}</span>`}
@@ -2507,6 +2780,7 @@
   }
   const SOCIAL_SOURCES=["facebook","instagram_dm","campaign"]; // مصادر "سوشيال ميديا" لاختيار الفلتر السريع
   function filterByReportScope(l){
+    if(!inScope(l))return false;
     if(!filterByDate(l))return false;
     if(rptOwnerF&&l.owner!==rptOwnerF)return false;
     if(rptSourceF==="__social__"){ if(!SOCIAL_SOURCES.includes(l.source))return false; }
@@ -2514,9 +2788,11 @@
     return true;
   }
   function renderReport(){
-    const allVisible=canSeeReferral()?leads:leads.filter(l=>l.source!=="referral");
+    const allVisible=scoped(canSeeReferral()?leads:leads.filter(l=>l.source!=="referral"));
     const scope=allVisible.filter(filterByReportScope);
-    const label=rptFrom||rptTo?`${t("period")}: ${rptFrom||"…"} → ${rptTo||"…"} · ${scope.length} ${t("client")}`:t("allPeriods")+" · "+allVisible.length+" "+t("client");
+    const sbR=document.getElementById("scopeBarRpt");if(sbR)sbR.innerHTML=scopeBarHtml();
+    const scTxt=analysisMode==="crm"?(isEn()?" · since CRM start ":" · من بداية الـ CRM ")+scopeFromTxt():(isEn()?" · all leads":" · الإجمالي كله");
+    const label=(rptFrom||rptTo?`${t("period")}: ${rptFrom||"…"} → ${rptTo||"…"} · ${scope.length} ${t("client")}`:t("allPeriods")+" · "+allVisible.length+" "+t("client"))+scTxt;
     const rptLbl=$("#rptLabel");if(rptLbl)rptLbl.textContent=label;
     const now=new Date().toLocaleDateString(isEn()?"en-GB":"ar-EG",{day:"numeric",month:"long",year:"numeric"});
     const won=scope.filter(l=>l.status==="won"),lost=scope.filter(l=>l.status==="lost"),closed=won.length+lost.length;
@@ -2557,7 +2833,7 @@
     const svcArr=Object.entries(svcMap).sort((a,b)=>b[1]-a[1]);
     const catMap={};scope.forEach(l=>{if(l.projectCategory){const tx=catLabel(l.projectCategory);catMap[tx]=(catMap[tx]||0)+1;}});
     // quality
-    const qualMap={};scope.forEach(l=>{if(l.quality){const q=qById(l.quality);if(q)qualMap[L(q)]=(qualMap[L(q)]||0)+1;}});
+    const qualMap={};scope.forEach(l=>qTags(l).forEach(k=>{if(qById(k))qualMap[k]=(qualMap[k]||0)+1;}));
     const lostMap={};scope.filter(l=>l.status==="lost"&&l.lostReason).forEach(l=>{const lbl=lostReasonDisplay(l.lostReason);lostMap[lbl]=(lostMap[lbl]||0)+1;});
     const cancelMap={};scope.filter(l=>l.status==="cancelled"&&l.cancelReason).forEach(l=>{const lbl=cancelReasonDisplay(l.cancelReason);cancelMap[lbl]=(cancelMap[lbl]||0)+1;});
     // pricing duration
@@ -2595,21 +2871,21 @@
         ${pieWithLegend(statusPieData)}
         <table class="perf" style="margin-top:14px"><thead><tr><th>${t("status")}</th><th>${t("count")}</th>${canSeeValue()?`<th>${t("value")}</th>`:""}</tr></thead><tbody>
         ${STATUSES.map(s=>{const c=scope.filter(l=>l.status===s.k).length;return c?`<tr style="cursor:pointer" onclick="goFilterStatus('${s.k}')" title="${t("clickToFilter")}"><td><span class="chip" style="background:${s.c}1A;color:${s.c}">${L(s)}</span></td><td class="num">${c} ›</td>${canSeeValue()?`<td class="num" style="font-size:12px">${totals(l=>l.status===s.k)}</td>`:""}</tr>`:"";}).join("")}</tbody></table><div style="font-size:11.5px;color:var(--ink-soft);margin-top:6px">${t("clickStatusHint")}</div></div>`:""}
-      ${W("reasons")&&Object.keys(qualMap).length?`<div class="report-block"><h3>${t("leadQuality")}</h3><table class="perf"><tbody>${Object.entries(qualMap).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:end;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
-      ${W("reasons")&&Object.keys(lostMap).length?`<div class="report-block"><h3>${t("lostReasons")}</h3><table class="perf"><tbody>${Object.entries(lostMap).sort((a,b)=>b[1]-a[1]).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:end;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
-      ${W("reasons")&&Object.keys(cancelMap).length?`<div class="report-block"><h3>${t("cancelReasons")}</h3><table class="perf"><tbody>${Object.entries(cancelMap).sort((a,b)=>b[1]-a[1]).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:end;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
+      ${W("reasons")&&Object.keys(qualMap).length?`<div class="report-block"><h3>${t("leadQuality")}</h3><table class="perf"><tbody>${QUALITY.filter(q=>qualMap[q.k]).map(q=>dr("quality",q.k,L(q),qualMap[q.k])).join("")}</tbody></table></div>`:""}
+      ${W("reasons")&&Object.keys(lostMap).length?`<div class="report-block"><h3>${t("lostReasons")}</h3><table class="perf"><tbody>${Object.entries(lostMap).sort((a,b)=>b[1]-a[1]).map(([n,c])=>dr("lost",n,n,c)).join("")}</tbody></table></div>`:""}
+      ${W("reasons")&&Object.keys(cancelMap).length?`<div class="report-block"><h3>${t("cancelReasons")}</h3><table class="perf"><tbody>${Object.entries(cancelMap).sort((a,b)=>b[1]-a[1]).map(([n,c])=>dr("cancel",n,n,c)).join("")}</tbody></table></div>`:""}
       ${W("pricing")&&pricedLeads.length?`<div class="report-block"><h3>${t("pricingDuration")}</h3><table class="perf"><thead><tr><th>${t("client")}</th><th>${t("start")}</th><th>${t("submit")}</th><th>${t("duration")}</th><th>${t("status")}</th></tr></thead><tbody>
         ${pricedLeads.map(l=>{const d=Math.max(0,Math.round((new Date(l.quoteSubmitDate)-new Date(l.quoteStartDate))/86400000));return`<tr><td style="font-weight:600">${esc(l.name)}</td><td class="num">${l.quoteStartDate}</td><td class="num">${l.quoteSubmitDate}</td><td class="num">${d} ${t("day")}</td><td><span class="chip" style="background:${stById(l.status).c}1A;color:${stById(l.status).c}">${L(stById(l.status))}</span></td></tr>`;}).join("")}</tbody></table></div>`:""}
       ${W("pie_source")?`<div class="report-block"><h3>${t("leadSources")}</h3>
         ${pieWithLegend(sourcePieData)}
         <div class="src-bars" style="margin-top:14px">
-        ${srcArr.map(([n,c])=>`<div class="src-bar"><div class="sname">${esc(n)}</div><div class="strack"><div class="sfill" style="width:${Math.round(c/maxSrc*100)}%"></div></div><div class="scount num">${c}</div></div>`).join("")}</div></div>`:""}
+        ${srcArr.map(([n,c])=>`<div class="src-bar drill-row" data-v="${esc(n)}" onclick="goDrill('src',this.dataset.v)"><div class="sname">${esc(n)}</div><div class="strack"><div class="sfill" style="width:${Math.round(c/maxSrc*100)}%"></div></div><div class="scount num">${c}</div></div>`).join("")}</div></div>`:""}
       ${W("campaigns")&&campRows.length?`<div class="report-block"><h3>${t("campaignPerf")}</h3><table class="perf"><thead><tr><th>${t("campaign")}</th><th>${t("platform")}</th><th>${t("clients")}</th><th>${t("won2")}</th></tr></thead><tbody>
-        ${campRows.map(x=>`<tr><td style="font-weight:600">#${esc(x.c.id)} ${esc(x.c.name||"")}</td><td>${x.c.platform}</td><td class="num">${x.n}</td><td class="num" style="color:var(--sage)">${x.w}</td></tr>`).join("")}</tbody></table></div>`:""}
-      ${W("services")&&svcArr.length?`<div class="report-block"><h3>${t("servicesRequested")}</h3><table class="perf"><tbody>${svcArr.map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:end;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
-      ${W("categories")&&Object.keys(catMap).length?`<div class="report-block"><h3>${t("projectClassification")}</h3><table class="perf"><tbody>${Object.entries(catMap).sort((a,b)=>b[1]-a[1]).map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num" style="text-align:end;font-weight:600">${c}</td></tr>`).join("")}</tbody></table></div>`:""}
+        ${campRows.map(x=>`<tr class="drill-row" data-v="${esc(x.c.id)}" onclick="goDrill('camp',this.dataset.v)"><td style="font-weight:600">#${esc(x.c.id)} ${esc(x.c.name||"")}</td><td>${x.c.platform}</td><td class="num">${x.n}</td><td class="num" style="color:var(--sage)">${x.w}</td></tr>`).join("")}</tbody></table></div>`:""}
+      ${W("services")&&svcArr.length?`<div class="report-block"><h3>${t("servicesRequested")}</h3><table class="perf"><tbody>${svcArr.map(([n,c])=>dr("svc",n,n,c)).join("")}</tbody></table></div>`:""}
+      ${W("categories")&&Object.keys(catMap).length?`<div class="report-block"><h3>${t("projectClassification")}</h3><table class="perf"><tbody>${Object.entries(catMap).sort((a,b)=>b[1]-a[1]).map(([n,c])=>dr("cat",n,n,c)).join("")}</tbody></table></div>`:""}
       ${W("team")&&owners.length?`<div class="report-block"><h3>${t("teamPerf")}</h3><table class="perf"><thead><tr><th>${t("responsible")}</th><th>${t("clients")}</th><th>${t("won2")}</th><th>${t("cancelCol")}</th><th>${t("conv2")}</th></tr></thead><tbody>
-        ${owners.map(o=>{const m=scope.filter(l=>l.owner===o),w=m.filter(l=>l.status==="won").length,cn=m.filter(l=>l.status==="cancelled").length,cl=w+m.filter(l=>l.status==="lost").length;return `<tr><td style="font-weight:600">${esc(ownerLabel(o))}</td><td class="num">${m.length}</td><td class="num" style="color:var(--sage)">${w}</td><td class="num" style="color:var(--ink-soft)">${cn}</td><td class="num">${cl?Math.round(w/cl*100):0}%</td></tr>`;}).join("")}</tbody></table></div>`:""}`;
+        ${owners.map(o=>{const m=scope.filter(l=>l.owner===o),w=m.filter(l=>l.status==="won").length,cn=m.filter(l=>l.status==="cancelled").length,cl=w+m.filter(l=>l.status==="lost").length;return `<tr class="drill-row" data-v="${esc(o)}" onclick="goDrill('owner',this.dataset.v)"><td style="font-weight:600">${esc(ownerLabel(o))}</td><td class="num">${m.length}</td><td class="num" style="color:var(--sage)">${w}</td><td class="num" style="color:var(--ink-soft)">${cn}</td><td class="num">${cl?Math.round(w/cl*100):0}%</td></tr>`;}).join("")}</tbody></table></div>`:""}`;
   }
 
   // ---- import excel ----
@@ -2743,7 +3019,8 @@
   const mktBtn=document.getElementById("mktExportBtn");
   if(mktBtn) mktBtn.onclick=function(){
     const visible=canSeeReferral()?leads:leads.filter(l=>l.source!=="referral");
-    const scope=visible.filter(filterByDate);
+    const scopeAll=visible.filter(filterByDate);       // للـ Look-alike: كل الفترة
+    const scope=scopeAll.filter(inScope);               // الشيت الأساسي: حسب نطاق التحليل
     if(!scope.length){toast("مفيش بيانات في الفترة المختارة");return;}
     const campName=id=>{const c=campaigns.find(x=>x.id===id);return c?c.name:"";};
     const rows=scope.map(l=>({
@@ -2755,7 +3032,7 @@
       "رقم الكامبين":l.campaignId||"",
       "اسم الإعلان":l.adName||"",
       "المجموعة الإعلانية":l.adsetName||"",
-      "التقييم":qById(l.quality)?L(qById(l.quality)):"",
+      "التقييم":qTags(l).map(k=>qById(k)?L(qById(k)):k).join(" + "),
       "مستوى الميزانية":bfById(l.budgetFit)?L(bfById(l.budgetFit)):"غير محدد",
       "الحالة":L(stById(l.status)),
       "نوع المشروع":[CATS[l.projectCategory]?.t,l.projectSubtype].filter(Boolean).join(" · "),
@@ -2766,14 +3043,14 @@
       "منطقة سكن العميل":l.residence||"",
       "الخدمات":(l.services||[]).join("، "),
       "تاريخ التسجيل":l.receivedDate||(l.createdAt?new Date(l.createdAt).toISOString().slice(0,10):""),
-      "Look-alike":["interested","site_visit","won"].includes(normStatus(l.status))?"نعم":"لا"
+      "Look-alike":(["interested","site_visit","won"].includes(normStatus(l.status))||qPositive(l))?"نعم":"لا"
     }));
     const ws=XLSX.utils.json_to_sheet(rows);
     ws["!cols"]=Object.keys(rows[0]).map(k=>({wch:Math.max(12,Math.min(28,k.length+8))}));
     const wb=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb,ws,"تقرير التسويق");
     // شيت تاني: Look-alike pool بس (اسم + تليفون للرفع على Meta)
-    const pool=scope.filter(l=>["interested","site_visit","won"].includes(normStatus(l.status)))
+    const pool=scopeAll.filter(l=>["interested","site_visit","won"].includes(normStatus(l.status))||qPositive(l))
       .map(l=>({"الاسم":l.name||"","التليفون":l.phone||"","المدينة":l.location||"","المصدر":srcById(l.source)?L(srcById(l.source)):""}));
     if(pool.length){
       const ws2=XLSX.utils.json_to_sheet(pool);
@@ -2806,7 +3083,7 @@
     const H=(a,e)=>en?e:a;
     const ownerF=document.getElementById("kbOwner")?.value||"";
     const priorityF=document.getElementById("kbPriority")?.value||"";
-    const pool=leads.filter(l=>(canSeeReferral()||l.source!=="referral")&&(!ownerF||l.owner===ownerF)&&(!priorityF||(l.priority||0)===Number(priorityF)));
+    const pool=leads.filter(l=>(canSeeReferral()||l.source!=="referral")&&(!ownerF||l.owner===ownerF)&&(!priorityF||(l.priority||0)===Number(priorityF))&&kbPassDate(l)&&passBudget(l,document.getElementById("kbBudget")?.value||""));
     const stages=stage==="all"?STATUSES:[stById(stage)];
     const iso=ts=>ts?new Date(ts).toISOString().slice(0,16).replace("T"," "):"";
     const campOf=id=>campaigns.find(x=>x.id===id);
@@ -2827,7 +3104,7 @@
       [H("تاريخ الاستلام","Received date")]:l.receivedDate||"",
       [H("وقت الاستلام","Received time")]:l.receivedTime||"",
       [H("المرحلة","Stage")]:L(stById(l.status)),
-      [H("التقييم","Quality")]:qById(l.quality)?L(qById(l.quality)):"",
+      [H("التقييم","Quality")]:qTags(l).map(k=>qById(k)?L(qById(k)):k).join(" + "),
       [H("مستوى الميزانية","Budget fit")]:bfById(l.budgetFit)?L(bfById(l.budgetFit)):"",
       [H("نوع المشروع","Project type")]:[CATS[l.projectCategory]?L(CATS[l.projectCategory]):"",l.projectSubtype].filter(Boolean).join(" · "),
       [H("المساحة","Area")]:l.area?(l.area+" "+(l.areaUnit||"")):"",
@@ -2973,14 +3250,14 @@
     if(b.dataset.tab==="leads"){
       // تصفير الفلاتر عند الدخول المباشر لتبويب العملاء (مش عبر KPI/quick filter)
       quickFilter=null;
-      $("#searchInput").value="";$("#statusFilter").value="";$("#ownerFilter").value="";$("#sourceFilter").value="";$("#qualityFilter").value="";
+      $("#searchInput").value="";$("#statusFilter").value="";$("#ownerFilter").value="";$("#sourceFilter").value="";$("#qualityFilter").value="";const bfe=document.getElementById("budgetFilter");if(bfe)bfe.value="";drill=null;
       const htc=document.getElementById("hideTerminalCheck");if(htc)htc.checked=true;
       const lac=document.getElementById("lookalikeCheck");if(lac)lac.checked=false;
       renderLeads();
     }
   });
   $("#addFab").onclick=()=>openForm();
-  $("#searchInput").oninput=renderLeads;$("#statusFilter").onchange=renderLeads;$("#ownerFilter").onchange=renderLeads;$("#sourceFilter").onchange=renderLeads;$("#qualityFilter").onchange=renderLeads;
+  $("#searchInput").oninput=renderLeads;$("#statusFilter").onchange=renderLeads;$("#ownerFilter").onchange=renderLeads;$("#sourceFilter").onchange=renderLeads;$("#qualityFilter").onchange=renderLeads;$("#budgetFilter").onchange=renderLeads;
   document.getElementById("hideTerminalCheck")?.addEventListener("change",renderLeads);
   document.getElementById("lookalikeCheck")?.addEventListener("change",e=>{
     // lookalike: uncheck hideTerminal to show won, and clear status filter
@@ -3029,6 +3306,8 @@
   $("#f-lostReason").innerHTML='<option value="">'+t("chooseReasonOpt")+'</option>'+LOST_REASONS.map(r=>`<option value="${esc(r.k)}">${esc(reasonLabel(r))}</option>`).join("");
   $("#f-budgetFit").innerHTML=BUDGET_FIT.map(b=>`<option value="${b.k}">${L(b)}</option>`).join("");
   $("#qualityFilter").innerHTML='<option value="">'+t("allQuality")+'</option>'+QUALITY.map(q=>`<option value="${q.k}">${L(q)}</option>`).join("");
+  $("#budgetFilter").innerHTML=budgetOptsHtml();
+  const kbBudgetEl=document.getElementById("kbBudget");if(kbBudgetEl){kbBudgetEl.innerHTML=budgetOptsHtml();kbBudgetEl.addEventListener("change",renderKanban);}
   $("#ownerFilter").innerHTML='<option value="">'+t("allOwners")+'</option>'+OWNERS.map(o=>`<option value="${esc(o)}">${esc(ownerLabel(o))}</option>`).join("");
   const kbOwnerEl=document.getElementById("kbOwner");
   if(kbOwnerEl) kbOwnerEl.innerHTML='<option value="">'+t("allOwners")+'</option>'+OWNERS.map(o=>`<option value="${esc(o)}">${esc(ownerLabel(o))}</option>`).join("");
@@ -3036,6 +3315,18 @@
   const kbPriorityEl=document.getElementById("kbPriority");
   if(kbPriorityEl) kbPriorityEl.innerHTML=`<option value="">${t("allPriorities")}</option><option value="3">★★★</option><option value="2">★★</option><option value="1">★</option>`;
   kbPriorityEl&&kbPriorityEl.addEventListener("change",renderKanban);
+
+  // طي/فتح كروت لوحة المتابعة بسهم (والحالة بتتحفظ على الجهاز)
+  (function(){let st={};try{st=JSON.parse(localStorage.getItem("crm:collapsed")||"{}");}catch(e){}
+    document.querySelectorAll(".collapsible").forEach(c=>{const id=c.dataset.cid;if(st[id])c.classList.add("closed");
+      const h=c.querySelector(".card-h");if(h)h.addEventListener("click",()=>{c.classList.toggle("closed");st[id]=c.classList.contains("closed");try{localStorage.setItem("crm:collapsed",JSON.stringify(st));}catch(e){}});});})();
+  const kbDM=document.getElementById("kbDateMode"),kbDP=document.getElementById("kbDatePreset");
+  if(kbDM){kbDM.innerHTML=`<option value="stage">${t("kdStage")}</option><option value="updated">${t("kdUpdated")}</option><option value="received">${t("kdReceived")}</option>`;kbDM.title=t("kdHint");
+    kbDP.innerHTML=`<option value="">${t("kdAll")}</option><option value="today">${t("kdToday")}</option><option value="yesterday">${t("kdYesterday")}</option><option value="7">${t("kd7")}</option><option value="30">${t("kd30")}</option><option value="month">${t("kdMonth")}</option><option value="custom">${t("kdCustom")}</option>`;
+    const syncKd=()=>{document.getElementById("kbDateCustom").style.display=kbDP.value==="custom"?"inline-flex":"none";kbDP.style.borderColor=kbDP.value?"var(--gold)":"";renderKanban();};
+    kbDM.addEventListener("change",renderKanban);kbDP.addEventListener("change",syncKd);
+    ["kbDateFrom","kbDateTo"].forEach(id=>document.getElementById(id).addEventListener("change",renderKanban));}
+
   document.getElementById("kbShowClosed")?.addEventListener("change",renderKanban);
   $("#sourceFilter").innerHTML='<option value="">'+t("allSources")+'</option>'+SOURCES.map(s=>`<option value="${s.k}">${L(s)}</option>`).join("");
 
