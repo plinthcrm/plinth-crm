@@ -496,6 +496,7 @@
       <select class="filter" id="sourceFilter"></select>
     </div>
     <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;align-items:center">
+      <button class="btn btn-ghost btn-sm" id="outreachBtn" onclick="openOutreach()" style="color:var(--sage);border-color:#B8D9B8">📣 <span id="outreachBtnLbl">رسائل متابعة / تعريف</span></button>
       <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;color:var(--ink-soft)">
         <input type="checkbox" id="hideTerminalCheck" style="width:auto;margin:0" checked>
         <span id="hideTerminalLbl">إخفاء الإلغاء والخسارة</span>
@@ -706,6 +707,14 @@
         <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none">
       </div>
     </div>
+  </div>
+</div>
+
+<!-- OUTREACH MODAL -->
+<div class="overlay" id="outreachOverlay">
+  <div class="modal" style="max-width:780px">
+    <div class="modal-h"><h2 id="obTitle">📣 رسائل متابعة / تعريف</h2><button class="x-btn" onclick="document.getElementById('outreachOverlay').classList.remove('show')">×</button></div>
+    <div class="modal-b" id="obBody"></div>
   </div>
 </div>
 
@@ -1498,6 +1507,7 @@
     },err=>{$("#loadingState").innerHTML='<div style="padding:30px">⚠ تعذّر الاتصال — تأكد من صلاحيات Firestore.</div>';});
     db.collection("campaigns").onSnapshot(snap=>{campaigns=snap.docs.map(d=>d.data());},()=>{});
     try{db.collection("settings").doc("analysis").get().then(d=>{if(d&&d.exists&&d.data().from&&/^\d{4}-\d{2}-\d{2}$/.test(d.data().from)){analysisFrom=d.data().from;try{localStorage.setItem("crm:analysisFrom",analysisFrom);}catch(e){}if(ready)renderAll();}}).catch(()=>{});}catch(e){}
+    try{db.collection("settings").doc("materials").get().then(d=>{if(d&&d.exists&&Array.isArray(d.data().items)){MATS=d.data();try{localStorage.setItem("crm:materials",JSON.stringify(MATS));}catch(e){}}}).catch(()=>{});}catch(e){}
     if(isAdmin()) loadUsersTab();
     loadReportTemplates();
   }
@@ -2146,6 +2156,180 @@
     if(["new","no_answer"].includes(st))return `أهلاً ${nm}، معاك فريق Plinth & Partners. وصلنا طلبك${proj}. إمتى يناسبك نتكلم ٥ دقايق نفهم احتياجك؟`;
     return `أهلاً ${nm}، معاك فريق Plinth & Partners. كنا اتكلمنا قبل كده${proj} وحبيت أطمّن لو لسه مهتم نكمل. أرتّب لك الخطوة الجاية (معاينة / عرض سعر)؟`;
   }
+
+
+  // ══════════ رسائل المتابعة / التعريف الجماعية (WhatsApp) ══════════
+  const X=(a,e)=>isEn()?e:a;
+  const AR_NAMES={"محمد":"Mohamed","احمد":"Ahmed","أحمد":"Ahmed","عمرو":"Amr","عمر":"Omar","علي":"Ali","على":"Ali","محمود":"Mahmoud","مصطفى":"Mostafa","مصطفي":"Mostafa","خالد":"Khaled","كريم":"Karim","هاجر":"Hagar","سارة":"Sara","ساره":"Sara","منى":"Mona","مني":"Mona","نور":"Nour","هبة":"Heba","هبه":"Heba","ياسر":"Yasser","طارق":"Tarek","وائل":"Wael","هشام":"Hesham","اسلام":"Islam","إسلام":"Islam","تامر":"Tamer","شريف":"Sherif","حسام":"Hossam","عبدالله":"Abdullah","عبد الله":"Abdullah","عبد الرحمن":"Abdelrahman","عبدالرحمن":"Abdelrahman","عبد العزيز":"Abdelaziz","عبد الفتاح":"Abdelfattah","ابراهيم":"Ibrahim","إبراهيم":"Ibrahim","يوسف":"Youssef","امير":"Amir","أمير":"Amir","ماجد":"Maged","هيثم":"Haitham","وليد":"Walid","سامح":"Sameh","ايمن":"Ayman","أيمن":"Ayman","دعاء":"Doaa","رنا":"Rana","داليا":"Dalia","نادين":"Nadine","مريم":"Mariam","فاطمة":"Fatma","ايمان":"Eman","إيمان":"Eman","اسامة":"Osama","أسامة":"Osama","باسم":"Bassem","ناصر":"Nasser","سعود":"Saud","فهد":"Fahad","سلمان":"Salman","سلطان":"Sultan","تركي":"Turki","احمد":"Ahmed","حسن":"Hassan","حسين":"Hussein","سعيد":"Saeed","ميرنا":"Mirna","ريم":"Reem","سلمى":"Salma","ندى":"Nada","شادي":"Shady","كمال":"Kamal","جمال":"Gamal","مجدي":"Magdy","رامي":"Ramy","اشرف":"Ashraf","أشرف":"Ashraf","ايهاب":"Ihab","إيهاب":"Ihab","صلاح":"Salah"};
+  const AR_LET={"ا":"a","أ":"a","إ":"e","آ":"a","ب":"b","ت":"t","ث":"th","ج":"g","ح":"h","خ":"kh","د":"d","ذ":"z","ر":"r","ز":"z","س":"s","ش":"sh","ص":"s","ض":"d","ط":"t","ظ":"z","ع":"a","غ":"gh","ف":"f","ق":"q","ك":"k","ل":"l","م":"m","ن":"n","ه":"h","ة":"a","ى":"a","ي":"y","و":"o","ء":"","ئ":"e","ؤ":"o"," ":" "};
+  const hasAr=s=>/[؀-ۿ]/.test(s||"");
+  function firstName(n){const p=String(n||"").replace(/["“”'|]/g," ").trim().split(/\s+/);if(!p[0])return"";if(/^(عبد|ابو|أبو|ام|أم)$/.test(p[0])&&p[1])return p[0]+" "+p[1];return p[0];}
+  function arToEn(n){
+    const s=n.replace(/[ً-ْـ]/g,"").trim();
+    if(AR_NAMES[s])return{v:AR_NAMES[s],auto:false};
+    let o="",prevC=false;
+    for(const ch of s){const m=AR_LET[ch];const x=(m===undefined?ch:m);const isC=/[bcdfghjklmnpqrstvwxyz]/i.test(x.slice(-1));if(isC&&prevC)o+="a";o+=x;prevC=isC;}
+    o=o.replace(/(^|\s)\w/g,c=>c.toUpperCase());
+    return{v:o,auto:true};}
+  let MATS={items:[]};
+  try{const x=JSON.parse(localStorage.getItem("crm:materials")||"null");if(x&&Array.isArray(x.items))MATS=x;}catch(e){}
+  async function saveMats(){try{localStorage.setItem("crm:materials",JSON.stringify(MATS));}catch(e){}
+    try{await db.collection("settings").doc("materials").set(MATS);}catch(e){toast(X("اتحفظ محلياً بس (راجع قواعد Firestore)","Saved locally only (check Firestore rules)"));}}
+  const ob={sel:new Set(),sent:new Set(),lang:"auto",tpl:"followup",stages:new Set(),basis:"touch",minD:"",maxD:"",owner:"",q:"",closed:false,hideSent:0,mats:new Set(),names:{},rowLang:{},file:null,cAr:"",cEn:""};
+  const obLang=l=>ob.rowLang[l.id]||(ob.lang==="auto"?(hasAr(l.name)?"ar":"en"):ob.lang);
+  function obName(l,lang){
+    const k=l.id+"|"+lang;
+    if(ob.names[k]!=null)return{v:ob.names[k],auto:false};
+    const fn=firstName(l.name);
+    if(lang==="en"){if(l.nameEn)return{v:firstName(l.nameEn),auto:false};if(hasAr(fn))return arToEn(fn);}
+    return{v:fn,auto:false};}
+  function obProj(l,lang){const sub=l.projectSubtype;if(!sub)return"";
+    if(lang==="en"){const e=SUB_EN[sub]||sub;return hasAr(e)?"":" about your "+e.toLowerCase();}
+    return " بخصوص "+sub;}
+  function obMsg(l){
+    const lang=obLang(l),en=lang==="en",nm=obName(l,lang).v,st=normStatus(l.status),pr=obProj(l,lang);
+    let body;
+    if(ob.tpl==="custom"){
+      const t=(en?ob.cEn:ob.cAr)||"";
+      body=t.replace(/\{name\}/g,nm).replace(/\{project\}/g,pr.replace(/^ (about your|بخصوص) /,""));
+    }else if(ob.tpl==="intro"){
+      body=en?`Hello ${nm}, this is Plinth & Partners — an interior design, fit-out and landscape studio with offices in Cairo and Riyadh. We'd love to share our work${pr.replace('about your','relevant to your')}.`
+             :`أهلاً ${nm}، معاك فريق Plinth & Partners — استوديو تصميم داخلي وتنفيذ وتنسيق مواقع في القاهرة والرياض. حبينا نعرّفك بأعمالنا${pr}.`;
+    }else if(ob.tpl==="reengage"){
+      body=en?`Hello ${nm}, this is Plinth & Partners. You reached out to us earlier${pr}. Are you still interested? We'd be happy to share our latest work and arrange the next step.`
+             :`أهلاً ${nm}، معاك فريق Plinth & Partners. كنت تواصلت معانا قبل كده${pr}. لسه مهتم؟ يسعدنا نعرض عليك آخر أعمالنا ونرتّب الخطوة الجاية.`;
+    }else{
+      if(["quoted","negotiation","pricing"].includes(st))body=en?`Hello ${nm}, this is Plinth & Partners. I wanted to check that our proposal${pr} reached you and answer any questions. Would a quick call today or tomorrow work?`
+        :`أهلاً ${nm}، معاك فريق Plinth & Partners. حبيت أتأكد إن عرض السعر${pr} وصلك وأجاوب على أي استفسار. تحب نتكلم مكالمة سريعة النهارده أو بكرة؟`;
+      else if(["new","no_answer"].includes(st))body=en?`Hello ${nm}, this is Plinth & Partners. We received your inquiry${pr}. When is a good time for a quick 5-minute call?`
+        :`أهلاً ${nm}، معاك فريق Plinth & Partners. وصلنا طلبك${pr}. إمتى يناسبك نتكلم ٥ دقايق نفهم احتياجك؟`;
+      else body=en?`Hello ${nm}, this is Plinth & Partners. Following up on our earlier conversation${pr} — are you still planning to move forward? Happy to arrange the next step (site visit / proposal).`
+        :`أهلاً ${nm}، معاك فريق Plinth & Partners. كنا اتكلمنا قبل كده${pr} وحبيت أطمّن لو لسه مهتم نكمل. أرتّب لك الخطوة الجاية (معاينة / عرض سعر)؟`;
+    }
+    const ms=MATS.items.filter(m=>ob.mats.has(m.id)&&m.url);
+    if(ms.length)body+="\n\n"+(en?"Our work:":"نماذج من أعمالنا:")+"\n"+ms.map(m=>"• "+(en?(m.titleEn||m.title):m.title)+": "+m.url).join("\n");
+    return body;}
+  function obDays(l){
+    if(ob.basis==="over"){const o=stageOverdue(l);return o?o.over:0;}
+    if(ob.basis==="stage"){const s=l.stageChangedAt||lastTs(l)||l.updatedAt||l.createdAt||0;return s?Math.floor((Date.now()-s)/864e5):0;}
+    return daysSince(l);}
+  function obCands(){
+    const q=ob.q.trim().toLowerCase();
+    return leads.filter(l=>{
+      if(!waNumber(l.phone))return false;
+      if(!ob.closed&&!isActive(l))return false;
+      if(ob.stages.size&&!ob.stages.has(normStatus(l.status)))return false;
+      if(ob.owner&&l.owner!==ob.owner)return false;
+      if(q&&!((l.name||"").toLowerCase().includes(q)||String(l.phone||"").includes(q)))return false;
+      if(ob.hideSent&&l.lastOutreachAt&&(Date.now()-l.lastOutreachAt)<ob.hideSent*864e5)return false;
+      if(ob.minD!==""||ob.maxD!==""){const d=obDays(l);if(ob.minD!==""&&d<+ob.minD)return false;if(ob.maxD!==""&&d>+ob.maxD)return false;}
+      return true;}).sort((a,b)=>obDays(b)-obDays(a));}
+  const obMatIcon=u=>/youtu/i.test(u)?"🎬":/drive\.google|dropbox|onedrive/i.test(u)?"📁":/instagram/i.test(u)?"📸":/\.pdf(\?|$)/i.test(u)?"📄":"🌐";
+  window.openOutreach=function(){
+    if(!canWrite()){toast(X("مش متاح لصلاحيتك","Not available for your role"));return;}
+    const en=isEn(),st=STATUSES.filter(s=>!TERMINAL.includes(s.k));
+    $("#obTitle").textContent="📣 "+X("رسائل متابعة / تعريف","Follow-up / intro messages");
+    const fld=(lbl,inner)=>`<div class="field" style="margin:0;flex:1;min-width:120px"><label style="font-size:12px;font-weight:600">${lbl}</label>${inner}</div>`;
+    $("#obBody").innerHTML=`
+      <div class="muted" style="font-size:12px;margin-bottom:10px">${X("واتساب بيفتح محادثة واحدة في المرة (مفيش إرسال تلقائي للكل) — دوس 💬 على كل عميل وابعت.","WhatsApp opens one chat at a time (no automatic mass-send) — tap 💬 per client and send.")}</div>
+      <div class="section-title" style="font-size:14px;margin:6px 0">1) ${X("اختار العملاء","Choose clients")}</div>
+      <div id="obChips" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+        ${fld(X("حساب الأيام على","Days based on"),`<select class="filter" style="width:100%" onchange="obSet('basis',this.value)"><option value="touch">${X("آخر تواصل","Last contact")}</option><option value="over">${X("التأخير عن الـ SLA","Days overdue (SLA)")}</option><option value="stage">${X("الأيام في المرحلة","Days in stage")}</option></select>`)}
+        ${fld(X("من (يوم)","From (days)"),`<input type="number" min="0" oninput="obSet('minD',this.value)">`)}
+        ${fld(X("إلى (يوم)","To (days)"),`<input type="number" min="0" oninput="obSet('maxD',this.value)">`)}
+        ${fld(X("المسؤول","Owner"),`<select class="filter" style="width:100%" onchange="obSet('owner',this.value)"><option value="">${X("الكل","All")}</option>${OWNERS.map(o=>`<option value="${esc(o)}">${esc(ownerLabel(o))}</option>`).join("")}</select>`)}
+        ${fld(X("إخفاء اللي اتبعتلهم","Hide recently messaged"),`<select class="filter" style="width:100%" onchange="obSet('hideSent',+this.value)"><option value="0">${X("لا","No")}</option><option value="3">${X("آخر 3 أيام","Last 3 days")}</option><option value="7">${X("آخر 7 أيام","Last 7 days")}</option><option value="14">${X("آخر 14 يوم","Last 14 days")}</option></select>`)}
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+        <input type="text" placeholder="${X("ابحث باسم أو رقم لاختيار عملاء بعينهم…","Search a name/phone…")}" oninput="obSet('q',this.value)" style="flex:1;min-width:160px">
+        <label style="font-size:12.5px;display:flex;gap:5px;align-items:center;cursor:pointer"><input type="checkbox" style="width:auto;margin:0" onchange="obSet('closed',this.checked)">${X("يشمل المقفول/الملغي","Include closed")}</label>
+      </div>
+      <div class="section-title" style="font-size:14px;margin:6px 0">2) ${X("الرسالة","Message")}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+        ${fld(X("اللغة","Language"),`<select class="filter" style="width:100%" onchange="obSet('lang',this.value)"><option value="auto">${X("تلقائي (حسب اسم العميل)","Auto (by client name)")}</option><option value="ar">${X("عربي للكل","Arabic for all")}</option><option value="en">${X("إنجليزي للكل","English for all")}</option></select>`)}
+        ${fld(X("نوع الرسالة","Template"),`<select class="filter" style="width:100%" onchange="obSet('tpl',this.value)"><option value="followup">${X("متابعة (حسب المرحلة)","Follow-up (by stage)")}</option><option value="intro">${X("تعريف بالشركة","Company intro")}</option><option value="reengage">${X("إعادة تواصل لعميل قديم","Re-engage old inquiry")}</option><option value="custom">${X("نص مخصص","Custom text")}</option></select>`)}
+      </div>
+      <div id="obCustom" style="display:none;margin-bottom:10px">
+        <textarea rows="3" placeholder="${X("النص العربي — استخدم {name} و {project}","Arabic text — use {name} {project}")}" oninput="obSet('cAr',this.value)" style="margin-bottom:6px"></textarea>
+        <textarea rows="3" placeholder="English text — use {name} {project}" oninput="obSet('cEn',this.value)"></textarea>
+      </div>
+      <div style="font-size:12.5px;font-weight:600;margin:4px 0">${X("خامات تتبعت مع الرسالة (لينكات)","Materials to attach (links)")}</div>
+      <div id="obMats" style="margin-bottom:10px"></div>
+      <div style="margin-bottom:12px"><label style="font-size:12.5px;font-weight:600">${X("📎 ملف PDF/صورة للمشاركة المباشرة (موبايل بس)","📎 PDF/image for direct share (mobile only)")}</label>
+        <input type="file" accept="application/pdf,image/*" onchange="obFile(this.files[0])" style="margin-top:4px">
+        <div class="muted" style="font-size:11.5px;margin-top:3px">${X("بيفتح قائمة المشاركة في موبايلك → اختار واتساب والعميل. للإرسال الجماعي الأسهل: ارفع الـ PDF على Drive/موقعك وضيفه كخامة (لينك).","Opens your phone's share sheet → pick WhatsApp + client. For bulk, easiest is to host the PDF (Drive/website) and add it as a link material.")}</div></div>
+      <div class="section-title" style="font-size:14px;margin:6px 0">3) ${X("معاينة","Preview")}</div>
+      <div id="obPrev" class="info-box" style="white-space:pre-wrap;font-size:13px;margin-bottom:12px"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">
+        <b id="obCount"></b>
+        <button class="icon-btn" onclick="obAll(true)">${X("تحديد كل المعروض","Select all shown")}</button>
+        <button class="icon-btn" onclick="obAll(false)">${X("إلغاء التحديد","Clear")}</button>
+        <button class="btn btn-sm" style="background:var(--sage);color:#fff" onclick="obNext()">▶ ${X("ابعت للتالي","Send to next")}</button>
+      </div>
+      <div class="prio" id="obList" style="max-height:46dvh;overflow-y:auto"></div>`;
+    $("#outreachOverlay").classList.add("show");
+    obRefresh();};
+  window.obSet=function(k,v){ob[k]=v;if(k==="tpl"){const c=document.getElementById("obCustom");if(c)c.style.display=v==="custom"?"":"none";}obRefresh();};
+  window.obFile=function(f){ob.file=f||null;obRefresh();};
+  window.obToggleStage=function(k){ob.stages.has(k)?ob.stages.delete(k):ob.stages.add(k);obRefresh();};
+  window.obToggleMat=function(id){ob.mats.has(id)?ob.mats.delete(id):ob.mats.add(id);obRefresh();};
+  window.obTog=function(id,on){on?ob.sel.add(id):ob.sel.delete(id);obRefresh(true);};
+  window.obAll=function(on){obCands().forEach(l=>on?ob.sel.add(l.id):ob.sel.delete(l.id));obRefresh();};
+  window.obNm=function(id,v){const l=leads.find(x=>x.id===id);if(!l)return;ob.names[id+"|"+obLang(l)]=v.trim();obRefresh(true);};
+  window.obRow=function(id){const l=leads.find(x=>x.id===id);if(!l)return;ob.rowLang[id]=obLang(l)==="ar"?"en":"ar";obRefresh();};
+  window.obCopy=function(id){const l=leads.find(x=>x.id===id);if(!l)return;try{navigator.clipboard.writeText(obMsg(l));toast(X("اتنسخت","Copied"));}catch(e){toast(X("مش قادر ينسخ","Copy failed"));}};
+  function obMark(l){
+    ob.sent.add(l.id);
+    if(canWrite()){l.outreach=(l.outreach||[]).concat([{ts:Date.now(),lang:obLang(l),tpl:ob.tpl,by:currentUserName||""}]).slice(-10);l.lastOutreachAt=Date.now();putLead(l).catch(()=>{});}
+    obRefresh(true);}
+  window.obSend=function(id,share){
+    const l=leads.find(x=>x.id===id);if(!l)return;const msg=obMsg(l);
+    if(share&&ob.file){navigator.share({files:[ob.file],text:msg}).then(()=>obMark(l)).catch(()=>{});return;}
+    window.open("https://wa.me/"+waNumber(l.phone)+"?text="+encodeURIComponent(msg),"_blank","noopener");
+    obMark(l);};
+  window.obNext=function(){
+    const l=obCands().find(x=>ob.sel.has(x.id)&&!ob.sent.has(x.id));
+    if(!l){toast(X("مفيش عملاء محددين متبقيين","No selected clients left"));return;}
+    window.obSend(l.id);};
+  function obRefresh(light){
+    const chips=document.getElementById("obChips");if(!chips)return;
+    if(!light){
+      chips.innerHTML=STATUSES.filter(s=>ob.closed||!TERMINAL.includes(s.k)).map(s=>{const on=ob.stages.has(s.k);return `<button class="icon-btn" style="${on?"background:"+s.c+";color:#fff;border-color:"+s.c:""}" onclick="obToggleStage('${s.k}')">${esc(L(s))}</button>`;}).join("")
+        +(ob.stages.size?`<button class="icon-btn" onclick="ob.stages.clear();obRefresh()">✕</button>`:"");
+      document.getElementById("obMats").innerHTML=(MATS.items.length?MATS.items.map(m=>`<div style="display:flex;gap:8px;align-items:center;padding:3px 0"><label style="display:flex;gap:6px;align-items:center;cursor:pointer;font-size:13px;flex:1"><input type="checkbox" style="width:auto;margin:0" ${ob.mats.has(m.id)?"checked":""} onchange="obToggleMat('${m.id}')">${obMatIcon(m.url)} ${esc(isEn()?(m.titleEn||m.title):m.title)}</label>${isAdmin()?`<button class="icon-btn" onclick="obDelMat('${m.id}')">🗑</button>`:""}</div>`).join(""):`<div class="muted" style="font-size:12px">${X("مفيش خامات لسه","No materials yet")}</div>`)
+        +(isAdmin()?`<button class="icon-btn" style="margin-top:6px" onclick="obAddMat()">＋ ${X("إضافة لينك (موقع / انستجرام / يوتيوب / Drive)","Add link (website / Instagram / YouTube / Drive)")}</button>`:"");
+    }
+    const c=obCands(),selN=c.filter(l=>ob.sel.has(l.id)).length;
+    document.getElementById("obCount").textContent=X("المعروض ","Shown ")+c.length+" · "+X("المحدد ","Selected ")+selN;
+    const first=c.find(l=>ob.sel.has(l.id))||c[0];
+    document.getElementById("obPrev").textContent=first?(first.name+" ("+obLang(first).toUpperCase()+")\n\n"+obMsg(first)):X("مفيش عملاء مطابقين","No matching clients");
+    const canShare=ob.file&&navigator.canShare&&(function(){try{return navigator.canShare({files:[ob.file]});}catch(e){return false;}})();
+    if(light){const act=document.activeElement;if(act&&act.closest&&act.closest("#obList")&&act.tagName==="INPUT"&&act.type==="text")return;}
+    document.getElementById("obList").innerHTML=c.slice(0,400).map(l=>{
+      const lang=obLang(l),nm=obName(l,lang),sent=ob.sent.has(l.id),lo=l.lastOutreachAt?Math.floor((Date.now()-l.lastOutreachAt)/864e5):null;
+      return `<div class="prio-item" style="gap:8px;align-items:center;flex-wrap:wrap;cursor:default">
+        <input type="checkbox" style="width:auto;margin:0" ${ob.sel.has(l.id)?"checked":""} onchange="obTog('${l.id}',this.checked)">
+        <div class="prio-main" style="min-width:130px"><div class="prio-name">${esc(l.name)}</div>
+          <div class="prio-reason">${esc(L(stById(l.status)))} · ${obDays(l)}${X("ي","d")}${sent?" · ✓ "+X("اتبعت","sent"):lo!=null?" · "+X("آخر رسالة من ","last msg ")+lo+X("ي","d"):""}</div></div>
+        <input type="text" value="${esc(nm.v)}" title="${nm.auto?X("ترجمة تقريبية — راجعها","Approximate transliteration — please check"):X("الاسم في الرسالة","Name used")}" onchange="obNm('${l.id}',this.value)" style="width:96px;padding:4px 6px;font-size:12px;${nm.auto?"border-color:var(--gold)":""}">
+        <button class="icon-btn" onclick="obRow('${l.id}')">${lang==="ar"?"AR":"EN"}</button>
+        <button class="icon-btn" style="color:var(--sage)" onclick="obSend('${l.id}')">💬</button>
+        <button class="icon-btn" onclick="obCopy('${l.id}')">⧉</button>
+        ${canShare?`<button class="icon-btn" onclick="obSend('${l.id}',true)">📎</button>`:""}</div>`;}).join("")||`<p class="muted" style="padding:10px 0">${X("مفيش عملاء","No clients")}</p>`;
+  }
+  window.obAddMat=async function(){
+    if(!isAdmin())return;
+    const title=window.prompt(X("اسم الخامة (مثال: موقعنا / Instagram / فيديو مشروع):","Material name (e.g. Website / Instagram / Project video):"));if(!title)return;
+    const url=window.prompt(X("اللينك (https://…):","Link (https://…):"));
+    if(!url||!/^https?:\/\//i.test(url.trim())){toast(X("لينك غير صحيح","Invalid link"));return;}
+    const te=window.prompt(X("الاسم بالإنجليزي (اختياري):","English name (optional):"),title)||title;
+    MATS.items.push({id:"m"+Date.now(),title:title.trim(),titleEn:te.trim(),url:url.trim()});
+    await saveMats();obRefresh();};
+  window.obDelMat=async function(id){
+    if(!isAdmin()||!window.confirm(X("تمسح الخامة دي؟","Delete this material?")))return;
+    MATS.items=MATS.items.filter(m=>m.id!==id);ob.mats.delete(id);await saveMats();obRefresh();};
+  window.ob=ob;
 
   function renderLeads(){
     const q=$("#searchInput").value.trim().toLowerCase();
