@@ -2274,6 +2274,7 @@
         </div>
         <div class="muted" style="margin-top:6px">${X("متخطي الجمعة والسبت. لو العميل رد: دوس ↩ وسجّل (متابعة بتاريخ / إلغاء / أرشفة).","Fri/Sat skipped. If the client replied: tap ↩ and log (follow-up date / cancel / archive).")}</div>
         <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <button class="icon-btn" id="obRepairBtn" onclick="obRepair()">🔧 ${X("سجّل الرسائل المبعوتة من غير لوج","Log sent messages missing from the log")} (<span id="obRepairN">0</span>)</button>
           <span>${X("بعتّ قبل كده من غير تسجيل؟ وقت الإرسال:","Already sent without logging? Sent at:")}</span><input type="datetime-local" id="obWhen" style="width:auto">
           <button class="icon-btn" onclick="obBulk()">✓ ${X("سجّل المحدد كمُرسَل (بدون فتح واتساب)","Log selected as sent (no WhatsApp)")}</button></div>
       </div>
@@ -2300,17 +2301,29 @@
   window.obCopy=function(id){const l=leads.find(x=>x.id===id);if(!l)return;try{navigator.clipboard.writeText(obMsg(l));toast(X("اتنسخت","Copied"));}catch(e){toast(X("مش قادر ينسخ","Copy failed"));}};
   const obYmd=(ts,days)=>{let d=new Date(ts+days*864e5);d.setHours(12,0,0,0);while(d.getDay()===5||d.getDay()===6)d=new Date(d.getTime()+864e5);return ymdLocal(d.getTime());};
   // تسجيل رسالة في اللوج + تحديد موعد متابعة جديد (القديم أوي = نقطة قرار)
-  function obApply(l,ts){
+  function obApply(l,ts,rec){
     const idle=daysSince(l),old=idle>90;
     const fu=obYmd(Math.max(ts,Date.now()),old?ob.oldDays:ob.followDays);
     const cur=l.nextFollowUp;
     if(!(!old&&cur&&cur>ymdLocal(Date.now())&&cur<fu))l.nextFollowUp=fu;
-    const tn={followup:"متابعة",intro:"تعريف",reengage:"إعادة تواصل",custom:"مخصص"}[ob.tpl]||ob.tpl;
-    const mats=MATS.items.filter(m=>ob.mats.has(m.id)).map(m=>m.title);
+    const tpl=rec?rec.tpl:ob.tpl,lg=rec?(rec.lang||"ar"):obLang(l);
+    const tn={followup:"متابعة",intro:"تعريف",reengage:"إعادة تواصل",custom:"مخصص"}[tpl]||tpl||"";
+    const mats=rec?[]:MATS.items.filter(m=>ob.mats.has(m.id)).map(m=>m.title);
     l.notes=l.notes||[];
-    l.notes.push({id:uid(),ts,kind:"note",text:"📣 رسالة واتساب ("+tn+" · "+obLang(l).toUpperCase()+")"+(mats.length?" + "+mats.join("، "):"")+" — المتابعة الجاية: "+l.nextFollowUp+(old?" · نقطة قرار (بدون تواصل "+idle+" يوم): متابعة / إلغاء / أرشفة":"")});
-    l.outreach=(l.outreach||[]).concat([{ts,lang:obLang(l),tpl:ob.tpl,by:currentUserName||""}]).slice(-10);
+    l.notes.push({id:uid(),ts,kind:"note",text:"📣 رسالة واتساب ("+tn+" · "+lg.toUpperCase()+")"+(mats.length?" + "+mats.join("، "):"")+" — المتابعة الجاية: "+l.nextFollowUp+(old?" · نقطة قرار (بدون تواصل "+idle+" يوم): متابعة / إلغاء / أرشفة":"")});
+    if(!rec)l.outreach=(l.outreach||[]).concat([{ts,lang:lg,tpl,by:currentUserName||""}]).slice(-10);
     l.lastOutreachAt=ts;}
+  // رسائل اتبعتت (lastOutreachAt موجود) بس مالهاش سطر في اللوج
+  const obUnlogged=()=>leads.filter(l=>l.lastOutreachAt&&!(l.notes||[]).some(n=>String(n.text||"").indexOf("📣")===0&&n.ts>=l.lastOutreachAt-5000));
+  window.obRepair=async function(){
+    if(!canWrite())return;
+    const list=obUnlogged();
+    if(!list.length){toast(X("كل الرسائل المتبعتة متسجلة","All sent messages are already logged"));return;}
+    if(!window.confirm(X("هسجّل في اللوج + موعد متابعة لـ ","Log + schedule follow-up for ")+list.length+X(" عميل (بوقت إرسالهم الأصلي) ؟"," clients (at their original send time)?")))return;
+    list.forEach(l=>{const rec=(l.outreach||[]).slice(-1)[0]||{};obApply(l,l.lastOutreachAt,rec);l.updatedAt=Date.now();});
+    try{let b=db.batch(),n=0;for(const l of list){b.set(db.collection("leads").doc(l.id),JSON.parse(JSON.stringify(l)));n++;if(n%450===0){await b.commit();b=db.batch();}}await b.commit();
+      toast(X("تم تسجيل ","Logged ")+list.length);}catch(e){toast(X("تعذّر الحفظ","Save failed"));}
+    obRefresh();renderLeadsAndDash();};
   function obMark(l){
     ob.sent.add(l.id);
     if(canWrite()){obApply(l,Date.now());putLead(l).then(()=>renderLeadsAndDash()).catch(()=>{});}
@@ -2385,6 +2398,7 @@
       document.getElementById("obMats").innerHTML=(MATS.items.length?MATS.items.map(m=>`<div style="display:flex;gap:8px;align-items:center;padding:3px 0"><label style="display:flex;gap:6px;align-items:center;cursor:pointer;font-size:13px;flex:1"><input type="checkbox" style="width:auto;margin:0" ${ob.mats.has(m.id)?"checked":""} onchange="obToggleMat('${m.id}')">${obMatIcon(m.url)} ${esc(isEn()?(m.titleEn||m.title):m.title)}</label>${isAdmin()?`<button class="icon-btn" onclick="obDelMat('${m.id}')">🗑</button>`:""}</div>`).join(""):`<div class="muted" style="font-size:12px">${X("مفيش خامات لسه","No materials yet")}</div>`)
         +(isAdmin()?`<button class="icon-btn" style="margin-top:6px" onclick="obAddMat()">＋ ${X("إضافة لينك (موقع / انستجرام / يوتيوب / Drive)","Add link (website / Instagram / YouTube / Drive)")}</button>`:"");
     }
+    const rn=document.getElementById("obRepairN");if(rn)rn.textContent=obUnlogged().length;
     const c=obCands(),selN=c.filter(l=>ob.sel.has(l.id)).length;
     document.getElementById("obCount").textContent=X("المعروض ","Shown ")+c.length+" · "+X("المحدد ","Selected ")+selN;
     const first=c.find(l=>ob.sel.has(l.id))||c[0];
