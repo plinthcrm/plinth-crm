@@ -456,11 +456,11 @@
       <div class="card-h" id="reengTitleEl">📣 خطة إعادة التواصل</div>
       <div class="card-b" id="reengBody"></div>
     </div>
-    <div class="card">
+    <div class="card collapsible" data-cid="funnel">
       <div class="card-h" id="pipelineStagesTitle">مراحل العملاء (Pipeline)</div>
       <div class="card-b"><div class="funnel" id="funnel"></div></div>
     </div>
-    <div class="card">
+    <div class="card collapsible" data-cid="ownerperf">
       <div class="card-h" id="ownerPerfTitleEl">أداء الفريق <span class="muted" style="font-weight:400;font-size:12px" id="ownerPerfSub">مين بيتابع مين</span></div>
       <div class="card-b" id="ownerPerf"></div>
     </div>
@@ -1055,8 +1055,9 @@
     {k:"on_hold",t:"مؤجّل مؤقتاً",e:"On Hold",c:"#7C7C8A",sla:30,prob:15,hint:"راجعه بعد شهر",hintE:"Review after a month"},
     {k:"won",t:"تم الإغلاق ✓",e:"Won ✓",c:"#5C7355",sla:0,prob:100,fold:true},
     {k:"lost",t:"خسارة",e:"Lost",c:"#9A4B4B",sla:0,prob:0,fold:true},
-    {k:"cancelled",t:"إلغاء الطلب",e:"Cancelled",c:"#8A8079",sla:0,prob:0,fold:true}];
-  const TERMINAL=["won","lost","cancelled"];
+    {k:"cancelled",t:"إلغاء الطلب",e:"Cancelled",c:"#8A8079",sla:0,prob:0,fold:true},
+    {k:"dead_pool",t:"Dead Pool (غير مناسب نهائياً)",e:"Dead Pool (never contact)",c:"#3F3F46",sla:0,prob:0,fold:true,hint:"غير مناسب 100٪ — مش هيظهر في أي Look-alike ولا رسائل",hintE:"100% unsuitable — excluded from every look-alike and messaging"}];
+  const TERMINAL=["won","lost","cancelled","dead_pool"];
   const isActive=l=>!TERMINAL.includes(l.status);
   // ── Jobs: بنود العقود المالية تحت العميل (تصميم/تنفيذ/صيانة...) — منفصلة عن حالة الـ pipeline ──
   const jobsOf=l=>Array.isArray(l.jobs)?l.jobs:[];
@@ -1260,7 +1261,7 @@
   const POS_Q=["interested","potential","opportunity"], NEG_Q=["not_interested","unsuitable","invalid"];
   const qTags=l=>Array.isArray(l.qualityTags)?l.qualityTags:(l.quality?[l.quality]:[]);
   const qHas=(l,k)=>qTags(l).includes(k);
-  const qPositive=l=>qTags(l).some(k=>POS_Q.includes(k));
+  const qPositive=l=>l.status!=="dead_pool"&&qTags(l).some(k=>POS_Q.includes(k));
   const qPrimary=tags=>["opportunity","potential","interested","not_interested","unsuitable","invalid"].find(k=>tags.includes(k))||null;
   const qChips=(l,cls,fs)=>qTags(l).map(qById).filter(Boolean).map(q=>`<span class="${cls}" style="background:${q.c}1A;color:${q.c}${fs?";font-size:"+fs:""}">${esc(L(q))}</span>`).join("");
   const SOURCES=[
@@ -1588,7 +1589,7 @@
         logAudit(t("auditValueChange"),l.id,l.name,oldTxt+" ← "+newTxt);
       }
       logAudit(i>=0?t("auditEditData"):t("auditNewLead"), l.id, l.name, t("auditStatusLbl")+": "+L(stById(l.status)));
-    }catch(e){toast("تعذّر الحفظ على السحابة");}
+    }catch(e){toast((isEn()?"Cloud save failed — ":"تعذّر الحفظ على السحابة — ")+errAr(e));}
   }
   async function removeLead(id){
     const l=leads.find(x=>x.id===id);
@@ -1973,7 +1974,7 @@
       await batch.commit();
       logAudit("إعادة ضبط SLA","","",targets.length+" leads · "+days+" days");
       toast(en?`Done — ${targets.length} leads rescheduled`:`تم — اتجدول ${targets.length} ليد`);
-    }catch(e){toast(en?"Save failed":"تعذّر الحفظ");}
+    }catch(e){toast((en?"Save failed — ":"تعذّر الحفظ — ")+errAr(e));}
     renderLeadsAndDash();
   };
   const dr=(kind,val,label,count)=>`<tr class="drill-row" data-v="${esc(val)}" title="${t("clickToFilter")}" onclick="goDrill('${kind}',this.dataset.v)"><td>${esc(label)}</td><td class="num" style="text-align:end;font-weight:600">${count} ›</td></tr>`;
@@ -2139,6 +2140,12 @@
         const id=kbDragId, ns=col.dataset.stage; if(!id||!ns)return;
         const l=leads.find(x=>x.id===id); if(!l||normStatus(l.status)===ns)return;
         // الحالات النهائية بتتغير من صفحة العميل عشان السبب الإلزامي
+        if(ns==="dead_pool"){
+          if(!window.confirm(isEn()?"Move to Dead Pool? (never in look-alike or messaging)":"نقله لـ Dead Pool؟ (مش هيظهر في أي Look-alike ولا رسائل)")){renderKanban();return;}
+          const okd=transitionStage(l,ns);if(!okd){renderKanban();return;}
+          l.nextFollowUp="";l.notes=l.notes||[];l.notes.push({id:uid(),ts:Date.now(),kind:"note",text:"☠ نُقل إلى Dead Pool"});
+          await putLead(l);renderKanban();renderLeadsAndDash();return;
+        }
         if(TERMINAL.includes(ns)){ openDetail(id); toast(isEn()?"Set the reason from the lead page":"حدد السبب من صفحة العميل"); return; }
         const ok=transitionStage(l, ns);
         if(!ok){ renderKanban(); return; } // فشل التحقق (قفزة مراحل) — أعد رسم البورد بدون تغيير
@@ -2224,7 +2231,7 @@
   function obCands(){
     const q=ob.q.trim().toLowerCase();
     return leads.filter(l=>{
-      if(!waNumber(l.phone))return false;
+      if(!waNumber(l.phone)||l.status==="dead_pool")return false;
       if(!ob.closed&&!isActive(l))return false;
       if(ob.stages.size&&!ob.stages.has(normStatus(l.status)))return false;
       if(ob.owner&&l.owner!==ob.owner)return false;
@@ -2234,7 +2241,7 @@
       return true;}).sort((a,b)=>obDays(b)-obDays(a));}
   const obMatIcon=u=>/youtu/i.test(u)?"🎬":/drive\.google|dropbox|onedrive/i.test(u)?"📁":/instagram/i.test(u)?"📸":/\.pdf(\?|$)/i.test(u)?"📄":"🌐";
   window.openOutreach=function(){
-    if(!canWrite()){toast(X("مش متاح لصلاحيتك","Not available for your role"));return;}
+    if(!canAddNotes()){toast(X("مش متاح لصلاحيتك","Not available for your role"));return;}
     const en=isEn(),st=STATUSES.filter(s=>!TERMINAL.includes(s.k));
     $("#obTitle").textContent="📣 "+X("رسائل متابعة / تعريف","Follow-up / intro messages");
     const fld=(lbl,inner)=>`<div class="field" style="margin:0;flex:1;min-width:120px"><label style="font-size:12px;font-weight:600">${lbl}</label>${inner}</div>`;
@@ -2317,31 +2324,32 @@
   // رسائل اتبعتت (lastOutreachAt موجود) بس مالهاش سطر في اللوج
   const obUnlogged=()=>leads.filter(l=>l.lastOutreachAt&&!(l.notes||[]).some(n=>String(n.text||"").indexOf("📣")===0&&n.ts>=l.lastOutreachAt-5000));
   window.obRepair=async function(){
-    if(!canWrite())return;
+    if(!canAddNotes())return;
     const list=obUnlogged();
     if(!list.length){toast(X("كل الرسائل المتبعتة متسجلة","All sent messages are already logged"));return;}
     if(!window.confirm(X("هسجّل في اللوج + موعد متابعة لـ ","Log + schedule follow-up for ")+list.length+X(" عميل (بوقت إرسالهم الأصلي) ؟"," clients (at their original send time)?")))return;
     list.forEach(l=>{const rec=(l.outreach||[]).slice(-1)[0]||{};obApply(l,l.lastOutreachAt,rec);l.updatedAt=Date.now();});
     try{let b=db.batch(),n=0;for(const l of list){b.set(db.collection("leads").doc(l.id),JSON.parse(JSON.stringify(l)));n++;if(n%450===0){await b.commit();b=db.batch();}}await b.commit();
-      toast(X("تم تسجيل ","Logged ")+list.length);}catch(e){toast(X("تعذّر الحفظ","Save failed"));}
+      toast(X("تم تسجيل ","Logged ")+list.length);}catch(e){toast(X("تعذّر الحفظ — ","Save failed — ")+errAr(e));}
     obRefresh();renderLeadsAndDash();};
   function obMark(l){
     ob.sent.add(l.id);
-    if(canWrite()){obApply(l,Date.now());putLead(l).then(()=>renderLeadsAndDash()).catch(()=>{});}
+    if(canAddNotes()){obApply(l,Date.now());putLead(l).then(()=>renderLeadsAndDash()).catch(()=>{});}
     obRefresh(true);}
   window.obBulk=async function(){
+    if(!canAddNotes())return;
     const el=document.getElementById("obWhen"),ts=el&&el.value?new Date(el.value).getTime():Date.now();
     const list=obCands().filter(l=>ob.sel.has(l.id)&&!ob.sent.has(l.id));
     if(!list.length){toast(X("حدد عملاء الأول","Select clients first"));return;}
     if(!window.confirm(X("هسجّل رسالة + موعد متابعة لـ ","Log a message + follow-up for ")+list.length+X(" عميل بتوقيت "," clients at ")+new Date(ts).toLocaleString(isEn()?"en-GB":"ar-EG")+" ؟"))return;
     list.forEach(l=>{obApply(l,ts);l.updatedAt=Date.now();ob.sent.add(l.id);});
     try{let b=db.batch(),n=0;for(const l of list){b.set(db.collection("leads").doc(l.id),JSON.parse(JSON.stringify(l)));n++;if(n%450===0){await b.commit();b=db.batch();}}await b.commit();
-      toast(X("تم تسجيل ","Logged ")+list.length);}catch(e){toast(X("تعذّر الحفظ","Save failed"));}
+      toast(X("تم تسجيل ","Logged ")+list.length);}catch(e){toast(X("تعذّر الحفظ — ","Save failed — ")+errAr(e));}
     obRefresh();renderLeadsAndDash();};
   // ── تسجيل رد العميل: متابعة بتاريخ / إلغاء / أرشفة ──
   window.obRepKind=function(k){["f","c","a"].forEach(x=>{const e=document.getElementById("obRep_"+x);if(e)e.style.display=x===k?"":"none";});};
   window.obReply=function(id){
-    const l=leads.find(x=>x.id===id);if(!l||!canWrite())return;
+    const l=leads.find(x=>x.id===id);if(!l||!canAddNotes())return;
     const st=normStatus(l.status),canMove=st==="no_answer"||(st==="new"&&isAdmin());
     document.getElementById("obRepBody").innerHTML=`
       <input type="hidden" id="obRepId" value="${esc(id)}">
@@ -2357,6 +2365,7 @@
         <div id="obRep_a" style="padding:0 22px;display:none"><select id="obRepDays" class="filter"><option value="30">${X("بعد 30 يوم","In 30 days")}</option><option value="60">${X("بعد 60 يوم","In 60 days")}</option><option value="90" selected>${X("بعد 90 يوم","In 90 days")}</option></select></div>
       </div>
       <button class="btn btn-primary" style="width:100%" onclick="obRepSave()">${X("حفظ","Save")}</button>`;
+    const rh=document.querySelector("#obReplyOverlay .modal-h h2");if(rh)rh.textContent="↩ "+X("رد العميل","Client reply");
     document.getElementById("obReplyOverlay").classList.add("show");};
   window.obRepSave=async function(){
     const l=leads.find(x=>x.id===document.getElementById("obRepId").value);if(!l)return;
@@ -2461,6 +2470,7 @@
     bar.querySelectorAll("[data-rd]").forEach(b=>b.onclick=()=>{document.getElementById("regDays").value=b.dataset.rd;if(b.dataset.rd===""){document.getElementById("rgFrom").value="";document.getElementById("rgTo").value="";}renderLeads();});}
   function renderLeads(){
     ensureLeadBar();
+    const obBtn=document.getElementById("outreachBtn");if(obBtn)obBtn.style.display=canAddNotes()?"":"none";
     const q=$("#searchInput").value.trim().toLowerCase();
     const sf=$("#statusFilter").value, of=$("#ownerFilter").value, srcf=$("#sourceFilter").value, qf=$("#qualityFilter").value, bf=$("#budgetFilter")?.value||"";
     const cf=(document.getElementById("campFilter")||{}).value||"",rd=parseInt((document.getElementById("regDays")||{}).value,10)||0,sortK=(document.getElementById("sortSel")||{}).value||"updated";
@@ -2483,7 +2493,7 @@
       // hide terminal (cancelled/lost) unless specifically filtered
       if(hideTerminal&&!sf&&!drill&&bf!=="budget_reason"&&TERMINAL.includes(l.status)&&l.status!=="won")return false;
       // lookalike pool
-      if(lookalike&&!(LOOKALIKE_POOL.includes(normStatus(l.status))||qPositive(l)))return false;
+      if(lookalike&&(l.status==="dead_pool"||!(LOOKALIKE_POOL.includes(normStatus(l.status))||qPositive(l))))return false;
       if(sf&&l.status!==sf)return false; if(of&&l.owner!==of)return false; if(srcf&&l.source!==srcf)return false;
       if(qf&&!qHas(l,qf))return false;
       if(cf==="__none__"){if(l.campaignId)return false;}else if(cf&&l.campaignId!==cf)return false;
@@ -2686,7 +2696,7 @@
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center">
         ${di?`<span class="due-flag ${di.cls}">${t("nextFollowup")} ${di.txt}</span>`:`<span class="muted" style="font-size:13px">${t("noFollowup")}</span>`}
         ${l.driveLink?`<a href="${esc(l.driveLink)}" target="_blank" class="btn btn-ghost btn-sm">🔗 ملفات Drive</a>`:""}
-        ${canWrite()&&isActive(l)?`<button class="btn btn-ghost btn-sm" onclick="obReply('${l.id}')">↩ ${isEn()?"Log client reply":"سجّل رد العميل"}</button>`:""}
+        ${canAddNotes()&&isActive(l)?`<button class="btn btn-ghost btn-sm" onclick="obReply('${l.id}')">↩ ${isEn()?"Log client reply":"سجّل رد العميل"}</button>`:""}
       </div>
       ${l.status==="cancelled"&&l.cancelReason?`<div class="info-box" style="margin-bottom:10px;border-color:var(--rose)"><div class="ib-l" style="color:var(--rose)">${t("cancelReasons")}</div><div class="ib-v">${esc(cancelReasonDisplay(l.cancelReason))}</div></div>`:""}
       ${l.status==="lost"&&l.lostReason?`<div class="info-box" style="margin-bottom:10px;border-color:var(--rose)"><div class="ib-l" style="color:var(--rose)">${t("lostReasons")}</div><div class="ib-v">${esc(lostReasonDisplay(l.lostReason))}</div></div>`:""}
@@ -3243,14 +3253,20 @@
     dz.ondragover=e=>{e.preventDefault();dz.style.borderColor="var(--clay)";};dz.ondragleave=()=>dz.style.borderColor="";
     dz.ondrop=e=>{e.preventDefault();dz.style.borderColor="";if(e.dataTransfer.files[0])readFile(e.dataTransfer.files[0]);};
     fi.onchange=e=>{if(e.target.files[0])readFile(e.target.files[0]);};}
+  function loadXlsxFallback(){return new Promise(res=>{if(typeof XLSX!=="undefined")return res(true);const sc=document.createElement("script");sc.src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";sc.onload=()=>res(true);sc.onerror=()=>res(false);document.head.appendChild(sc);});}
   async function readFile(file){
-    if(typeof XLSX==="undefined"){toast("مكتبة الإكسيل لم تُحمّل — تأكد من الاتصال");return;}
-    try{const buf=await file.arrayBuffer();const wb=XLSX.read(buf,{cellDates:true});const ws=wb.Sheets[wb.SheetNames[0]];
-      const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:""}).filter(r=>r.some(c=>String(c).trim()!==""));
+    if(typeof XLSX==="undefined"){toast("بنحمّل مكتبة الإكسيل…");await loadXlsxFallback();}
+    if(typeof XLSX==="undefined"){toast("مكتبة الإكسيل لم تُحمّل — تأكد من الاتصال أو أطفئ مانع الإعلانات");return;}
+    try{
+      const isCsv=/\.(csv|txt)$/i.test(file.name);
+      // CSV نقراه كنص خالص عشان الـ IDs الطويلة (16-18 رقم) متتقطعش
+      const wb=isCsv?XLSX.read(await file.text(),{type:"string",raw:true,cellDates:true}):XLSX.read(await file.arrayBuffer(),{cellDates:true});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:"",raw:true}).filter(r=>r.some(c=>String(c).trim()!==""));
       if(rows.length<2){toast("الملف فاضي أو بدون بيانات");return;}
       importHeaders=rows[0].map(h=>String(h).trim());importRows=rows.slice(1);
       showMapping();
-    }catch(e){toast("تعذّر قراءة الملف");}
+    }catch(e){toast("تعذّر قراءة الملف — تأكد إنه Excel أو CSV سليم");}
   }
   function pad2(x){return String(x).padStart(2,"0");}
   function parseDateCell(v){
@@ -3297,42 +3313,106 @@
     if(/b2b/.test(v))return"b2b";if(/resid|سكني|فيلا|شقة|شقه|تاون|villa|apartment|town|twin|duplex|roof|penthouse|chalet|شاليه/.test(v))return"residential";return"";}
   function matchServices(v){const parts=String(v).split(/[,،|/]+/).map(x=>x.trim()).filter(Boolean);const out=[];
     parts.forEach(p=>{const m=SERVICES.find(s=>s.k.toLowerCase().includes(p.toLowerCase())||p.toLowerCase().includes(s.k.toLowerCase()));if(m&&!out.includes(m.k))out.push(m.k);});return out;}
+  // رسائل أخطاء Firebase بلغة البرنامج
+  function errAr(e){
+    const c=(e&&e.code)||"",en=isEn();
+    const M={"permission-denied":["مفيش صلاحية للكتابة على السحابة — راجع قواعد Firestore أو سجّل دخول من جديد","No permission to write to the cloud — check Firestore rules or sign in again"],
+      "unauthenticated":["الجلسة انتهت — سجّل دخول من جديد","Session expired — sign in again"],
+      "unavailable":["الاتصال بالسحابة ضعيف أو واقع — حاول تاني","Cloud connection is weak or down — try again"],
+      "deadline-exceeded":["الطلب أخد وقت طويل — جرّب ملف أصغر","Request timed out — try a smaller file"],
+      "invalid-argument":["فيه بيانات في الملف مش مقبولة (مثلاً رقم كامبين غلط) — راجع الأعمدة","Some data in the file is not accepted (e.g. a bad campaign id) — check the columns"],
+      "resource-exhausted":["الحد اليومي لاستخدام Firebase خلص","Firebase daily quota exhausted"],
+      "aborted":["العملية اتلغت — حاول تاني","Operation aborted — try again"],
+      "failed-precondition":["العملية مش مسموحة في الحالة الحالية","Operation not allowed in the current state"],
+      "not-found":["المستند مش موجود","Document not found"]};
+    const m=M[c];return m?(en?m[1]:m[0]):(en?"Unexpected error":"حصل خطأ غير متوقع");}
+  const importGet=(row,map,fk)=>map[fk]>=0?String(row[map[fk]]==null?"":row[map[fk]]).trim():"";
+  function importBuildLead(row,map){
+    const get=(r,fk)=>importGet(r,map,fk);
+    const extId=get(row,"extId");
+    const srcRaw=get(row,"source"),campRaw=get(row,"campaignId");
+    const plat=get(row,"platform").toLowerCase().includes("fb")||get(row,"platform").toLowerCase().includes("face")?"FB":(get(row,"platform")?"IG":"IG");
+    const rawDate=map.receivedDate>=0?row[map.receivedDate]:"";
+    const _pd=parseDateCell(rawDate);
+    const rDate=_pd.date, rTime=_pd.time||get(row,"receivedTime")||null;
+    const subVal=get(row,"projectSubtype");
+    const lead={id:uid(),createdAt:Date.now(),updatedAt:Date.now(),notes:[],extId:extId||null,
+      name:get(row,"name"),phone:get(row,"phone"),phoneVerified:/^(1|true|yes|نعم|verified|متأكد|مؤكد|✓)/i.test(get(row,"verified")),
+      email:get(row,"email"),receivedDate:rDate||null,receivedTime:rTime||null,
+      source:srcRaw?matchSource(srcRaw):(campRaw?"campaign":"company_call"),
+      campaignId:campRaw||null,platform:plat,adName:get(row,"adName"),adsetName:get(row,"adsetName"),
+      services:matchServices(get(row,"services")),
+      projectCategory:matchCat(get(row,"projectCategory")||subVal),projectSubtype:matchSubtype(subVal)||cleanText(subVal),
+      area:cleanText(get(row,"area")).replace(/sqm|m2|م2/gi,"").trim(),location:cleanText(get(row,"location"))==="others"?"":cleanText(get(row,"location")),
+      district:cleanText(get(row,"district")),compound:cleanText(get(row,"compound")),
+      value:String(get(row,"value")).replace(/[^\d.]/g,""),currency:(get(row,"currency").toUpperCase().match(/EGP|SAR|USD/)||["EGP"])[0],
+      owner:get(row,"owner"),status:matchStatus(get(row,"status")),driveLink:get(row,"driveLink"),
+      painPoints:get(row,"painPoints"),ourPlus:get(row,"ourPlus"),nextFollowUp:get(row,"nextFollowUp")||null};
+    const note=get(row,"note");if(note)lead.notes.push({id:uid(),ts:Date.now(),kind:"note",text:note});
+    return{lead,campName:get(row,"campaignName"),plat};}
+  let importPlan=null;
+  const impPhone=p=>String(p||"").replace(/\D/g,"").slice(-10);
+  // مرحلة 1: تحليل الملف وعرض النتيجة قبل الرفع (بدون ما نتخطى حاجة في صمت)
   async function doImport(){
-    const map={};$$("#importBody select[data-fld]").forEach(s=>map[s.dataset.fld]=parseInt(s.value));
-    const get=(row,fk)=>map[fk]>=0?String(row[map[fk]]==null?"":row[map[fk]]).trim():"";
-    const existingExt=new Set(leads.map(l=>l.extId).filter(Boolean));
-    let n=0,skipped=0,batch=db.batch(),newCamps=[],seenExt=new Set();
-    importRows.forEach(row=>{const name=get(row,"name");if(!name)return;
-      const extId=get(row,"extId");
-      if(extId&&(existingExt.has(extId)||seenExt.has(extId))){skipped++;return;} // dedupe
-      if(extId)seenExt.add(extId);
-      const srcRaw=get(row,"source"),campRaw=get(row,"campaignId");
-      const plat=get(row,"platform").toLowerCase().includes("fb")||get(row,"platform").toLowerCase().includes("face")?"FB":(get(row,"platform")?"IG":"IG");
-      // received date: parse raw cell (handles Excel serial number, JS Date, or ISO string)
-      const rawDate=map.receivedDate>=0?row[map.receivedDate]:"";
-      const _pd=parseDateCell(rawDate);
-      let rDate=_pd.date, rTime=_pd.time||get(row,"receivedTime")||null;
-      const subVal=get(row,"projectSubtype");
-      const lead={id:uid(),createdAt:Date.now(),updatedAt:Date.now(),notes:[],extId:extId||null,
-        name,phone:get(row,"phone"),phoneVerified:/^(1|true|yes|نعم|verified|متأكد|مؤكد|✓)/i.test(get(row,"verified")),
-        email:get(row,"email"),receivedDate:rDate||null,receivedTime:rTime||null,
-        source:srcRaw?matchSource(srcRaw):(campRaw?"campaign":"company_call"),
-        campaignId:campRaw||null,platform:plat,adName:get(row,"adName"),adsetName:get(row,"adsetName"),
-        services:matchServices(get(row,"services")),
-        projectCategory:matchCat(get(row,"projectCategory")||subVal),projectSubtype:matchSubtype(subVal)||cleanText(subVal),
-        area:cleanText(get(row,"area")).replace(/sqm|m2|م2/gi,"").trim(),location:cleanText(get(row,"location"))==="others"?"":cleanText(get(row,"location")),
-        district:cleanText(get(row,"district")),compound:cleanText(get(row,"compound")),
-        value:String(get(row,"value")).replace(/[^\d.]/g,""),currency:(get(row,"currency").toUpperCase().match(/EGP|SAR|USD/)||["EGP"])[0],
-        owner:get(row,"owner"),status:matchStatus(get(row,"status")),driveLink:get(row,"driveLink"),
-        painPoints:get(row,"painPoints"),ourPlus:get(row,"ourPlus"),nextFollowUp:get(row,"nextFollowUp")||null};
-      const campName=get(row,"campaignName");
-      if(lead.campaignId&&!campaigns.find(c=>c.id===lead.campaignId)&&!newCamps.find(c=>c.id===lead.campaignId)){newCamps.push({id:lead.campaignId,platform:plat,name:cleanText(campName)});}
-      const note=get(row,"note");if(note)lead.notes.push({id:uid(),ts:Date.now(),kind:"note",text:note});
-      batch.set(db.collection("leads").doc(lead.id),JSON.parse(JSON.stringify(lead)));n++;
-      if(n%450===0){batch.commit();batch=db.batch();}});
-    newCamps.forEach(c=>batch.set(db.collection("campaigns").doc(String(c.id)),c));
-    try{await batch.commit();$("#importOverlay").classList.remove("show");toast("تم استيراد "+n+" عميل"+(skipped?" · تجاهلنا "+skipped+" مكرر":""));}
-    catch(e){toast("تعذّر الاستيراد على السحابة");}
+    try{
+      const map={};$$("#importBody select[data-fld]").forEach(s=>map[s.dataset.fld]=parseInt(s.value));
+      const extMap=new Map(leads.filter(l=>l.extId).map(l=>[String(l.extId),l]));
+      const phMap=new Map();leads.forEach(l=>{const k=impPhone(l.phone);if(k.length>=9&&!phMap.has(k))phMap.set(k,l);});
+      const seenExt=new Set(),plan={map,news:[],dupId:[],noName:[],phoneDup:0};
+      importRows.forEach((row,i)=>{
+        const name=importGet(row,map,"name");
+        if(!name){plan.noName.push({i,row,why:"بدون اسم"});return;}
+        const ext=importGet(row,map,"extId");
+        if(ext){
+          if(extMap.has(ext)){plan.dupId.push({i,row,name,why:"ID موجود قبل كده عند: "+(extMap.get(ext).name||"—")});return;}
+          if(seenExt.has(ext)){plan.dupId.push({i,row,name,why:"ID مكرر جوه الملف نفسه"});return;}
+          seenExt.add(ext);}
+        const pk=impPhone(importGet(row,map,"phone")),pd=pk.length>=9&&phMap.has(pk);
+        if(pd)plan.phoneDup++;
+        plan.news.push({i,row,name,pd,pdName:pd?phMap.get(pk).name:""});});
+      const ids=importRows.map(r=>importGet(r,map,"extId")).filter(x=>/^\d{15,}$/.test(x));
+      plan.precision=ids.length>=10&&ids.filter(x=>x.endsWith("0")).length/ids.length>0.4;
+      importPlan=plan;
+      const li=(arr,n)=>arr.slice(0,n).map(x=>`<div class="muted" style="font-size:12px;padding:2px 0">• ${esc(x.name||"(بدون اسم)")} — ${esc(x.why)} <span class="num">(صف ${x.i+2})</span></div>`).join("")+(arr.length>n?`<div class="muted" style="font-size:12px">… و ${arr.length-n} كمان (نزّل الملف تحت)</div>`:"");
+      $("#importBody").innerHTML=`
+        <div class="info-box" style="margin-bottom:10px"><div class="ib-l">نتيجة الفحص (لسه ما اترفعش حاجة)</div>
+          <div style="font-size:14px;line-height:1.9">✅ جداد هيترفعوا: <b class="num">${plan.news.length}</b><br>♻ مكرر بالـ ID: <b class="num">${plan.dupId.length}</b><br>⚠ بدون اسم: <b class="num">${plan.noName.length}</b><br>📞 من الجداد رقمهم موجود عندنا بالفعل: <b class="num">${plan.phoneDup}</b></div></div>
+        ${plan.precision?`<div class="info-box gold-box" style="border-color:var(--gold);margin-bottom:10px"><div class="ib-l" style="color:#8A6D3B">⚠ الـ IDs شكلها اتقصّت</div><div style="font-size:12.5px">أغلب الـ IDs بتنتهي بصفر — ده بيحصل لما الملف يتفتح ويتحفظ من Excel (بيقصّ الأرقام الطويلة). ده بيخلي التكرار يتحدد غلط. الأفضل ترفع الـ CSV الأصلي من فيسبوك زي ما نزل من غير ما تفتحه في Excel.</div></div>`:""}
+        ${plan.dupId.length?`<div style="margin-bottom:10px"><div style="font-weight:600;font-size:13px">المكرر بالـ ID (هيتخطى):</div>${li(plan.dupId,12)}
+          <label style="display:flex;gap:6px;align-items:center;font-size:12.5px;margin-top:6px;cursor:pointer"><input type="checkbox" id="impForce" style="width:auto;margin:0">استورد المكرر برضه (لو متأكد إنهم جداد)</label></div>`:""}
+        ${plan.phoneDup?`<label style="display:flex;gap:6px;align-items:center;font-size:12.5px;margin-bottom:10px;cursor:pointer"><input type="checkbox" id="impSkipPh" style="width:auto;margin:0">تخطّى الجداد اللي رقمهم موجود بالفعل (${plan.phoneDup})</label>`:""}
+        ${plan.noName.length?`<div style="margin-bottom:10px"><div style="font-weight:600;font-size:13px">صفوف بدون اسم (هتتخطى):</div>${li(plan.noName,5)}</div>`:""}
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-primary" id="impGo" style="flex:1">رفع الجداد</button>
+          ${(plan.dupId.length||plan.noName.length)?`<button class="btn btn-ghost" id="impDl">⬇ ملف المتخطّي</button>`:""}
+          <button class="btn btn-ghost" id="impBack">رجوع</button></div>
+        <div id="impMsg" style="margin-top:10px;font-size:13px"></div>`;
+      $("#impGo").onclick=importCommit;$("#impBack").onclick=showMapping;
+      const dl=$("#impDl");if(dl)dl.onclick=()=>{const rows=[...plan.dupId,...plan.noName].map(x=>{const o={"السبب":x.why,"صف":x.i+2};importHeaders.forEach((h,k)=>o[h||("col"+k)]=x.row[k]);return o;});const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),"skipped");XLSX.writeFile(wb,"import-skipped.xlsx");};
+    }catch(e){$("#importBody").insertAdjacentHTML("beforeend",`<div class="info-box" style="border-color:var(--rose);margin-top:10px">⚠ ${esc(isEn()?"Could not check the file":"تعذّر فحص الملف")} — ${esc(errAr(e))}</div>`);}
+  }
+  // مرحلة 2: الرفع الفعلي — بدفعات، وبنقول بالظبط إيه اللي حصل
+  async function importCommit(){
+    const plan=importPlan;if(!plan)return;
+    const force=!!($("#impForce")&&$("#impForce").checked),skipPh=!!($("#impSkipPh")&&$("#impSkipPh").checked);
+    const todo=plan.news.concat(force?plan.dupId:[]).filter(x=>!(skipPh&&x.pd));
+    if(!todo.length){$("#impMsg").textContent="مفيش حاجة تترفع.";return;}
+    const btn=$("#impGo");btn.disabled=true;
+    const msg=$("#impMsg");let ok=0,failed=0,errTxt="",bad=0;
+    const newCamps=[];const built=[];
+    for(const x of todo){try{const r=importBuildLead(x.row,plan.map);built.push(r.lead);
+        const cid=r.lead.campaignId;if(cid&&!campaigns.find(c=>String(c.id)===String(cid))&&!newCamps.find(c=>c.id===cid))newCamps.push({id:cid,platform:r.plat,name:cleanText(r.campName)});}
+      catch(e){bad++;errTxt=errTxt||errAr(e);}}
+    for(let i=0;i<built.length;i+=400){
+      const chunk=built.slice(i,i+400);msg.textContent="جاري الرفع… "+Math.min(i+400,built.length)+" / "+built.length;
+      try{const b=db.batch();chunk.forEach(l=>b.set(db.collection("leads").doc(l.id),JSON.parse(JSON.stringify(l))));await b.commit();ok+=chunk.length;}
+      catch(e){failed+=chunk.length;errTxt=errTxt||errAr(e)+(e.code?" ["+e.code+"]":"");}}
+    let campErr=0;
+    for(const c of newCamps){try{await db.collection("campaigns").doc(String(c.id).replace(/\//g,"_")).set(c);}catch(e){campErr++;}}
+    const done=X("تم رفع ","Uploaded ")+ok+X(" عميل"," clients")+(failed?X(" · فشل "," · failed ")+failed:"")+(bad?X(" · تعذّر تجهيز "," · could not prepare ")+bad:"")+(campErr?X(" · كامبينات فشلت "," · campaigns failed ")+campErr:"");
+    msg.innerHTML=`<b style="color:${failed||bad?"var(--rose)":"var(--sage)"}">${esc(done)}</b>${errTxt?`<div class="muted" style="margin-top:4px">${esc(errTxt)}</div>`:""}`;
+    toast(done);
+    if(!failed&&!bad){setTimeout(()=>$("#importOverlay").classList.remove("show"),1200);}else btn.disabled=false;
   }
 
   // ---- export ----
@@ -3364,20 +3444,22 @@
       "منطقة سكن العميل":l.residence||"",
       "الخدمات":(l.services||[]).join("، "),
       "تاريخ التسجيل":l.receivedDate||(l.createdAt?new Date(l.createdAt).toISOString().slice(0,10):""),
-      "Look-alike":(["interested","site_visit","won"].includes(normStatus(l.status))||qPositive(l))?"نعم":"لا"
+      "Look-alike":(l.status!=="dead_pool"&&(["interested","site_visit","won"].includes(normStatus(l.status))||qPositive(l)))?"نعم":"لا"
     }));
     const ws=XLSX.utils.json_to_sheet(rows);
     ws["!cols"]=Object.keys(rows[0]).map(k=>({wch:Math.max(12,Math.min(28,k.length+8))}));
     const wb=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb,ws,"تقرير التسويق");
     // شيت تاني: Look-alike pool بس (اسم + تليفون للرفع على Meta)
-    const pool=scopeAll.filter(l=>["interested","site_visit","won"].includes(normStatus(l.status))||qPositive(l))
+    const pool=scopeAll.filter(l=>l.status!=="dead_pool"&&(["interested","site_visit","won"].includes(normStatus(l.status))||qPositive(l)))
       .map(l=>({"الاسم":l.name||"","التليفون":l.phone||"","المدينة":l.location||"","المصدر":srcById(l.source)?L(srcById(l.source)):""}));
     if(pool.length){
       const ws2=XLSX.utils.json_to_sheet(pool);
       ws2["!cols"]=[{wch:24},{wch:16},{wch:16},{wch:18}];
       XLSX.utils.book_append_sheet(wb,ws2,"Look-alike Pool");
     }
+    const dead=visible.filter(l=>l.status==="dead_pool").map(l=>({"الاسم":l.name||"","التليفون":l.phone||"","المصدر":srcById(l.source)?L(srcById(l.source)):""}));
+    if(dead.length){const ws3=XLSX.utils.json_to_sheet(dead);ws3["!cols"]=[{wch:24},{wch:16},{wch:18}];XLSX.utils.book_append_sheet(wb,ws3,"Exclusion - Dead Pool");}
     const stamp=new Date().toISOString().slice(0,10);
     XLSX.writeFile(wb,`تقرير-التسويق-${stamp}.xlsx`);
     toast("تم تنزيل تقرير التسويق ✓");
@@ -3816,6 +3898,7 @@
       if(document.getElementById("rptWidgetPicker")&&document.getElementById("rptWidgetPicker").innerHTML)renderWidgetPicker();
       set('#hideTerminalLbl',t("hideTerminal"));
       set('#lookalikeLbl',t("lookalike"));
+      set('#outreachBtnLbl',isEn()?"Follow-up / intro messages":"رسائل متابعة / تعريف");
       set('#usersMgmtTitle',t("users").replace(/^👤\s*/,""));
       set('#newUserBtn',"＋ "+t("newUser"));
       set('#addUserModalTitle',t("newUser"));
