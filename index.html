@@ -495,6 +495,7 @@
       <select class="filter" id="ownerFilter"></select>
       <select class="filter" id="sourceFilter"></select>
     </div>
+    <div id="leadExtraBar" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px"></div>
     <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;align-items:center">
       <button class="btn btn-ghost btn-sm" id="outreachBtn" onclick="openOutreach()" style="color:var(--sage);border-color:#B8D9B8">📣 <span id="outreachBtnLbl">رسائل متابعة / تعريف</span></button>
       <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;color:var(--ink-soft)">
@@ -1881,7 +1882,7 @@
     const shown=kind==="tier"?(()=>{const z=TIERS.find(q=>q.k===val);return z?(isEn()?z.e:z.t):val;})():kind==="quality"?(qById(val)?L(qById(val)):val):kind==="camp"?campLabel(val):kind==="owner"?ownerLabel(val):val;
     drill={kind,val,label:String(kind==="tier"?(isEn()?"Re-engagement":"إعادة التواصل"):(t(DRILL_TITLE[kind])||"")).replace(/\s*\(.*\)$/,"")+": "+shown};
     quickFilter=null;
-    ["searchInput","statusFilter","ownerFilter","sourceFilter","qualityFilter","budgetFilter"].forEach(id=>{const e=document.getElementById(id);if(e)e.value="";});
+    ["searchInput","statusFilter","ownerFilter","sourceFilter","qualityFilter","budgetFilter","campFilter","regDays","rgFrom","rgTo"].forEach(id=>{const e=document.getElementById(id);if(e)e.value="";});
     const htc=document.getElementById("hideTerminalCheck");if(htc)htc.checked=false;
     const lac=document.getElementById("lookalikeCheck");if(lac)lac.checked=false;
     $$('nav.tabs button').forEach(x=>x.classList.remove("active"));document.querySelector('nav.tabs button[data-tab="leads"]')?.classList.add("active");
@@ -2431,9 +2432,41 @@
     MATS.items=MATS.items.filter(m=>m.id!==id);ob.mats.delete(id);await saveMats();obRefresh();};
   window.ob=ob;
 
+  // ── فلتر الكامبين / آخر N يوم + ترتيب القائمة ──
+  const recvTs=l=>{if(l.receivedDate){const tm=/^\d{1,2}:\d{2}/.test(l.receivedTime||"")?String(l.receivedTime).slice(0,5).padStart(5,"0"):"00:00";const v=Date.parse(l.receivedDate+"T"+tm);if(!isNaN(v))return v;}return l.createdAt||0;};
+  function leadSorter(k){
+    const key={updated:l=>l.updatedAt||0,recv_desc:recvTs,recv_asc:recvTs,created:l=>l.createdAt||0,outreach:l=>l.lastOutreachAt||0,touch_old:l=>lastTouch(l)||l.createdAt||0,
+      followup:l=>l.nextFollowUp?new Date(l.nextFollowUp+"T00:00:00").getTime():9e15}[k]||(l=>l.updatedAt||0);
+    if(k==="name")return(a,b)=>(a.name||"").localeCompare(b.name||"");
+    const asc=["recv_asc","touch_old","followup"].includes(k);
+    return(a,b)=>asc?key(a)-key(b):key(b)-key(a);}
+  let leadBarLang=null;
+  function ensureLeadBar(){
+    const en=isEn(),bar=document.getElementById("leadExtraBar");if(!bar)return;
+    const sig=en+"|"+campaigns.length+"|"+leads.length;
+    if(leadBarLang===sig)return;
+    const keep={f:(document.getElementById("rgFrom")||{}).value||"",t:(document.getElementById("rgTo")||{}).value||"",c:(document.getElementById("campFilter")||{}).value||"",d:(document.getElementById("regDays")||{}).value||"",s:(document.getElementById("sortSel")||{}).value||"updated"};
+    leadBarLang=sig;
+    const ids=[...new Set(leads.map(l=>l.campaignId).filter(Boolean))];
+    const sortOpts=[["updated","آخر تحديث","Last updated"],["recv_desc","تاريخ الإرسال: الأحدث ← الأقدم","Sent date: newest → oldest"],["recv_asc","تاريخ الإرسال: الأقدم ← الأحدث","Sent date: oldest → newest"],["created","تاريخ التسجيل في السيستم","Date added to CRM"],["outreach","آخر رسالة مبعوتة","Last message sent"],["touch_old","الأقدم تواصلاً","Longest without contact"],["followup","أقرب موعد متابعة","Nearest follow-up"],["name","الاسم (أ ← ي)","Name (A → Z)"]];
+    bar.innerHTML=`<select class="filter" id="campFilter"><option value="">${en?"All campaigns":"كل الكامبينات"}</option><option value="__none__">${en?"No campaign":"بدون كامبين"}</option>${ids.map(i=>`<option value="${esc(i)}">${esc(campLabel(i))}</option>`).join("")}</select>
+      <span style="display:inline-flex;align-items:center;gap:5px;font-size:12.5px;color:var(--ink-soft)">${en?"Registered in last":"سجّلوا في آخر"}<input type="number" id="regDays" min="1" placeholder="—" style="width:64px;padding:7px 8px">${en?"days":"يوم"}</span>
+      <span style="display:inline-flex;align-items:center;gap:5px;font-size:12.5px;color:var(--ink-soft)">${en?"or from":"أو من"}<input type="date" id="rgFrom" style="width:auto;padding:6px 8px">${en?"to":"إلى"}<input type="date" id="rgTo" style="width:auto;padding:6px 8px"></span>
+      <button class="icon-btn" data-rd="1">${en?"Today":"النهارده"}</button><button class="icon-btn" data-rd="7">7</button><button class="icon-btn" data-rd="14">14</button><button class="icon-btn" data-rd="30">30</button><button class="icon-btn" data-rd="">✕</button>
+      <select class="filter" id="sortSel" title="${en?"Sort":"ترتيب"}">${sortOpts.map(o=>`<option value="${o[0]}">↕ ${en?o[2]:o[1]}</option>`).join("")}</select>
+      <span id="leadsInfo" class="muted num" style="font-size:12.5px"></span>`;
+    document.getElementById("campFilter").value=keep.c;document.getElementById("regDays").value=keep.d;document.getElementById("rgFrom").value=keep.f;document.getElementById("rgTo").value=keep.t;
+    document.getElementById("rgFrom").onchange=renderLeads;document.getElementById("rgTo").onchange=renderLeads;document.getElementById("sortSel").value=keep.s;
+    document.getElementById("campFilter").onchange=renderLeads;document.getElementById("sortSel").onchange=renderLeads;document.getElementById("regDays").oninput=renderLeads;
+    bar.querySelectorAll("[data-rd]").forEach(b=>b.onclick=()=>{document.getElementById("regDays").value=b.dataset.rd;if(b.dataset.rd===""){document.getElementById("rgFrom").value="";document.getElementById("rgTo").value="";}renderLeads();});}
   function renderLeads(){
+    ensureLeadBar();
     const q=$("#searchInput").value.trim().toLowerCase();
     const sf=$("#statusFilter").value, of=$("#ownerFilter").value, srcf=$("#sourceFilter").value, qf=$("#qualityFilter").value, bf=$("#budgetFilter")?.value||"";
+    const cf=(document.getElementById("campFilter")||{}).value||"",rd=parseInt((document.getElementById("regDays")||{}).value,10)||0,sortK=(document.getElementById("sortSel")||{}).value||"updated";
+    let rdFrom=rd>0?ymdLocal(Date.now()-(rd-1)*864e5):"";
+    const gF=(document.getElementById("rgFrom")||{}).value||"",gT=(document.getElementById("rgTo")||{}).value||"";
+    if(gF&&gF>rdFrom)rdFrom=gF;
     const hideTerminal=document.getElementById("hideTerminalCheck")?.checked;
     const lookalike=document.getElementById("lookalikeCheck")?.checked;
     const LOOKALIKE_POOL=["contacted","qualified","site_visit","pricing","quoted","negotiation","won"]; // مراحل تدل على اهتمام حقيقي
@@ -2453,9 +2486,12 @@
       if(lookalike&&!(LOOKALIKE_POOL.includes(normStatus(l.status))||qPositive(l)))return false;
       if(sf&&l.status!==sf)return false; if(of&&l.owner!==of)return false; if(srcf&&l.source!==srcf)return false;
       if(qf&&!qHas(l,qf))return false;
+      if(cf==="__none__"){if(l.campaignId)return false;}else if(cf&&l.campaignId!==cf)return false;
+      if(rdFrom||gT){const dd=l.receivedDate||ymdLocal(l.createdAt);if(rdFrom&&dd<rdFrom)return false;if(gT&&dd>gT)return false;}
       if(q&&!((l.name||"").toLowerCase().includes(q)||(l.phone||"").includes(q)||(l.compound||"").toLowerCase().includes(q)))return false;
       return true;
-    }).sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+    }).sort(leadSorter(sortK));
+    const li=document.getElementById("leadsInfo");if(li)li.textContent=list.length+(isEn()?" clients":" عميل")+((rdFrom||gT)?(isEn()?" · from ":" · من ")+(rdFrom||"…")+(isEn()?" to ":" إلى ")+(gT||(isEn()?"today":"النهارده")):"");
     const el=$("#leadList");
     if(!leads.length){el.innerHTML=`<div class="empty"><div class="big">📋</div><p>ابدأ بتسجيل أول عميل، أو ارفع شيت إكسيل.</p><button class="btn btn-primary" style="margin-top:16px" onclick="openForm()">＋ عميل جديد</button></div>`;return;}
     if(!list.length){el.innerHTML='<div class="empty"><div class="big">🔍</div><p>مفيش نتائج.</p></div>';return;}
@@ -3535,7 +3571,7 @@
     if(b.dataset.tab==="leads"){
       // تصفير الفلاتر عند الدخول المباشر لتبويب العملاء (مش عبر KPI/quick filter)
       quickFilter=null;
-      $("#searchInput").value="";$("#statusFilter").value="";$("#ownerFilter").value="";$("#sourceFilter").value="";$("#qualityFilter").value="";const bfe=document.getElementById("budgetFilter");if(bfe)bfe.value="";drill=null;
+      $("#searchInput").value="";$("#statusFilter").value="";$("#ownerFilter").value="";$("#sourceFilter").value="";$("#qualityFilter").value="";const bfe=document.getElementById("budgetFilter");if(bfe)bfe.value="";["campFilter","regDays","rgFrom","rgTo"].forEach(i=>{const e=document.getElementById(i);if(e)e.value="";});drill=null;
       const htc=document.getElementById("hideTerminalCheck");if(htc)htc.checked=true;
       const lac=document.getElementById("lookalikeCheck");if(lac)lac.checked=false;
       renderLeads();
