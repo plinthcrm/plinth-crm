@@ -726,6 +726,13 @@
   </div>
 </div>
 
+<div class="overlay" id="waOverlay">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-h"><h2 id="waTitle">💬 واتساب</h2><button class="x-btn" onclick="document.getElementById('waOverlay').classList.remove('show')">×</button></div>
+    <div class="modal-b" id="waBody"></div>
+  </div>
+</div>
+
 <!-- ADD USER MODAL -->
 <div class="overlay" id="addUserOverlay">
   <div class="modal">
@@ -2391,6 +2398,118 @@
     if(document.getElementById("obList"))obRefresh();
     renderLeadsAndDash();if($("#detailOverlay").classList.contains("show")&&currentDetailId===l.id)renderDetail();
     toast(X("تم الحفظ","Saved"));};
+
+  // ══════════ واتساب الذكي: نوع الرسالة حسب آخر لوج + اختيار لينكات ══════════
+  const WA_KINDS={
+    reply:["ردّ العميل — تأكيد وخطوة تالية","Client replied — next step"],
+    missed:["مكالمة ما اتردّتش — ابعتلي وقت مناسب","Missed call — suggest a time"],
+    nudge:["تذكير لطيف بعد رسالة سابقة","Gentle nudge after earlier message"],
+    afterVisit:["بعد المعاينة / الاجتماع","After site visit / meeting"],
+    quote:["متابعة عرض السعر","Proposal follow-up"],
+    pricing:["جاري تجهيز العرض — استكمال بيانات","Quote in progress — missing info"],
+    afterCall:["بعد مكالمة اتردّت","After an answered call"],
+    new:["تعريف + ترتيب مكالمة (عميل جديد)","Intro + arrange a call (new lead)"],
+    reengage:["إعادة تواصل لعميل قديم","Re-engage an old lead"],
+    followup:["متابعة عامة","General follow-up"],
+    won:["شكر + طلب ترشيح (عميل مُغلق ناجح)","Thanks + ask for referral (won)"]};
+  const wa={id:null,kind:"",auto:"",lang:"auto",name:"",mats:new Set(),days:5,log:true,txt:"",edited:false};
+  function waDetect(l){
+    const st=normStatus(l.status),notes=(l.notes||[]).slice().sort((a,b)=>b.ts-a.ts);
+    const last=notes.find(n=>!/^\[/.test(String(n.text||"")))||notes[0],tx=last?String(last.text||""):"";
+    const idle=daysSince(l);
+    if(st==="won")return"won";
+    if(["lost","cancelled","on_hold"].includes(st)&&idle>30)return"reengage";
+    if(!last)return"new";
+    if(tx.indexOf("↩")===0)return"reply";
+    if(last.kind==="call"&&last.outcome&&last.outcome!=="answered")return"missed";
+    if(tx.indexOf("📣")===0)return"nudge";
+    if(last.kind==="meeting"||st==="site_visit")return"afterVisit";
+    if(["quoted","negotiation"].includes(st))return"quote";
+    if(st==="pricing")return"pricing";
+    if(last.kind==="call"&&last.outcome==="answered")return"afterCall";
+    if(st==="new"||st==="no_answer")return"new";
+    if(idle>60)return"reengage";
+    return"followup";}
+  function waBody(kind,nm,pr,en,l){
+    const co="Plinth & Partners";
+    const M={
+      reply:[`أهلاً ${nm}، شكراً على ردك. معاك فريق ${co}. عشان نكمّل${pr} — إمتى يناسبك نحدد الخطوة الجاية (مكالمة / معاينة / عرض سعر)؟`,
+             `Hello ${nm}, thank you for your reply — ${co}. To move forward${pr}, when would suit you for the next step (call / site visit / proposal)?`],
+      missed:[`أهلاً ${nm}، معاك فريق ${co}. حاولت أكلمك بخصوص طلبك${pr} ومقدرتش أوصلك. إمتى يناسبك أكلمك؟ أو ابعتلي هنا وقت مناسب.`,
+              `Hello ${nm}, this is ${co}. I tried to call you about your inquiry${pr} but couldn't reach you. When is a good time to call? Or just reply here with a time.`],
+      nudge:[`أهلاً ${nm}، معاك فريق ${co}. بعتلك رسالة قبل كده${pr} وحبيت أتأكد إنها وصلتك. لو لسه مهتم يسعدنا نرتّب مكالمة ٥ دقايق.`,
+             `Hello ${nm}, ${co} here. I sent you a message earlier${pr} and wanted to make sure it reached you. If you're still interested, we'd be glad to arrange a quick 5-minute call.`],
+      afterVisit:[`أهلاً ${nm}، شكراً على وقتك معانا${pr}. حبيت أسأل لو عندك أي ملاحظات بعد اللي اتناقش، وأحدد معاك موعد تسليم عرض السعر / الخطوة الجاية.`,
+                  `Hello ${nm}, thank you for your time${pr}. Do you have any thoughts on what we discussed? Let's agree on when you'll receive the proposal / next step.`],
+      quote:[`أهلاً ${nm}، معاك فريق ${co}. حبيت أتأكد إن عرض السعر${pr} وصلك، وأجاوب على أي استفسار أو أعدّل أي بند. تحب نتكلم مكالمة سريعة النهارده أو بكرة؟`,
+             `Hello ${nm}, ${co} here. I wanted to check that our proposal${pr} reached you, and answer any question or adjust any item. Would a quick call today or tomorrow work?`],
+      pricing:[`أهلاً ${nm}، بنجهّز عرض السعر${pr}. عشان نخلّصه بدقة محتاجين نأكد معاك كام نقطة (المساحة / الميزانية التقريبية / موعد البدء). ينفع نتكلم دقايق؟`,
+               `Hello ${nm}, we're preparing your proposal${pr}. To finalise it accurately we need to confirm a few points (area / approximate budget / start date). Could we talk briefly?`],
+      afterCall:[`أهلاً ${nm}، شكراً على مكالمتنا${pr}. زي ما اتفقنا هبعتلك التفاصيل، ولو في أي حاجة تحب نضيفها قولي. ونرتّب الخطوة الجاية؟`,
+                 `Hello ${nm}, thanks for our call${pr}. As agreed, here are the details — let me know if you'd like to add anything. Shall we arrange the next step?`],
+      new:[`أهلاً ${nm}، معاك فريق ${co} — استوديو تصميم داخلي وتنفيذ وتنسيق مواقع. وصلنا طلبك${pr}. إمتى يناسبك نتكلم ٥ دقايق نفهم احتياجك؟`,
+           `Hello ${nm}, this is ${co} — an interior design, fit-out and landscape studio. We received your inquiry${pr}. When is a good time for a quick 5-minute call?`],
+      reengage:[`أهلاً ${nm}، معاك فريق ${co}. كنت تواصلت معانا قبل كده${pr}. لسه مهتم؟ يسعدنا نعرض عليك آخر أعمالنا ونرتّب الخطوة الجاية.`,
+                `Hello ${nm}, ${co} here. You reached out to us earlier${pr}. Are you still interested? We'd be happy to share our latest work and arrange the next step.`],
+      followup:[`أهلاً ${nm}، معاك فريق ${co}. كنا اتكلمنا قبل كده${pr} وحبيت أطمّن لو لسه مهتم نكمل. أرتّب لك الخطوة الجاية (معاينة / عرض سعر)؟`,
+                `Hello ${nm}, ${co} here. Following up on our earlier conversation${pr} — are you still planning to move forward? Happy to arrange the next step (site visit / proposal).`],
+      won:[`أهلاً ${nm}، شكراً على ثقتك في ${co}. يسعدنا نسمع رأيك في التجربة، ولو عندك حد من معارفك محتاج تصميم أو تنفيذ يسعدنا نخدمه.`,
+           `Hello ${nm}, thank you for trusting ${co}. We'd love to hear your feedback, and if anyone you know needs design or fit-out work, we'd be glad to help.`]};
+    return (M[kind]||M.followup)[en?1:0];}
+  function waBuild(){
+    const l=leads.find(x=>x.id===wa.id);if(!l)return"";
+    const lang=wa.lang==="auto"?(hasAr(l.name)?"ar":"en"):wa.lang,en=lang==="en";
+    const nm=wa.name||obName(l,lang).v,pr=obProj(l,lang);
+    let body=waBody(wa.kind,nm,pr,en,l);
+    const ms=MATS.items.filter(m=>wa.mats.has(m.id)&&m.url);
+    if(ms.length)body+="\n\n"+(en?"Our work:":"نماذج من أعمالنا:")+"\n"+ms.map(m=>"• "+(en?(m.titleEn||m.title):m.title)+": "+m.url).join("\n");
+    return body;}
+  function waRender(){
+    const l=leads.find(x=>x.id===wa.id);if(!l)return;
+    const lang=wa.lang==="auto"?(hasAr(l.name)?"ar":"en"):wa.lang;
+    if(!wa.edited)wa.txt=waBuild();
+    const opt=Object.keys(WA_KINDS).map(k=>`<option value="${k}" ${k===wa.kind?"selected":""}>${esc(X(WA_KINDS[k][0],WA_KINDS[k][1]))}${k===wa.auto?" ⭐":""}</option>`).join("");
+    const mats=MATS.items.length?MATS.items.map(m=>`<label style="display:flex;gap:6px;align-items:center;cursor:pointer;font-size:13px;padding:2px 0"><input type="checkbox" style="width:auto;margin:0" ${wa.mats.has(m.id)?"checked":""} onchange="waMat('${m.id}')">${obMatIcon(m.url)} ${esc(isEn()?(m.titleEn||m.title):m.title)}</label>`).join(""):`<div class="muted" style="font-size:12px">${X("مفيش خامات لسه — ضيفها من «رسائل متابعة / تعريف»","No materials yet — add them in “Follow-up / intro messages”")}</div>`;
+    const nmv=wa.name||obName(l,lang).v;
+    document.getElementById("waBody").innerHTML=`
+      <div style="font-weight:700;margin-bottom:2px">${esc(l.name)} <span class="muted" style="font-weight:400;font-size:12px">${esc(L(stById(l.status)))} · ${esc(l.phone||"")}</span></div>
+      <div class="muted" style="font-size:12px;margin-bottom:10px">${X("⭐ = المقترح تلقائياً حسب آخر لوج","⭐ = auto-picked from the last log")}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+        <div class="field" style="margin:0;flex:2;min-width:200px"><label style="font-size:12px;font-weight:600">${X("نوع الرسالة","Message type")}</label><select class="filter" style="width:100%" onchange="waSet('kind',this.value)">${opt}</select></div>
+        <div class="field" style="margin:0;flex:1;min-width:110px"><label style="font-size:12px;font-weight:600">${X("اللغة","Language")}</label><select class="filter" style="width:100%" onchange="waSet('lang',this.value)"><option value="auto" ${wa.lang==="auto"?"selected":""}>${X("تلقائي","Auto")} (${lang.toUpperCase()})</option><option value="ar" ${wa.lang==="ar"?"selected":""}>العربية</option><option value="en" ${wa.lang==="en"?"selected":""}>English</option></select></div>
+        <div class="field" style="margin:0;flex:1;min-width:110px"><label style="font-size:12px;font-weight:600">${X("الاسم في الرسالة","Name in message")}</label><input type="text" value="${esc(nmv)}" onchange="waSet('name',this.value)"></div>
+      </div>
+      <div style="font-size:12.5px;font-weight:600;margin:4px 0">${X("لينكات تتبعت مع الرسالة","Links to include")}</div>
+      <div style="margin-bottom:10px">${mats}</div>
+      <textarea id="waTxt" rows="7" style="width:100%" oninput="wa.txt=this.value;wa.edited=true">${esc(wa.txt)}</textarea>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0">
+        <label style="font-size:12.5px;display:flex;gap:5px;align-items:center;cursor:pointer"><input type="checkbox" style="width:auto;margin:0" ${wa.log?"checked":""} onchange="wa.log=this.checked">${X("سجّل في اللوج + حدد متابعة بعد","Log it + set follow-up in")}</label>
+        <select class="filter" onchange="wa.days=+this.value">${[2,3,5,7,10,14].map(d=>`<option ${d===wa.days?"selected":""}>${d}</option>`).join("")}</select><span style="font-size:12.5px">${X("يوم","days")}</span></div>
+      <button class="btn btn-primary" style="width:100%;background:#1FA855;border-color:#1FA855" onclick="waSend()">💬 ${X("افتح واتساب وابعت","Open WhatsApp & send")}</button>`;}
+  window.openWa=function(id){
+    const l=leads.find(x=>x.id===id);if(!l)return;
+    wa.id=id;wa.auto=wa.kind=waDetect(l);wa.lang="auto";wa.name="";wa.edited=false;wa.log=true;wa.days=5;
+    document.getElementById("waTitle").textContent="💬 "+X("واتساب ذكي","Smart WhatsApp");
+    waRender();document.getElementById("waOverlay").classList.add("show");};
+  window.waSet=function(k,v){wa[k]=v;if(k==="lang"||k==="kind")wa.name=k==="lang"?"":wa.name;wa.edited=false;waRender();};
+  window.waMat=function(id){wa.mats.has(id)?wa.mats.delete(id):wa.mats.add(id);wa.edited=false;waRender();};
+  window.waSend=function(){
+    const l=leads.find(x=>x.id===wa.id);if(!l)return;
+    const n=waNumber(l.phone);if(!n){toast(X("رقم غير صالح","Invalid number"));return;}
+    const msg=(document.getElementById("waTxt")||{}).value||wa.txt;
+    window.open("https://wa.me/"+n+"?text="+encodeURIComponent(msg),"_blank","noopener");
+    if(wa.log&&canAddNotes()){
+      const ts=Date.now(),lang=wa.lang==="auto"?(hasAr(l.name)?"ar":"en"):wa.lang;
+      const fu=obYmd(ts,wa.days),cur=l.nextFollowUp;
+      if(!(cur&&cur>ymdLocal(ts)&&cur<fu))l.nextFollowUp=fu;
+      const mats=MATS.items.filter(m=>wa.mats.has(m.id)).map(m=>m.title);
+      l.notes=l.notes||[];
+      l.notes.push({id:uid(),ts,kind:"message",text:"📣 رسالة واتساب ("+WA_KINDS[wa.kind][0].split(" — ")[0]+" · "+lang.toUpperCase()+")"+(mats.length?" + "+mats.join("، "):"")+" — المتابعة الجاية: "+l.nextFollowUp});
+      l.outreach=(l.outreach||[]).concat([{ts,lang,tpl:"smart:"+wa.kind,by:currentUserName||""}]).slice(-10);
+      l.lastOutreachAt=ts;l.updatedAt=ts;
+      putLead(l).then(()=>{renderLeadsAndDash();if($("#detailOverlay").classList.contains("show")&&currentDetailId===l.id)renderDetail();}).catch(()=>{});}
+    document.getElementById("waOverlay").classList.remove("show");
+    toast(X("اتفتح واتساب"+(wa.log?" وسُجّلت الرسالة":""),"WhatsApp opened"+(wa.log?" and logged":"")));};
   window.obSend=function(id,share){
     const l=leads.find(x=>x.id===id);if(!l)return;const msg=obMsg(l);
     if(share&&ob.file){navigator.share({files:[ob.file],text:msg}).then(()=>obMark(l)).catch(()=>{});return;}
@@ -2686,7 +2805,7 @@
           ${qChips(l,"chip","10.5px")}</div></div>
       ${l.phone?`<div style="display:flex;gap:8px;margin:12px 0;flex-wrap:wrap">
         <a href="tel:${esc(telNum)}" class="btn btn-primary btn-sm" style="flex:1;justify-content:center">${t("call")} ${esc(l.phone)}</a>
-        <a href="https://wa.me/${esc(waNum)}?text=${encodeURIComponent(waText(l))}" target="_blank" class="btn btn-ghost btn-sm" style="justify-content:center;color:#1FA855;border-color:#9FD9B4">${t("whatsapp")}</a>
+        ${canAddNotes()?`<button class="btn btn-ghost btn-sm" style="justify-content:center;color:#1FA855;border-color:#9FD9B4" onclick="openWa('${esc(l.id)}')">💬 ${t("whatsapp")}</button>`:`<a href="https://wa.me/${esc(waNum)}?text=${encodeURIComponent(waText(l))}" target="_blank" class="btn btn-ghost btn-sm" style="justify-content:center;color:#1FA855;border-color:#9FD9B4">${t("whatsapp")}</a>`}
         ${l.phone2?`<a href="tel:${esc((l.phone2||"").replace(/[^\d+]/g,""))}" class="btn btn-ghost btn-sm" style="justify-content:center">📞 ${esc(l.phone2)}</a>`:""}</div>`:""}
       ${(l.services||[]).length?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">${l.services.map(x=>`<span class="tag" style="background:var(--surface2);border-color:var(--clay);color:var(--clay)">${esc(svcDisplayByKey(x))}</span>`).join("")}</div>`:""}
       ${sug?`<div class="info-box" style="margin-bottom:12px;border-color:${sug.good?'var(--sage)':'var(--gold)'};background:${sug.good?'var(--sage-soft)':'#FCF6EA'}"><div class="ib-l">${t("bestContactTime")}</div><div style="font-size:13.5px;font-weight:600">${esc(sug.txt)}</div></div>`:""}
